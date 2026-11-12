@@ -928,6 +928,40 @@ img { max-width: 100%; display: block; }
 }
 .ctc-table tbody .ctc-col--sticky { background: var(--ctc-color-surface); }
 .ctc-table thead .ctc-col--sticky { z-index: 4; background: var(--ctc-color-table-head); }
+
+/* Filtro estilo Excel no titulo da coluna (botao ▼ + menu com ordenar, pesquisar e lista de valores) */
+.ctc-filterbar[hidden] { display: none; }
+.fd-th { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.ctc-col--num .fd-th { justify-content: flex-end; }
+.fd-th__titulo { cursor: pointer; }
+.fd-filtro-btn {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0; border: 1px solid rgba(255,255,255,.55); border-radius: 3px;
+  background: rgba(255,255,255,.12); color: var(--ctc-white); font-size: 9px; line-height: 1; cursor: pointer;
+}
+.fd-filtro-btn:hover { background: rgba(255,255,255,.28); }
+.fd-filtro-btn.is-ativo { background: var(--ctc-warning-solid, #f59e0b); border-color: var(--ctc-warning-solid, #f59e0b); color: #1f2937; }
+.fd-filtro-menu {
+  position: fixed; z-index: var(--ctc-z-popover, 1000); width: 280px;
+  background: var(--ctc-color-surface); color: var(--ctc-color-text);
+  border: 2px solid var(--ctc-color-border-strong); border-radius: var(--ctc-radius-md);
+  box-shadow: var(--ctc-shadow-3); font-size: var(--ctc-fs-sm); font-weight: var(--ctc-fw-regular);
+  display: flex; flex-direction: column; text-align: left; white-space: normal;
+}
+.fd-filtro-menu__cab { padding: 10px 12px 4px; font-size: var(--ctc-fs-xs); font-weight: var(--ctc-fw-bold); color: var(--ctc-color-text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.fd-filtro-menu__ordem { display: block; width: 100%; padding: 6px 12px; border: 0; background: none; text-align: left; cursor: pointer; color: inherit; font: inherit; }
+.fd-filtro-menu__ordem:hover, .fd-filtro-menu__ordem.is-ativo { background: var(--ctc-neutral-100); }
+.fd-filtro-menu__sep { border-top: 1px solid var(--ctc-color-border); margin: 4px 0; }
+.fd-filtro-menu__busca { margin: 4px 10px 6px; }
+.fd-filtro-menu__lista { max-height: 240px; overflow: auto; margin: 0 10px; border: 1px solid var(--ctc-color-border); border-radius: var(--ctc-radius-sm); padding: 4px 0; }
+.fd-filtro-menu__item { display: flex; align-items: center; gap: 8px; padding: 3px 8px; cursor: pointer; }
+.fd-filtro-menu__item:hover { background: var(--ctc-neutral-50); }
+.fd-filtro-menu__item span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-filtro-menu__item small { color: var(--ctc-color-text-subtle); font-variant-numeric: tabular-nums; }
+.fd-filtro-menu__item--todos span { font-weight: var(--ctc-fw-bold); }
+.fd-filtro-menu__vazio { padding: 6px 10px; color: var(--ctc-color-text-subtle); }
+.fd-filtro-menu__rodape { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.fd-filtro-menu__rodape .ctc-spacer { flex: 1; }
 .ctc-table--striped tbody tr:nth-child(even) > td.ctc-col--sticky { background: var(--ctc-neutral-50); }
 .ctc-table .ctc-row--danger > td.ctc-col--sticky  { background: var(--ctc-danger-bg); }
 .ctc-table .ctc-row--warning > td.ctc-col--sticky { background: var(--ctc-warning-bg); }
@@ -6554,7 +6588,11 @@ return { iniciarFirebase, observarLogin, sair, criarTelaLogin, obraDaUrl, papelN
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.68.0
+   Versao: 1.70.0
+   1.70.0: "Visao geral" sai das abas da base e vira item proprio do menu (com a mesma barra de
+           filtros e indicadores). Aba Notas e boletos sem a barra de pesquisa/insumo/terceiro do topo e sem as caixas
+           de filtro abaixo dos titulos: filtro estilo Excel no proprio titulo (botao com ordenar
+           A-Z/Z-A, pesquisar, selecionar tudo e lista de valores com contagem).
    1.68.0: Dashboard: boletos vencidos e NFs sem e-clic numa faixa compacta no topo (so a
            quantidade); "NF sem boleto lancado" passa para a base de faturamento. Base de notas:
            filtro de selecao (lista de valores) alem do filtro digitado em cada coluna.
@@ -10926,6 +10964,14 @@ function secaoNotasBoletos() {
     if (c.tipo === 'data') return formatarData(v);
     return String(v);
   };
+  /* valor da celula como aparece na lista do filtro (vazio vira "(Vazias)") */
+  const valorFiltro = (c, r) => { const t = String(textoDe(c, r) ?? '').trim(); return t === '' ? VAZIO_FILTRO : t; };
+  /* filtros estilo Excel: cada coluna guarda a lista de valores marcados; "exceto" ignora uma coluna */
+  const passaFiltrosColuna = (r, exceto) => colunas.every((c) => {
+    if (c.id === exceto) return true;
+    const lista = filtros[`${c.id}__lista`];
+    return !Array.isArray(lista) || lista.includes(valorFiltro(c, r));
+  });
 
   function filtrar(estado) {
     const f = estado.filtros || {};
@@ -10934,11 +10980,7 @@ function secaoNotasBoletos() {
       if (f.insumo && cfg.insumoDe && cfg.insumoDe(r) !== f.insumo) return false;
       if (f.terceiro && cfg.terceiroDe && cfg.terceiroDe(r) !== f.terceiro) return false;
       if (termo && !normalizarTexto(colunas.map((c) => textoDe(c, r)).join(' ')).includes(termo)) return false;
-      return colunas.every((c) => {
-        const txt = normalizarTexto(textoDe(c, r));
-        if (filtros[`${c.id}__sel`] && txt !== normalizarTexto(filtros[`${c.id}__sel`])) return false;
-        return !filtros[c.id] || txt.includes(normalizarTexto(filtros[c.id]));
-      });
+      return passaFiltrosColuna(r);
     });
     const col = ordem.coluna ? colunas.find((c) => c.id === ordem.coluna) : null;
     if (col) {
@@ -10985,36 +11027,127 @@ function secaoNotasBoletos() {
     definirMetaBase(`${plural(visiveis.length, cfg.unidade[0], cfg.unidade[1])}`);
   }
 
-  /* cabecalho fixo: titulo (clique ordena) + lista de valores (selecao) + filtro digitado */
-  const todasLinhas = cfg.linhas();
+  /* cabecalho fixo: titulo (clique ordena) + botao ▼ com o filtro estilo Excel */
   const cabecalho = h('tr', {}, ...colunas.map((c, i) => {
-    let campo = null;
-    let selecao = null;
-    if (!c.opcoes && !c.semFiltro && (!c.tipo || c.tipo === 'texto' || c.tipo === 'data')) {
-      const valores = [...new Set(todasLinhas.map((r) => textoDe(c, r)).filter((v) => v !== ''))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true })).slice(0, 300);
-      selecao = h('select', { class: 'ctc-select ctc-select--sm', 'aria-label': `Selecionar ${c.titulo}` },
-        h('option', { value: '' }, '(todos)'), ...valores.map((v) => h('option', { value: v, selected: filtros[`${c.id}__sel`] === v ? true : null }, v)));
-      selecao.addEventListener('change', () => { filtros[`${c.id}__sel`] = selecao.value; desenhar(); });
-      selecao.addEventListener('click', (e) => e.stopPropagation());
-    }
-    if (c.opcoes) {
-      campo = h('select', { class: 'ctc-select ctc-select--sm', 'aria-label': `Filtrar ${c.titulo}` }, h('option', { value: '' }, 'todos'), ...c.opcoes.map((o) => h('option', { value: o, selected: filtros[c.id] === o ? true : null }, o)));
-      campo.addEventListener('change', () => { filtros[c.id] = campo.value; desenhar(); });
-    } else if (!c.semFiltro && (!c.tipo || c.tipo === 'texto' || c.tipo === 'data')) {
-      campo = h('input', { type: 'search', class: 'ctc-input ctc-input--sm', placeholder: 'filtrar…', value: filtros[c.id] || '', 'aria-label': `Filtrar ${c.titulo}` });
-      campo.addEventListener('input', () => { filtros[c.id] = campo.value; desenhar(); });
-    }
-    if (campo) campo.addEventListener('click', (e) => e.stopPropagation());
     const seta = ordem.coluna === c.id ? (ordem.direcao === 'desc' ? ' ▼' : ' ▲') : '';
     /* titulo clicavel (herda a cor branca do cabecalho) */
     const ordenarPor = () => { ordemColunaNotas[base] = { coluna: c.id, direcao: ordem.coluna === c.id && ordem.direcao === 'asc' ? 'desc' : 'asc' }; recarregar(); };
     const titulo = h('span', {
-      role: 'button', tabindex: '0', title: 'Clique para ordenar por esta coluna',
+      class: 'fd-th__titulo', role: 'button', tabindex: '0', title: 'Clique para ordenar por esta coluna',
       onClick: ordenarPor, onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ordenarPor(); } },
     }, `${c.titulo}${seta}`);
+    const ativo = Array.isArray(filtros[`${c.id}__lista`]);
+    const botao = h('button', {
+      type: 'button', class: `fd-filtro-btn ctc-allow-readonly${ativo ? ' is-ativo' : ''}`,
+      title: ativo ? `Filtro aplicado em ${c.titulo}` : `Filtrar ${c.titulo}`, 'aria-label': `Filtrar ${c.titulo}`,
+      onClick: (e) => { e.stopPropagation(); abrirFiltroExcel(c, botao); },
+    }, '▼');
     return h('th', { class: [c.tipo && !['texto', 'data', 'badge'].includes(c.tipo) ? 'ctc-col--num' : '', i === 0 ? 'ctc-col--sticky' : ''].filter(Boolean).join(' ') || null },
-      h('div', {}, titulo), h('div', {}, selecao || (c.opcoes ? campo : '\u00a0')), h('div', {}, c.opcoes ? '\u00a0' : (campo || '\u00a0')));
+      h('div', { class: 'fd-th' }, titulo, botao));
   }), h('th', {}));
+
+  /* Menu do filtro (como no Excel): ordenar, pesquisar, (Selecionar tudo) + valores com contagem, Limpar / Cancelar / OK */
+  function abrirFiltroExcel(c, botao) {
+    fecharFiltroExcel();
+    const chave = `${c.id}__lista`;
+    /* valores possiveis = linhas que passam nos filtros das OUTRAS colunas */
+    const contagem = new Map();
+    cfg.linhas().forEach((r) => {
+      if (!passaFiltrosColuna(r, c.id)) return;
+      const v = valorFiltro(c, r);
+      contagem.set(v, (contagem.get(v) || 0) + 1);
+    });
+    const valores = [...contagem.keys()].sort((a, b) => {
+      if (a === VAZIO_FILTRO) return 1;
+      if (b === VAZIO_FILTRO) return -1;
+      return a.localeCompare(b, 'pt-BR', { numeric: true });
+    });
+    const atual = Array.isArray(filtros[chave]) ? new Set(filtros[chave]) : null;
+    const marcados = new Set(valores.filter((v) => !atual || atual.has(v)));
+    let termo = '';
+    let botaoOk = null;
+
+    const lista = h('div', { class: 'fd-filtro-menu__lista' });
+    const visiveisMenu = () => valores.filter((v) => !termo || normalizarTexto(v).includes(termo));
+    const todosBox = h('input', { type: 'checkbox' });
+    function desenharLista() {
+      const vis = visiveisMenu();
+      const qtdMarcados = vis.filter((v) => marcados.has(v)).length;
+      if (botaoOk) botaoOk.disabled = qtdMarcados === 0;   // como no Excel: sem nada marcado, OK bloqueado
+      todosBox.checked = vis.length > 0 && qtdMarcados === vis.length;
+      todosBox.indeterminate = qtdMarcados > 0 && qtdMarcados < vis.length;
+      lista.replaceChildren(
+        h('label', { class: 'fd-filtro-menu__item fd-filtro-menu__item--todos' }, todosBox, h('span', {}, termo ? '(Selecionar todos os resultados)' : '(Selecionar tudo)')),
+        ...(vis.length ? vis.map((v) => {
+          const box = h('input', { type: 'checkbox' });
+          box.checked = marcados.has(v);
+          box.addEventListener('change', () => { if (box.checked) marcados.add(v); else marcados.delete(v); desenharLista(); });
+          return h('label', { class: 'fd-filtro-menu__item', title: v }, box, h('span', {}, v), h('small', {}, String(contagem.get(v))));
+        }) : [h('div', { class: 'fd-filtro-menu__vazio' }, 'Nenhum valor encontrado.')]),
+      );
+    }
+    todosBox.addEventListener('change', () => {
+      const marcar = todosBox.checked;
+      visiveisMenu().forEach((v) => { if (marcar) marcados.add(v); else marcados.delete(v); });
+      desenharLista();
+    });
+    const busca = h('input', { type: 'search', class: 'ctc-input ctc-input--sm fd-filtro-menu__busca ctc-allow-readonly', placeholder: 'Pesquisar', 'aria-label': `Pesquisar valores de ${c.titulo}` });
+    busca.addEventListener('input', () => { termo = normalizarTexto(busca.value.trim()); desenharLista(); });
+
+    const numerica = c.tipo && !['texto', 'badge'].includes(c.tipo);
+    const ordenar = (direcao) => { ordemColunaNotas[base] = { coluna: c.id, direcao }; fecharFiltroExcel(); recarregar(); };
+    const aplicarFiltro = () => {
+      /* com pesquisa digitada, vale o que esta marcado ENTRE os resultados (igual ao Excel) */
+      const escolhidos = valores.filter((v) => marcados.has(v) && (!termo || normalizarTexto(v).includes(termo)));
+      if (escolhidos.length === valores.length) delete filtros[chave];
+      else filtros[chave] = escolhidos;
+      fecharFiltroExcel();
+      recarregar();
+    };
+    const limparFiltro = () => { delete filtros[chave]; fecharFiltroExcel(); recarregar(); };
+
+    const menu = h('div', { class: 'fd-filtro-menu', role: 'dialog', 'aria-label': `Filtro de ${c.titulo}` },
+      h('div', { class: 'fd-filtro-menu__cab' }, c.titulo),
+      h('button', { type: 'button', class: `fd-filtro-menu__ordem${ordem.coluna === c.id && ordem.direcao === 'asc' ? ' is-ativo' : ''}`, onClick: () => ordenar('asc') },
+        numerica ? '↑ Classificar do menor para o maior' : '↑ Classificar de A a Z'),
+      h('button', { type: 'button', class: `fd-filtro-menu__ordem${ordem.coluna === c.id && ordem.direcao === 'desc' ? ' is-ativo' : ''}`, onClick: () => ordenar('desc') },
+        numerica ? '↓ Classificar do maior para o menor' : '↓ Classificar de Z a A'),
+      h('div', { class: 'fd-filtro-menu__sep' }),
+      busca,
+      lista,
+      h('div', { class: 'fd-filtro-menu__rodape' },
+        botaoFD({ texto: 'Limpar', variante: 'ghost', tamanho: 'sm', onClick: limparFiltro }),
+        h('span', { class: 'ctc-spacer' }),
+        botaoFD({ texto: 'Cancelar', variante: 'ghost', tamanho: 'sm', onClick: fecharFiltroExcel }),
+        (botaoOk = botaoFD({ texto: 'OK', variante: 'primary', tamanho: 'sm', onClick: aplicarFiltro }))));
+    menu.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { e.preventDefault(); fecharFiltroExcel(); botao.focus(); }
+      if (e.key === 'Enter' && e.target === busca) { e.preventDefault(); aplicarFiltro(); }
+    });
+    desenharLista();
+    document.body.append(menu);
+    /* posiciona logo abaixo do botao, sem sair da tela */
+    const r = botao.getBoundingClientRect();
+    const larg = menu.offsetWidth;
+    const alt = menu.offsetHeight;
+    menu.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - larg - 8))}px`;
+    menu.style.top = `${r.bottom + alt + 8 > window.innerHeight ? Math.max(8, r.top - alt - 4) : r.bottom + 4}px`;
+    const fora = (e) => { if (!menu.contains(e.target)) fecharFiltroExcel(); };
+    setTimeout(() => {
+      document.addEventListener('mousedown', fora);
+      window.addEventListener('scroll', fora, true);
+      window.addEventListener('resize', fecharFiltroExcel);
+    }, 0);
+    menuFiltroAberto = {
+      menu,
+      sair: () => {
+        document.removeEventListener('mousedown', fora);
+        window.removeEventListener('scroll', fora, true);
+        window.removeEventListener('resize', fecharFiltroExcel);
+      },
+    };
+    busca.focus();
+  }
   const elemento = h('div', { class: 'ctc-table-wrap ctc-table-wrap--full' },
     h('table', { class: 'ctc-table ctc-table--compact ctc-table--grid ctc-table--striped' }, h('thead', {}, cabecalho), corpo, rodape));
   desenhar({ filtros: filtroBase });
@@ -11024,7 +11157,7 @@ function secaoNotasBoletos() {
     tabela: { elemento, atualizarConsulta: desenhar, obterFiltrados: () => [] },
     titulo: 'Base de notas fiscais e boletos — tudo em colunas', icone: 'tabela',
     avisos: [
-      criarAlerta({ tipo: 'info', mensagem: `${cfg.explicacao} Clique no título da coluna para ordenar; digite na caixa abaixo do título para filtrar.` }),
+      criarAlerta({ tipo: 'info', mensagem: `${cfg.explicacao} Clique no título da coluna para ordenar; use o botão ▼ ao lado do título para filtrar (como no Excel).` }),
       vencidos.length ? criarAlerta({ tipo: 'danger', titulo: `${vencidos.length} boleto(s) vencido(s) sem pagamento`, mensagem: vencidos.map((x) => `${x.numero} (NF ${notaPorId(x.notaId)?.numero || '—'})`).join(', ') }) : null,
       (() => {
         const semBoleto = notas.filter((nf) => !boletosDaNota(nf.id).length);
@@ -11056,6 +11189,14 @@ function secaoNotasBoletos() {
 }
 
 const ordemColunaNotas = {};
+const VAZIO_FILTRO = '(Vazias)';
+let menuFiltroAberto = null;
+function fecharFiltroExcel() {
+  if (!menuFiltroAberto) return;
+  menuFiltroAberto.sair();
+  menuFiltroAberto.menu.remove();
+  menuFiltroAberto = null;
+}
 const NOMES_BASES_NOTAS = { tudo: 'Notas e boletos' };
 const iconeFicha = (tipo, chave, titulo) => botaoFD({ icone: 'grafico', variante: 'ghost', tamanho: 'sm', titulo, onClick: (e) => { if (e) e.stopPropagation(); abrirFicha(tipo, chave); } });
 const comFicha = (texto, tipo, chave, titulo) => [chave ? iconeFicha(tipo, chave, titulo) : null, h('span', {}, texto || '—')];
@@ -11141,7 +11282,7 @@ const BASES_NOTAS = {
    Cada aba mantem todas as colunas, filtros proprios e acoes de antes.
    ========================================================================== */
 
-let abaBase = 'geral';
+let abaBase = 'terceiros';
 let filtroBase = { insumo: '', terceiro: '' };
 let definirMetaBase = () => {};
 
@@ -11154,6 +11295,8 @@ const SECOES_BASE = [
 ];
 
 function irParaBase(aba) {
+  /* a Visao geral e um item proprio do menu (v1.70); as demais seguem como abas da base */
+  if (aba === 'geral') { if (appAtual) appAtual.navegar('visao'); return; }
   abaBase = aba;
   if (appAtual) appAtual.navegar('base');
 }
@@ -11755,8 +11898,18 @@ function resumoBase() {
     }).elemento);
 }
 
+/* Base de faturamento: abas Terceiros / Pedidos e produtos / Notas e boletos */
 function paginaBase() {
-  if (abaBase && !SECOES_BASE.some((s) => s.id === abaBase)) abaBase = 'geral';
+  return montarPaginaBase(SECOES_BASE.filter((s) => s.id !== 'geral'));
+}
+
+/* Visao geral: item proprio do menu (mesmos filtros e indicadores do topo, sem abas) */
+function paginaVisaoGeral() {
+  return montarPaginaBase(SECOES_BASE.filter((s) => s.id === 'geral'));
+}
+
+function montarPaginaBase(secoes) {
+  if (!secoes.some((s) => s.id === abaBase)) abaBase = secoes[0].id;
   if (filtroBase.insumo && !insumos.some((i) => i.nome === filtroBase.insumo)) filtroBase.insumo = '';
   if (filtroBase.terceiro && !terceiros.some((t) => t.nome === filtroBase.terceiro)) filtroBase.terceiro = '';
   let tabelaAtiva = null;
@@ -11783,10 +11936,19 @@ function paginaBase() {
   const abas = criarAbas({
     ativa: abaBase,
     onMudar: (id) => { abaBase = id; },
-    abas: SECOES_BASE.map((sec) => ({
+    abas: secoes.map((sec) => ({
       id: sec.id,
       texto: sec.id === 'geral' ? sec.texto : `${sec.texto} (${sec.contar()})`,
       conteudo: () => {
+        fecharFiltroExcel();
+        /* Notas e boletos filtra pelo proprio titulo de cada coluna (estilo Excel): a barra de
+           pesquisa/insumo/terceiro do topo some nessa aba e nao deixa filtro escondido valendo */
+        const semBarraTopo = sec.id === 'notas';
+        barra.elemento.hidden = semBarraTopo;
+        if (semBarraTopo) {
+          const est = barra.obterEstado();
+          if (est.busca || Object.values(est.filtros).some(Boolean)) barra.limpar();
+        }
         const s = sec.montar();
         tabelaAtiva = s.tabela;
         extrasAtivos = {};
@@ -11811,7 +11973,8 @@ function paginaBase() {
     alertaFicticio(),
     barra.elemento,
     resumo,
-    abas.elemento,
+    /* com uma secao so (Visao geral) mostra o conteudo direto, sem a linha de abas */
+    secoes.length > 1 ? abas.elemento : abas.painel,
   ];
 }
 
@@ -16101,6 +16264,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           itens: [
             { id: 'painel', texto: 'Dashboard FD', icone: 'painel' },
             { id: 'insumos', texto: 'Insumos', icone: 'moeda' },
+            { id: 'visao', texto: 'Visão geral', icone: 'olho' },
             { id: 'base', texto: 'Base de faturamento', icone: 'tabela' },
             { id: 'tendencia', texto: 'Tendência', icone: 'grafico' },
             { id: 'importar', texto: 'Importar / Exportar', icone: 'upload' },
@@ -16119,7 +16283,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           ],
         },
       ],
-      rodape: 'Faturamento Direto v1.69 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.70 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
@@ -16133,6 +16297,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           { texto: 'Novo insumo', icone: 'mais', variante: 'primary', apenasEdicao: true, onClick: () => abrirModalInsumo() },
         ],
       },
+      visao: { titulo: 'Visão geral — insumo › terceiro › pedido › NFs › boletos', caminho: ['Principal'], render: paginaVisaoGeral },
       base: { titulo: 'Base de faturamento — terceiros, pedidos, NFs e boletos', caminho: ['Principal'], render: paginaBase },
       aliquotas: { titulo: 'Tabela ICMS / DIFAL', caminho: ['Configurações'], render: paginaAliquotas },
       importar: { titulo: 'Importar / Exportar — Excel e base completa', caminho: ['Principal'], render: paginaImportarExportar },
