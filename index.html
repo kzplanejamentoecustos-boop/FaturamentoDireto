@@ -5953,7 +5953,58 @@ const IMAGENS_MODELO = {
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.51.0
+   Versao: 1.68.0
+   1.68.0: Dashboard: boletos vencidos e NFs sem e-clic numa faixa compacta no topo (so a
+           quantidade); "NF sem boleto lancado" passa para a base de faturamento. Base de notas:
+           filtro de selecao (lista de valores) alem do filtro digitado em cada coluna.
+   1.67.0: aba Notas e boletos com UMA base so ("tudo"), nas mesmas colunas da exportacao em Excel:
+           pedido, terceiro, insumo, NF, cada produto e cada boleto na sua linha, dados da NF,
+           tributos, e-clic e boleto. Sem cor de linha para boleto vencido (so no status do boleto).
+   1.66.0: aba Notas e boletos com 5 BASES no seletor (Notas · Produtos das notas · Boletos ·
+           Terceiros · Insumos), cada uma em colunas proprias como planilha: filtro por coluna,
+           ordenacao pelo titulo, cabecalho e totais fixos, exportacao da base na tela. NF no
+           inicio; "Detalhe" do produto so ao abrir a NF.
+   1.65.0: Notas e boletos como base em colunas (sem linhas de grupo): uma linha por produto de cada
+           NF e cada boleto na sua propria linha, NF repetida em todas; "Ordenar por" nota/produto/
+           terceiro/insumo; fichas pelo icone ao lado de produto, terceiro e insumo. Exportacao de
+           NFs: produtos logo apos o nº da NF, um por linha, e boletos em colunas proprias.
+   1.64.0: aba Notas e boletos em grade tipo Excel: filtro em cada coluna, cabecalho e totais fixos
+           ao rolar, separadores entre os blocos Produto | Nota fiscal | Boleto, totais na propria
+           coluna das linhas de grupo; ver por produto agrupa pelo NOME (pedidos como sublinhas) e
+           mostra a NF na 1a coluna; fichas (mini-dashboard) de produto, terceiro e insumo com
+           pedidos, NFs, consumo por mes e exportacao em Excel e PDF.
+   1.63.0: aba Notas e boletos (ver por produto): sem o selo "excede o pedido" na faixa do produto
+           (o excesso continua indicado na NF e no saldo em vermelho).
+   1.62.0: exportacoes de Excel padronizadas (ExcelJS): titulo com obra e data, linha de totais
+           (SUBTOTAL, respeita filtros) acima do cabecalho, cabecalho azul-marinho com filtro,
+           paineis congelados, linhas alternadas, formatos de R$, %, data e quantidade, larguras
+           automaticas, cor por aba e aba "Leia-me" nas exportacoes com varias abas. Os arquivos
+           continuam aceitos pelas importacoes.
+   1.61.0: aba Notas e boletos refeita "produto primeiro": uma linha por produto faturado em cada
+           NF (a nota se repete), visoes "Ver por" Nota / Produto / Terceiro / Insumo com faixas e
+           subtotais, blocos de colunas Produto · Nota fiscal · Boleto (boleto em coluna), saldo do
+           produto apos cada NF, filtros de BM, boleto e e-clic, "So subtotais" e exportacao da visao.
+   1.60.0: tela Pedidos e produtos volta aos nomes "Unit. COM REIDI", "Valor (COM REIDI)" e
+           "Saldo R$" (a troca para "Unitario/Valor/Saldo" vale so para o anexo de distrato).
+   1.59.0: anexo de distrato sem a coluna "Medição" (BM) na tabela de notas fiscais.
+   1.58.0: anexo de distrato sem os quadros de REIDI (valores so COM REIDI; nome unico "Saldo");
+           tela Pedidos e produtos: "Unitário", "Valor" e "Saldo" (valores COM REIDI).
+   1.57.0: distrato com status (Solicitado / Aprovado / Reprovado): o saldo so sai do pedido e
+           volta ao insumo depois de APROVADO; um unico saldo (COM REIDI) chamado "Saldo".
+   1.56.0: DISTRATO DE SALDO do pedido: zera o saldo restante (o valor volta ao saldo do insumo),
+           fica registrado (nº DIST-AAAA-NNN, data, motivo, descricao e retrato dos produtos) e
+           gera o PDF "Anexo de Solicitacao de Distrato de Saldo de Faturamento Direto".
+           Descricao escrita na hora, com geracao automatica e melhoria do texto.
+   1.55.0: quantidades e saldo apos a NF exibidos sem arredondamento (todas as casas do valor;
+           so o ruido de calculo do computador e descartado).
+   1.54.0: Apresentacao FD por terceiro (PowerPoint e PDF) com o slide de Atividades Contratuais
+           (previsto x comprometido x consumido, contrato inteiro), logo apos a capa.
+   1.53.0: PDF da NF com a conta de saldo de cada produto (qtd do pedido, em outras NFs, nesta NF
+           e saldo apos a NF, em vermelho quando excede) e alerta na conferencia; "-0" no saldo
+           do cadastro da NF vira 0.
+   1.52.0: PDF da nota fiscal (botao discreto no cadastro da NF e na linha da NF): ficha completa
+           com pedido, terceiro, tributos (REIDI item a item, DIFAL), e-clic/GRD, posicao do pedido
+           antes e depois da NF, produtos com saldo, conferencia, boletos e observacoes.
    1.51.0: relatorio: REIDI da NF so em R$ (sem %); grafico de evolucao com eixo ate 100%
            (sem o rotulo 105%).
    1.50.0: relatorio do cliente: capa sem o resumo de atividades; Atividades Contratuais na 2a
@@ -6270,6 +6321,8 @@ let pedidos = [];
 let produtos = [];
 let notas = [];
 let boletos = [];
+/* distratos de saldo: um por pedido; o saldo distratado sai do valor comprometido do pedido */
+let distratos = [];
 let aliquotas = { ...ALIQUOTAS_ICMS_PADRAO };
 
 let sequenciaId = 0;
@@ -6391,6 +6444,7 @@ function carregarDados(base) {
     : { detalhe: '', ...p }));
   notas = lista(dados.notas).map((n) => ({ itens: [], itensSemVinculo: [], grds: [], ...n }));
   boletos = lista(dados.boletos).map((b) => ({ grds: [], ...b }));
+  distratos = lista(dados.distratos);
   /* e-clic agora e da NF: bases antigas (via assinada no boleto) sao convertidas ao abrir */
   notas.forEach((n) => {
     if (n.eclic != null) return;
@@ -6422,7 +6476,7 @@ function obterBaseParaSalvar() {
     ...base,
     identidade,
     vinculoNuvem,
-    dados: { obra, aditivos, anexosObra, insumos, terceiros, pedidos, produtos, notas, boletos, aliquotasIcms: aliquotas },
+    dados: { obra, aditivos, anexosObra, insumos, terceiros, pedidos, produtos, notas, boletos, distratos, aliquotasIcms: aliquotas },
   };
 }
 
@@ -6450,6 +6504,17 @@ const seloEclic = (nf) => criarBadge({
   texto: nf.eclic ? `e-clic ${nf.eclicData ? formatarData(nf.eclicData) : 'ok'}` : 'sem e-clic',
   variante: nf.eclic ? 'success' : 'neutral',
 });
+
+/**
+ * Quantidade SEM arredondamento: mostra todas as casas que o valor tem (ate 6),
+ * descartando so o ruido de ponto flutuante (ex.: 0,30000000000000004 -> 0,3; -1e-15 -> 0).
+ */
+function numExato(v) {
+  let x = Number(vn(v).toFixed(6));
+  if (Object.is(x, -0) || Math.abs(x) < 1e-9) x = 0;
+  return x.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
+}
+const ehNegativoExato = (v) => Number(vn(v).toFixed(6)) < 0;
 
 const percExato = (v) => `${Number(vn(v)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 10 })}%`;
 
@@ -7025,8 +7090,19 @@ let atualizarDetalheAberto = null;
 function valorDosProdutos(pedidoId) {
   return produtosDoPedido(pedidoId).reduce((t, pr) => t + vn(pr.quantidade) * unitComEfetivo(pr), 0);
 }
+/* status do distrato: 'Solicitado' (registrado, sem efeito), 'Aprovado' (saldo sai do pedido
+   e volta ao insumo) ou 'Reprovado' (fica no historico, sem efeito) */
+const statusDistrato = (x) => x.status || 'Aprovado';   /* registros antigos (sem status) ja tinham efeito */
+const distratoDoPedido = (pedidoId) => distratos.find((x) => x.pedidoId === pedidoId && statusDistrato(x) === 'Aprovado') || null;
+/** Distrato em andamento ou aprovado (impede abrir outro); reprovados ficam so no historico. */
+const distratoAtivoDoPedido = (pedidoId) => distratos.find((x) => x.pedidoId === pedidoId && statusDistrato(x) !== 'Reprovado') || null;
 function sincronizarValoresPedidos() {
-  pedidos.forEach((p) => { p.valor = valorDosProdutos(p.id); });
+  /* valor comprometido = soma dos produtos - saldo distratado (o distratado volta para o insumo) */
+  pedidos.forEach((p) => {
+    p.valorOriginal = valorDosProdutos(p.id);
+    const dist = distratoDoPedido(p.id);
+    p.valor = p.valorOriginal - (dist ? vn(dist.valorSaldo) : 0);
+  });
   sincronizarReidiNotas();
 }
 
@@ -7346,11 +7422,6 @@ function conteudoPainel() {
     criarKpi({ rotulo: 'REIDI nas NFs', valor: formatarMoeda(reidi), sub: `DIFAL ${formatarMoeda(difal)} · ${abertos.length} boleto(s) em aberto` }).elemento);
 
   const pendencias = [
-    vencidos.length ? criarAlerta({
-      tipo: 'danger', titulo: `${vencidos.length} boleto(s) vencido(s) sem pagamento`,
-      mensagem: vencidos.map((b) => b.numero).join(', '),
-      acoes: [{ texto: 'Ver boletos', onClick: () => irParaBase('notas') }],
-    }) : null,
     nfsSemBM.length ? criarAlerta({
       tipo: 'warning', titulo: `${nfsSemBM.length} NF(s) a lançar em BM (${formatarMoeda(somar(nfsSemBM, 'valor'))})`,
       mensagem: nfsSemBM.map((n) => n.numero).join(', '),
@@ -7361,9 +7432,13 @@ function conteudoPainel() {
       mensagem: pedsDivergentes.map((p) => p.numero).join(', '),
       acoes: [{ texto: 'Ver pedidos', onClick: () => irParaBase('pedidos') }],
     }) : null,
-    nfsSemBoleto.length ? criarAlerta({ tipo: 'info', titulo: `${nfsSemBoleto.length} NF(s) sem boleto lançado`, mensagem: nfsSemBoleto.map((n) => n.numero).join(', ') }) : null,
-    nfsSemEclic.length ? criarAlerta({ tipo: 'info', titulo: `${nfsSemEclic.length} NF(s) ainda não lançada(s) no e-clic`, mensagem: nfsSemEclic.map((n) => n.numero).join(', ') }) : null,
   ].filter(Boolean);
+  /* faixa compacta no topo: boletos vencidos e NFs sem lancamento no e-clic (so a quantidade) */
+  const faixaAvisos = vencidos.length || nfsSemEclic.length ? h('div', { class: 'ctc-toolbar' },
+    vencidos.length ? criarBadge({ texto: `${vencidos.length} boleto(s) vencido(s) · ${formatarMoeda(somar(vencidos, 'valor'))}`, variante: 'danger' }) : null,
+    vencidos.length ? criarBotao({ texto: 'Ver boletos', variante: 'ghost', tamanho: 'sm', onClick: () => irParaBase('notas') }) : null,
+    nfsSemEclic.length ? criarBadge({ texto: `${nfsSemEclic.length} NF(s) sem lançamento no e-clic`, variante: 'warning' }) : null,
+  ) : null;
 
   const tabelaInsumos = criarTabela({
     dados: resumos.map(({ ins, r }) => ({
@@ -7396,8 +7471,9 @@ function conteudoPainel() {
   });
 
   return h('div', { class: 'ctc-stack' },
+    faixaAvisos,
     indicadores,
-    pendencias.length ? h('div', { class: 'ctc-stack' }, pendencias) : criarAlerta({ tipo: 'success', mensagem: 'Nenhuma pendência de conferência nos insumos selecionados.' }),
+    pendencias.length ? h('div', { class: 'ctc-stack' }, pendencias) : null,
     criarPainel({ titulo: 'Insumos', icone: 'tabela', semEspaco: true, conteudo: tabelaInsumos.elemento }).elemento,
     painelSaldoPedidos(pedsFiltro),
     blocoCurvas(serie, { mensal: false }));
@@ -8972,6 +9048,7 @@ async function excluirPedido(ped) {
   boletos = boletos.filter((b) => !idsNf.has(b.notaId));
   notas = notas.filter((n) => n.pedidoId !== ped.id);
   produtos = produtos.filter((p) => p.pedidoId !== ped.id);
+  distratos = distratos.filter((x) => x.pedidoId !== ped.id);
   pedidos.splice(pedidos.indexOf(ped), 1);
   registrarAlteracao();
   toast.aviso('Pedido excluído', ped.numero);
@@ -8986,7 +9063,10 @@ function abrirPedido(ped, abaInicial = 'resumo') {
     const ins = insumoDoPedido(ped);
     const resumo = () => h('div', { class: 'ctc-stack' },
       h('div', { class: 'ctc-grid ctc-grid--3' },
-        criarKpi({ rotulo: 'Valor do pedido', valor: formatarMoeda(ped.valor), sub: 'soma dos produtos (qtd × unit. COM REIDI)' }).elemento,
+        criarKpi({
+          rotulo: 'Valor do pedido', valor: formatarMoeda(ped.valor),
+          sub: distratoDoPedido(ped.id) ? `produtos ${formatarMoeda(ped.valorOriginal)} − distrato ${formatarMoeda(distratoDoPedido(ped.id).valorSaldo)}` : 'soma dos produtos (qtd × unit. COM REIDI)',
+        }).elemento,
         criarKpi({ rotulo: 'Produtos', valor: String(r.prods.length), sub: `${formatarNumero(r.prods.reduce((t, p) => t + vn(p.quantidade), 0))} unidade(s) contratada(s)` }).elemento,
         criarKpi({ rotulo: 'Produtos SEM REIDI', valor: formatarMoeda(r.totalSem) }).elemento,
         criarKpi({ rotulo: 'REIDI (desconto)', valor: formatarMoeda(r.reidi), sub: rotuloReidiPedido(ped, r), variante: ped.modoReidi === 'sem' ? null : 'success' }).elemento,
@@ -8997,6 +9077,7 @@ function abrirPedido(ped, abaInicial = 'resumo') {
         mensagem: `${ter?.nome || '—'} · ${ins?.nome || '—'} · emissão ${formatarData(ped.dataEmissao)} · ${ped.ufOrigem || '?'} → ${ped.ufDestino || '?'} · DIFAL ${formatarPercentual(ped.difalPerc)}${ped.importado ? ' · importado (4%)' : ''}`,
       }),
       ped.observacoes ? criarAlerta({ tipo: 'warning', titulo: 'Observações', mensagem: ped.observacoes }) : null,
+      alertaDistratoPedido(ped),
       r.prods.some((p) => !vn(p.quantidade)) ? criarAlerta({ tipo: 'warning', mensagem: 'Há produtos sem quantidade contratada: eles não somam no valor do pedido.' }) : null,
       r.excedido ? criarAlerta({ tipo: 'danger', mensagem: 'As NFs lançadas ultrapassam o valor do pedido.' }) : null);
     const abaProdutos = () => h('div', { class: 'ctc-stack' },
@@ -9041,6 +9122,8 @@ function abrirPedido(ped, abaInicial = 'resumo') {
     onFechar: () => { atualizarDetalheAberto = null; },
     acoes: [
       podeEditar() ? { texto: 'Excluir pedido', icone: 'lixeira', variante: 'danger', fechar: false, onClick: () => excluirPedido(ped) } : null,
+      podeEditar() && !distratoAtivoDoPedido(ped.id) && resumoPedido(ped).saldo > 0.005
+        ? { texto: 'Distrato de saldo', icone: 'documento', variante: 'outline', fechar: false, onClick: () => abrirDistrato(ped) } : null,
       podeEditar() ? { texto: 'Alterar REIDI', variante: 'outline', fechar: false, onClick: () => abrirAlterarReidi(ped) } : null,
       podeEditar() ? { texto: 'Editar dados do pedido', variante: 'outline', fechar: false, onClick: () => abrirModalPedido(ped) } : null,
       { texto: 'Fechar', variante: 'primary' },
@@ -9050,6 +9133,280 @@ function abrirPedido(ped, abaInicial = 'resumo') {
     if (!pedidos.includes(ped)) { modal.fechar(); return; }
     modal.definirConteudo(montar());
   };
+  modal.abrir();
+}
+
+
+/* =============================================================================
+   07c. DISTRATO DE SALDO DO PEDIDO
+   O saldo restante do pedido (valor - NFs) e distratado: sai do comprometido do pedido e
+   volta ao saldo do insumo. Fica registrado com o retrato dos produtos na data.
+   ========================================================================== */
+
+const MOTIVOS_DISTRATO = [
+  'Quantidade necessária atendida', 'Alteração de escopo ou de projeto', 'Substituição por novo pedido',
+  'Readequação de quantitativos', 'Encerramento do fornecimento', 'Outro',
+];
+
+function proximoNumeroDistrato(data = hojeIso()) {
+  const ano = String(data).slice(0, 4);
+  const usados = distratos.map((x) => String(x.numero || '').match(new RegExp(`^DIST-${ano}-(\\d+)$`))).filter(Boolean).map((m) => Number(m[1]));
+  return `DIST-${ano}-${String((usados.length ? Math.max(...usados) : 0) + 1).padStart(3, '0')}`;
+}
+
+/** Retrato do pedido para o distrato: valores e saldo de cada produto (qtd e R$ COM/SEM REIDI). */
+function retratoDistrato(ped) {
+  const valorOriginal = valorDosProdutos(ped.id);
+  const nfs = notasDoPedido(ped.id);
+  const faturado = somar(nfs, 'valor');
+  const itens = produtosDoPedido(ped.id).map((pr) => {
+    const a = analisarProduto(pr);
+    const saldoQtd = vn(pr.quantidade) - a.qtdFaturada;
+    const com = unitComEfetivo(pr);
+    return {
+      produtoId: pr.id, descricao: pr.descricao, detalhe: pr.detalhe || '', unidade: pr.unidade || '',
+      qtdContratada: vn(pr.quantidade), qtdFaturada: a.qtdFaturada, saldoQtd,
+      unitCom: com, unitSem: vn(pr.unitSem), saldoCom: saldoQtd * com, saldoSem: saldoQtd * vn(pr.unitSem),
+    };
+  });
+  return { valorOriginal, faturado, valorSaldo: valorOriginal - faturado, qtdNotas: nfs.length, reidiNotas: somar(nfs, 'reidi'), itens };
+}
+
+/** Novos pedidos do mesmo terceiro e atividade emitidos depois deste (citados na descricao). */
+function pedidosPosteriores(ped) {
+  const ins = insumoDoPedido(ped);
+  return pedidos.filter((p) => p.id !== ped.id && p.terceiroId === ped.terceiroId && insumoDoPedido(p)?.id === ins?.id
+    && String(p.dataEmissao || '') >= String(ped.dataEmissao || ''));
+}
+
+function descricaoAutomaticaDistrato(ped, motivo, ret = retratoDistrato(ped)) {
+  const ter = terceiroDoPedido(ped);
+  const ins = insumoDoPedido(ped);
+  const perc = ret.valorOriginal > 0 ? (ret.faturado / ret.valorOriginal) * 100 : 0;
+  const novos = pedidosPosteriores(ped);
+  const razao = {
+    'Quantidade necessária atendida': 'a quantidade necessária para o atendimento da demanda já foi fornecida',
+    'Alteração de escopo ou de projeto': 'houve alteração de escopo/projeto que torna desnecessário o saldo restante',
+    'Substituição por novo pedido': 'o fornecimento remanescente passou a ser atendido por novo pedido de compra',
+    'Readequação de quantitativos': 'os quantitativos do fornecimento foram readequados',
+    'Encerramento do fornecimento': 'o fornecimento foi encerrado',
+  }[motivo] || 'o saldo restante não se mostra mais necessário';
+  const partes = [
+    `Solicita-se o distrato do saldo remanescente de ${moedaRel(ret.valorSaldo)} do Pedido de Compra nº ${ped.numero}${ped.dataEmissao ? `, emitido em ${dataRel(ped.dataEmissao)}` : ''}, junto ao fornecedor ${ter?.nome || '—'}, referente à atividade ${ins?.nome || '—'}, uma vez que ${razao}.`,
+    `Até a presente data foram faturados ${moedaRel(ret.faturado)} (${percRel(perc, 2)} do valor do pedido) em ${ret.qtdNotas} nota(s) fiscal(is), restando ${moedaRel(ret.valorSaldo)} (${percRel(100 - perc, 2)}), que deixam de ser necessários para o atendimento da demanda.`,
+  ];
+  if (novos.length) partes.push(`Ressalta-se que ${novos.length === 1 ? 'novo pedido já foi emitido' : 'novos pedidos já foram emitidos'} (${novos.map((p) => `nº ${p.numero}`).join(', ')}) a fim de garantir o suprimento das demandas futuras.`);
+  partes.push('Com o distrato, o valor correspondente deixa de estar comprometido com este pedido e retorna ao saldo disponível da atividade contratual.');
+  return partes.join(' ');
+}
+
+/**
+ * Melhora o texto escrito pelo usuario (sem servico externo): corrige espacos e pontuacao,
+ * troca abreviacoes e termos informais pela forma escrita, padroniza "distrato", poe maiuscula
+ * no inicio das frases e garante a referencia ao pedido e ao valor quando faltarem.
+ */
+function melhorarTextoDistrato(texto, ped, ret = retratoDistrato(ped)) {
+  let t = String(texto || '').replace(/\s+/g, ' ').trim();
+  if (!t) return descricaoAutomaticaDistrato(ped, '', ret);
+  const trocas = [
+    [/\bdestrato(s?)\b/gi, 'distrato$1'], [/\bvc(s?)\b/gi, 'você$1'], [/\bpq\b/gi, 'porque'], [/\bq\b/gi, 'que'],
+    [/\bp\/\s*/gi, 'para '], [/\bpra\b/gi, 'para'], [/\bpro\b/gi, 'para o'], [/\btá\b/gi, 'está'], [/\bta\b/gi, 'está'],
+    [/\btb\b|\btbm\b/gi, 'também'], [/\bn\b/gi, 'não'], [/\bobs\b\.?/gi, 'Observação:'], [/\bqtd\b|\bqtde\b/gi, 'quantidade'],
+    [/\bnf(s?)\b/gi, 'nota$1 fiscal'], [/\bpc\b/gi, 'pedido de compra'],
+    [/\bja\b/gi, 'já'], [/\bnao\b/gi, 'não'], [/\bentao\b/gi, 'então'], [/\btambem\b/gi, 'também'], [/\bservico(s?)\b/gi, 'serviço$1'],
+    [/\bnecessario(s?)\b/gi, 'necessário$1'], [/\bnecessaria(s?)\b/gi, 'necessária$1'], [/\bsolicitacao\b/gi, 'solicitação'], [/\balteracao\b/gi, 'alteração'],
+    [/\bmaterial\b/gi, 'material'], [/\bquantidade necessaria\b/gi, 'quantidade necessária'], [/\bvalido\b/gi, 'válido'], [/\bunico\b/gi, 'único'],
+    [/\s+([,.;:!?])/g, '$1'], [/([,.;:!?])(?=[^\s\d])/g, '$1 '], [/\.{2,}/g, '.'],
+  ];
+  trocas.forEach(([re, sub]) => { t = t.replace(re, sub); });
+  t = t.replace(/notas fiscal/g, 'notas fiscais');
+  /* maiuscula no inicio de cada frase */
+  t = t.replace(/(^|[.!?]\s+)([a-zà-ú])/g, (m, a, b) => a + b.toUpperCase());
+  if (!/[.!?]$/.test(t)) t += '.';
+  if (!t.includes(ped.numero)) t = `Referente ao Pedido de Compra nº ${ped.numero} (saldo de ${moedaRel(ret.valorSaldo)}): ${t.charAt(0).toLowerCase()}${t.slice(1)}`;
+  return t;
+}
+
+/** Distratos do pedido no resumo: o ativo com as acoes do seu status e o historico de reprovados. */
+function alertaDistratoPedido(ped) {
+  const lista = distratos.filter((x) => x.pedidoId === ped.id);
+  if (!lista.length) return null;
+  const ativo = distratoAtivoDoPedido(ped.id);
+  const reprovados = lista.filter((x) => statusDistrato(x) === 'Reprovado');
+  const blocos = [];
+  if (ativo) {
+    const st = statusDistrato(ativo);
+    const ed = podeEditar();
+    blocos.push(criarAlerta({
+      tipo: st === 'Aprovado' ? 'success' : 'warning',
+      titulo: st === 'Aprovado'
+        ? `Distrato APROVADO — ${ativo.numero} (aprovado em ${formatarData(ativo.aprovadoEm || ativo.data)})`
+        : `Distrato SOLICITADO — ${ativo.numero} em ${formatarData(ativo.data)} · aguardando aprovação`,
+      mensagem: st === 'Aprovado'
+        ? `O saldo de ${formatarMoeda(ativo.valorSaldo)} saiu do saldo a faturar do pedido e voltou para a atividade ${insumoDoPedido(ped)?.nome || ''}. Motivo: ${ativo.motivo || '—'}.`
+        : `Saldo solicitado: ${formatarMoeda(ativo.valorSaldo)}. Enquanto não for aprovado, o saldo continua no pedido. Motivo: ${ativo.motivo || '—'}.`,
+      acoes: [
+        { texto: 'PDF do distrato', onClick: () => gerarPdfDistrato(ativo) },
+        ed && st === 'Solicitado' ? { texto: 'Aprovar', onClick: () => aprovarDistrato(ativo) } : null,
+        ed && st === 'Solicitado' ? { texto: 'Reprovar', onClick: () => reprovarDistrato(ativo) } : null,
+        ed ? { texto: 'Editar descrição', onClick: () => abrirDistrato(ped, ativo) } : null,
+        ed && st === 'Aprovado' ? { texto: 'Voltar para solicitado', onClick: () => voltarDistratoSolicitado(ativo) } : null,
+        ed && st === 'Solicitado' ? { texto: 'Excluir solicitação', onClick: () => desfazerDistrato(ativo) } : null,
+      ].filter(Boolean),
+    }));
+  }
+  if (reprovados.length) {
+    blocos.push(criarAlerta({
+      tipo: 'info', titulo: `${reprovados.length} distrato(s) reprovado(s)`,
+      mensagem: reprovados.map((x) => `${x.numero} (${formatarMoeda(x.valorSaldo)}, reprovado em ${formatarData(x.reprovadoEm || x.data)})`).join(' · '),
+      acoes: reprovados.slice(-1).map((x) => ({ texto: `PDF ${x.numero}`, onClick: () => gerarPdfDistrato(x) })),
+    }));
+  }
+  return h('div', { class: 'ctc-stack' }, ...blocos);
+}
+
+/** Aprovar: o saldo atual do pedido (recalculado na aprovacao) sai do pedido e volta ao insumo. */
+async function aprovarDistrato(dist) {
+  const ped = pedidoPorId(dist.pedidoId);
+  const atual = retratoDistrato(ped);
+  const mudou = Math.abs(atual.valorSaldo - vn(dist.valorSaldo)) > 0.005;
+  const ok = await confirmar({
+    titulo: `Aprovar o distrato ${dist.numero}?`,
+    mensagem: `${mudou ? `O saldo do pedido mudou desde a solicitação (${formatarMoeda(dist.valorSaldo)} → ${formatarMoeda(atual.valorSaldo)}); será distratado o saldo atual. ` : ''}${formatarMoeda(atual.valorSaldo)} saem do saldo a faturar do pedido ${ped?.numero || ''} e voltam para a atividade ${insumoDoPedido(ped)?.nome || ''}.`,
+    textoConfirmar: 'Aprovar distrato',
+  });
+  if (!ok) return;
+  Object.assign(dist, retratoDistrato(ped), { status: 'Aprovado', aprovadoEm: hojeIso() });
+  registrarAlteracao();
+  toast.sucesso('Distrato aprovado', `${dist.numero} · ${formatarMoeda(dist.valorSaldo)} devolvidos à atividade`);
+}
+async function reprovarDistrato(dist) {
+  const ok = await confirmar({
+    titulo: `Reprovar o distrato ${dist.numero}?`,
+    mensagem: 'O saldo continua no pedido. O registro fica no histórico como reprovado e um novo distrato pode ser solicitado.',
+    textoConfirmar: 'Reprovar', perigo: true,
+  });
+  if (!ok) return;
+  Object.assign(dist, { status: 'Reprovado', reprovadoEm: hojeIso() });
+  registrarAlteracao();
+  toast.aviso('Distrato reprovado', dist.numero);
+}
+async function voltarDistratoSolicitado(dist) {
+  const ok = await confirmar({
+    titulo: `Voltar o distrato ${dist.numero} para "Solicitado"?`,
+    mensagem: `A aprovação é desfeita: ${formatarMoeda(dist.valorSaldo)} voltam a ficar comprometidos com o pedido até nova aprovação.`,
+    textoConfirmar: 'Voltar para solicitado', perigo: true,
+  });
+  if (!ok) return;
+  dist.status = 'Solicitado';
+  delete dist.aprovadoEm;
+  registrarAlteracao();
+  toast.aviso('Aprovação desfeita', dist.numero);
+}
+async function desfazerDistrato(dist) {
+  const ped = pedidoPorId(dist.pedidoId);
+  const ok = await confirmar({
+    titulo: `Excluir a solicitação ${dist.numero}?`,
+    mensagem: `A solicitação de distrato do pedido ${ped?.numero || ''} é apagada. O saldo do pedido não muda.`,
+    textoConfirmar: 'Excluir', perigo: true,
+  });
+  if (!ok) return;
+  distratos = distratos.filter((x) => x.id !== dist.id);
+  registrarAlteracao();
+  toast.aviso('Solicitação excluída', dist.numero);
+}
+
+/** Registrar (ou editar a descricao de) um distrato de saldo. */
+function abrirDistrato(ped, existente = null) {
+  const editando = Boolean(existente);
+  if (!editando && distratoAtivoDoPedido(ped.id)) { toast.aviso('Este pedido já tem distrato em andamento ou aprovado', distratoAtivoDoPedido(ped.id).numero); return; }
+  const ret = editando ? existente : retratoDistrato(ped);
+  const motivoInicial = existente?.motivo || MOTIVOS_DISTRATO[0];
+  const formulario = criarFormulario({
+    colunas: 3, semBotoes: true,
+    valores: {
+      numero: existente?.numero || proximoNumeroDistrato(), data: existente?.data || hojeIso(), motivo: motivoInicial,
+      motivoOutro: existente?.motivoOutro || '', descricao: existente?.descricao || descricaoAutomaticaDistrato(ped, motivoInicial, ret),
+    },
+    campos: [
+      { nome: 'numero', rotulo: 'Nº do distrato', obrigatorio: true },
+      { nome: 'data', rotulo: 'Data', tipo: 'data', obrigatorio: true },
+      { nome: 'motivo', rotulo: 'Motivo', tipo: 'select', opcoes: MOTIVOS_DISTRATO, obrigatorio: true },
+      { nome: 'motivoOutro', rotulo: 'Motivo (outro)', larguraTotal: true, dica: 'Preencha quando o motivo for "Outro".' },
+      { nome: 'descricao', rotulo: 'Descrição da solicitação', tipo: 'textarea', larguraTotal: true, obrigatorio: true, dica: 'Vai no item 1 do anexo. Escreva livremente ou use os botões abaixo.' },
+    ],
+    onEnviar: async (v) => {
+      if (distratos.some((x) => x.numero === v.numero && x.id !== existente?.id)) { toast.erro('Nº já usado', v.numero); return; }
+      const motivo = v.motivo === 'Outro' ? (v.motivoOutro || 'Outro') : v.motivo;
+      if (editando) {
+        Object.assign(existente, { numero: v.numero, data: v.data, motivo, motivoOutro: v.motivoOutro || '', descricao: v.descricao });
+        modal.fechar();
+        registrarAlteracao();
+        toast.sucesso('Distrato atualizado', v.numero);
+        return;
+      }
+      const ok = await confirmar({
+        titulo: `Solicitar o distrato de ${formatarMoeda(ret.valorSaldo)} do pedido ${ped.numero}?`,
+        mensagem: 'A solicitação fica registrada com status SOLICITADO. O saldo só sai do pedido (e volta para a atividade) quando o distrato for APROVADO.',
+        textoConfirmar: 'Registrar solicitação',
+      });
+      if (!ok) return;
+      const dist = {
+        id: novoIdFD('dist'), pedidoId: ped.id, numero: v.numero, data: v.data, motivo, motivoOutro: v.motivoOutro || '',
+        descricao: v.descricao, status: 'Solicitado', registradoEm: new Date().toISOString(), ...retratoDistrato(ped),
+      };
+      distratos.push(dist);
+      modal.fechar();
+      registrarAlteracao();
+      toast.sucesso('Distrato solicitado', `${dist.numero} · aguardando aprovação`);
+      if (await confirmar({ titulo: 'Gerar o PDF do distrato agora?', mensagem: `Anexo de solicitação ${dist.numero}.`, textoConfirmar: 'Gerar PDF' })) gerarPdfDistrato(dist);
+    },
+  });
+  const campoDesc = () => formulario.campo('descricao');
+  const ferramentas = h('div', { class: 'ctc-toolbar' },
+    criarBotao({
+      texto: 'Gerar descrição automática', icone: 'documento', variante: 'outline', tamanho: 'sm',
+      onClick: () => {
+        const v = formulario.obterValores();
+        campoDesc().value = descricaoAutomaticaDistrato(ped, v.motivo === 'Outro' ? v.motivoOutro : v.motivo, ret);
+      },
+    }),
+    criarBotao({
+      texto: 'Melhorar meu texto', icone: 'editar', variante: 'outline', tamanho: 'sm',
+      titulo: 'Corrige pontuação e abreviações, padroniza termos e garante a referência ao pedido e ao valor',
+      onClick: () => { campoDesc().value = melhorarTextoDistrato(campoDesc().value, ped, ret); toast.info('Texto revisado', 'Confira antes de salvar.'); },
+    }),
+    criarBotao({ texto: 'Limpar', variante: 'ghost', tamanho: 'sm', onClick: () => { campoDesc().value = ''; campoDesc().focus(); } }));
+  const perc = ret.valorOriginal > 0 ? (ret.faturado / ret.valorOriginal) * 100 : 0;
+  const resumo = h('div', { class: 'ctc-grid ctc-grid--4' },
+    criarKpi({ rotulo: 'Valor do pedido', valor: formatarMoeda(ret.valorOriginal) }).elemento,
+    criarKpi({ rotulo: 'Faturado (NFs)', valor: formatarMoeda(ret.faturado), sub: `${formatarPercentual(perc, { casas: 2 })} · ${ret.qtdNotas} NF(s)` }).elemento,
+    criarKpi({ rotulo: 'Saldo a distratar', valor: formatarMoeda(ret.valorSaldo), variante: 'warning', sub: `${formatarPercentual(100 - perc, { casas: 2 })} do pedido` }).elemento,
+    criarKpi({ rotulo: 'Volta para a atividade', valor: insumoDoPedido(ped)?.nome || '—', sub: 'após a aprovação do distrato' }).elemento);
+  const itens = criarTabela({
+    dados: ret.itens.map((x) => ({ ...x })), compacta: true, altura: 'auto',
+    colunas: [
+      { campo: 'descricao', titulo: 'Produto' }, { campo: 'unidade', titulo: 'Un' },
+      { campo: 'qtdContratada', titulo: 'Contratado', render: (v) => numExato(v) }, { campo: 'qtdFaturada', titulo: 'Faturado', render: (v) => numExato(v) },
+      { campo: 'saldoQtd', titulo: 'Saldo (qtd)', render: (v) => numExato(v) },
+      { campo: 'saldoCom', titulo: 'Saldo', tipo: 'moeda', total: 'soma' },
+    ],
+  });
+  const modal = criarModal({
+    titulo: editando ? `Distrato ${existente.numero} — pedido ${ped.numero}` : `Distrato de saldo — pedido ${ped.numero}`, tamanho: 'xl', destruirAoFechar: true,
+    conteudo: [
+      editando ? criarAlerta({ tipo: 'info', mensagem: 'Os valores ficaram registrados na data do distrato; aqui você ajusta número, data, motivo e descrição.' }) : null,
+      resumo,
+      formulario.elemento, ferramentas,
+      h('div', { class: 'ctc-text-sm ctc-text-muted' }, 'Saldo por produto (vai no anexo):'),
+      itens.elemento,
+    ],
+    acoes: [
+      { texto: 'Cancelar', variante: 'outline' },
+      editando ? { texto: 'PDF do distrato', variante: 'outline', fechar: false, onClick: () => gerarPdfDistrato(existente) } : null,
+      { texto: editando ? 'Salvar' : 'Registrar solicitação', variante: 'primary', fechar: false, onClick: () => formulario.enviar() },
+    ].filter(Boolean),
+  });
   modal.abrir();
 }
 
@@ -9099,7 +9456,8 @@ function secaoPedidosProdutos() {
       let valTer = 0; let fatTer = 0; let qtdPed = 0;
       peds.forEach((ped) => {
         const r = resumoPedido(ped);
-        const situacao = r.excedido ? 'Excedido' : r.prods.length ? (r.perc >= 99.995 ? 'Sem saldo' : 'OK') : 'Sem produtos';
+        const distAtivo = distratoAtivoDoPedido(ped.id);
+        const situacao = distAtivo ? (statusDistrato(distAtivo) === 'Aprovado' ? 'Distratado' : 'Distrato solicitado') : r.excedido ? 'Excedido' : r.prods.length ? (r.perc >= 99.995 ? 'Sem saldo' : 'OK') : 'Sem produtos';
         if (f.situacao && f.situacao !== situacao) return;
         const prods = r.prods;
         if (termo) {
@@ -9143,7 +9501,7 @@ function secaoPedidosProdutos() {
           num(r.faturado, fraco || 'ctc-text-strong'),
           num(r.saldo, r.saldo < 0 ? 'ctc-text-danger ctc-text-strong' : fraco || 'ctc-text-strong'),
           barra(r.perc),
-          h('td', {}, criarBadge({ texto: situacao, variante: { OK: 'success', 'Sem saldo': 'neutral', Excedido: 'danger', 'Sem produtos': 'warning' }[situacao] })),
+          h('td', {}, criarBadge({ texto: distAtivo ? `${situacao} · ${distAtivo.numero}` : situacao, variante: { OK: 'success', 'Sem saldo': 'neutral', Distratado: 'info', 'Distrato solicitado': 'warning', Excedido: 'danger', 'Sem produtos': 'warning' }[situacao] })),
           h('td', {}, h('div', { class: 'ctc-btn-group' },
             icone({ icone: 'mais', titulo: `Novo produto no pedido ${ped.numero}`, onClick: () => abrirModalProduto(null, ped) }),
             icone({ icone: 'documento', titulo: `Lançar NF do pedido ${ped.numero}`, onClick: () => abrirModalNota(null, { pedidoId: ped.id }) }),
@@ -9212,7 +9570,7 @@ function secaoPedidosProdutos() {
   return {
     tabela: { elemento, atualizarConsulta: desenhar, obterFiltrados: () => filtrados.map((ped) => ({ ped })) },
     titulo: 'Pedidos e produtos — por terceiro', icone: 'documento',
-    selects: [{ campo: 'situacao', rotulo: 'Situação', opcoes: ['OK', 'Sem saldo', 'Excedido', 'Sem produtos'] }],
+    selects: [{ campo: 'situacao', rotulo: 'Situação', opcoes: ['OK', 'Sem saldo', 'Distrato solicitado', 'Distratado', 'Excedido', 'Sem produtos'] }],
     acoes: [
       { texto: 'Mostrar produtos', variante: 'ghost', tamanho: 'sm', onClick: () => { pedidos.forEach((x) => pedidosAbertosLista.add(x.id)); recarregar(); } },
       { texto: 'Só pedidos', variante: 'ghost', tamanho: 'sm', titulo: 'Recolher os produtos de todos os pedidos', onClick: () => { pedidosAbertosLista.clear(); recarregar(); } },
@@ -9385,8 +9743,8 @@ function abrirModalNota(nf = null, { pedidoId = '', rascunho = null } = {}) {
       const reidiItem = h('td', { class: 'ctc-col--num ctc-num' });
       const pintarSaldo = () => {
         const s = vn(p.quantidade) - outras - vn(atual.quantidade);
-        saldo.textContent = formatarNumero(s);
-        saldo.className = `ctc-col--num ctc-num${s < -0.0001 ? ' ctc-text-danger' : ''}`;
+        saldo.textContent = numExato(s);
+        saldo.className = `ctc-col--num ctc-num${ehNegativoExato(s) ? ' ctc-text-danger' : ''}`;
         total.textContent = formatarMoeda(vn(atual.quantidade) * vn(atual.valorUnit));
         /* REIDI do item: diferenca entre o SEM REIDI do pedido e o preco cobrado na NF */
         const difUnit = Math.max(0, vn(p.unitSem) - vn(atual.valorUnit));
@@ -9400,8 +9758,8 @@ function abrirModalNota(nf = null, { pedidoId = '', rascunho = null } = {}) {
       const tr = h('tr', {},
         h('td', {}, h('div', {}, h('div', { class: 'ctc-text-strong' }, p.descricao), p.detalhe ? h('div', { class: 'ctc-text-xs ctc-text-muted' }, p.detalhe) : null)),
         h('td', {}, p.unidade || ''),
-        h('td', { class: 'ctc-col--num ctc-num' }, formatarNumero(p.quantidade)),
-        h('td', { class: 'ctc-col--num ctc-num' }, formatarNumero(outras)),
+        h('td', { class: 'ctc-col--num ctc-num' }, numExato(p.quantidade)),
+        h('td', { class: 'ctc-col--num ctc-num' }, numExato(outras)),
         h('td', {}, entradaNumero(atual.quantidade || '', (n) => { atual.quantidade = n ?? 0; pintarSaldo(); atualizarResumo(); })),
         h('td', { class: 'ctc-col--num ctc-num ctc-text-muted' }, formatarMoeda(p.unitSem)),
         h('td', {}, entradaNumero(atual.valorUnit, (n) => { atual.valorUnit = n ?? 0; pintarSaldo(); atualizarResumo(); }, { moeda: true })),
@@ -9571,6 +9929,8 @@ function abrirModalNota(nf = null, { pedidoId = '', rascunho = null } = {}) {
   const modal = criarModal({
     titulo: editando ? `NF ${nf.numero}` : (rascunho ? 'NF importada — conferir e salvar' : 'Nova nota fiscal'), tamanho: 'xl', destruirAoFechar: true,
     conteudo: pedidos.length ? [
+      editando ? h('div', { class: 'ctc-toolbar' }, h('span', { class: 'ctc-spacer' }),
+        criarBotao({ texto: 'PDF da NF', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exportar a ficha completa desta nota em PDF', onClick: () => gerarPdfNota(nf) })) : null,
       editando ? null : botaoPreencherArquivo({
         texto: 'Preencher de arquivo (XML, PDF ou Excel)', accept: '.xml,.pdf,.xlsx,.xls,.csv',
         aoEscolher: async (arquivo) => {
@@ -9670,147 +10030,502 @@ function abrirModalBoleto(bol = null, notaId = '', { arquivoInicial = null } = {
 
 /* ---- Aba "Notas e boletos": cada NF com os seus boletos logo abaixo ---- */
 
-const nfsComBoletosAbertos = new Set();   // NFs com boletos visiveis (por padrao ficam fechados)
+/* ---- Aba "Notas e boletos": base em grade (cara de Excel), produto primeiro ---- */
 
-/**
- * Notas e boletos agrupados: uma linha por NF (por data) e, abaixo, os boletos dela,
- * mesmo lancados em momentos diferentes. Recebe a busca e os filtros comuns da base.
- */
+const filtrosColunaNotas = {};     // filtro digitado em cada coluna (como o filtro do Excel)
+
+/** Saldo de cada produto apos cada NF, em ordem de data (contratado - acumulado ate a NF). */
+function saldosProdutoPorNota() {
+  const mapa = new Map();
+  const porProduto = new Map();
+  ordenar(notas, [{ campo: 'data', direcao: 'asc', tipo: 'data' }, { campo: 'numero', direcao: 'asc' }]).forEach((nf) => {
+    (nf.itens || []).forEach((it) => {
+      const pr = produtoPorId(it.produtoId);
+      if (!pr) return;
+      const acum = (porProduto.get(pr.id) || 0) + vn(it.quantidade);
+      porProduto.set(pr.id, acum);
+      mapa.set(`${nf.id}|${pr.id}`, { acumulado: acum, saldo: vn(pr.quantidade) - acum });
+    });
+  });
+  return mapa;
+}
+
+/** Todas as linhas de item (uma por produto de cada NF), sem filtro. */
+function itensDeNotas() {
+  const saldos = saldosProdutoPorNota();
+  const itens = [];
+  notas.forEach((nf) => {
+    const ped = pedidoPorId(nf.pedidoId);
+    const ter = terceiroDoPedido(ped);
+    const ins = insumoDoPedido(ped);
+    const bols = ordenar(boletosDaNota(nf.id), 'vencimento', 'asc', 'data');
+    const base = { nf, ped, ter, ins, bols };
+    const lista = [
+      ...(nf.itens || []).map((it) => {
+        const pr = produtoPorId(it.produtoId);
+        const qtd = vn(it.quantidade);
+        const unit = vn(it.valorUnit);
+        const sal = pr ? saldos.get(`${nf.id}|${pr.id}`) : null;
+        return {
+          ...base, tipo: 'item', pr, produto: pr?.descricao || '(produto removido)', detalhe: pr?.detalhe || '', un: pr?.unidade || '',
+          qtd, unit, total: qtd * unit, reidi: pr ? qtd * Math.max(0, vn(pr.unitSem) - unit) : 0, saldo: sal ? sal.saldo : null,
+        };
+      }),
+      ...(nf.itensSemVinculo || []).map((it) => ({
+        ...base, tipo: 'sem', pr: null, produto: it.descricao, detalhe: 'item sem produto no pedido', un: '',
+        qtd: vn(it.quantidade), unit: vn(it.quantidade) ? vn(it.valorTotal) / vn(it.quantidade) : null, total: vn(it.valorTotal), reidi: 0, saldo: null,
+      })),
+    ];
+    if (!lista.length) lista.push({ ...base, tipo: 'vazia', pr: null, produto: 'NF sem produtos marcados', detalhe: 'marque os produtos na NF', un: '', qtd: null, unit: null, total: vn(nf.valor), reidi: vn(nf.reidi), saldo: null });
+    itens.push(...lista);
+  });
+  return itens;
+}
+const chaveNomeProduto = (l) => normalizarTexto(l.produto || '');
+const statusBoletosTexto = (l) => (l.bols.length ? l.bols.map((x) => prazoBoleto(x)).join(' ') : 'Sem boleto');
+
+/* ---- Fichas (mini-dashboard) de produto, terceiro e insumo, com exportacao ---- */
+
+/** Consumo por mes (data da NF) de um conjunto de itens. */
+function consumoPorMes(itens) {
+  const m = new Map();
+  itens.forEach((l) => {
+    const k = String(l.nf.data || '').slice(0, 7) || 'sem data';
+    const x = m.get(k) || { qtd: 0, valor: 0, nfs: new Set() };
+    x.qtd += vn(l.qtd); x.valor += vn(l.total); x.nfs.add(l.nf.id);
+    m.set(k, x);
+  });
+  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([k, x]) => ({ mes: k, rotulo: k === 'sem data' ? k : formatarData(`${k}-01`, 'mes-ano'), qtd: x.qtd, valor: x.valor, nfs: x.nfs.size }));
+}
+
+function dadosFicha(tipo, chave) {
+  const todos = itensDeNotas();
+  const cab = (titulo, subtitulo) => ({ titulo, subtitulo });
+  if (tipo === 'produto') {
+    const itens = todos.filter((l) => l.pr && chaveNomeProduto(l) === chave);
+    const nome = itens[0]?.produto || produtos.find((p) => normalizarTexto(p.descricao) === chave)?.descricao || chave;
+    const prods = produtos.filter((p) => normalizarTexto(p.descricao) === chave);
+    const un = prods[0]?.unidade || '';
+    const contratado = prods.reduce((t, p) => t + vn(p.quantidade), 0);
+    const faturado = prods.reduce((t, p) => t + analisarProduto(p).qtdFaturada, 0);
+    const valor = itens.reduce((t, l) => t + l.total, 0);
+    const reidi = itens.reduce((t, l) => t + l.reidi, 0);
+    const porData = ordenar(itens, [{ campo: 'nf.data', direcao: 'asc', tipo: 'data' }, { campo: 'nf.numero', direcao: 'asc' }]);
+    let acum = 0;
+    return {
+      ...cab(`Produto: ${nome}`, `${prods.length} pedido(s) · unidade de referência: ${un || '—'}`),
+      kpis: [
+        { rotulo: 'Contratado', valor: `${numExato(contratado)} ${un}`.trim(), sub: `${prods.length} pedido(s)` },
+        { rotulo: 'Consumido (NFs)', valor: `${numExato(faturado)} ${un}`.trim(), sub: formatarPercentual(contratado ? (faturado / contratado) * 100 : 0, { casas: 2 }), progresso: contratado ? (faturado / contratado) * 100 : 0 },
+        { rotulo: 'Saldo', valor: `${numExato(contratado - faturado)} ${un}`.trim(), sub: contratado - faturado < -0.000001 ? 'acima do contratado' : 'a faturar' },
+        { rotulo: 'Valor faturado', valor: formatarMoeda(valor), sub: `REIDI ${formatarMoeda(reidi)} · ${new Set(itens.map((l) => l.nf.id)).size} NF(s)` },
+      ],
+      tabelas: [
+        {
+          titulo: 'Pedidos com este produto',
+          colunas: ['Pedido', 'Terceiro', 'Emissão', `Contratado (${un})`, `Faturado (${un})`, `Saldo (${un})`, 'Unit. COM REIDI', 'Valor contratado', 'Valor faturado'],
+          linhas: prods.map((p) => {
+            const a = analisarProduto(p);
+            const ped = pedidoPorId(p.pedidoId);
+            const fatR = itens.filter((l) => l.pr?.id === p.id).reduce((t, l) => t + l.total, 0);
+            return [ped?.numero || '—', terceiroDoPedido(ped)?.nome || '—', dataTexto(ped?.dataEmissao), vn(p.quantidade), a.qtdFaturada, vn(p.quantidade) - a.qtdFaturada, unitComEfetivo(p), vn(p.quantidade) * unitComEfetivo(p), fatR];
+          }),
+        },
+        {
+          titulo: 'Notas fiscais em que o produto foi faturado (ordem de data)',
+          colunas: ['Emissão', 'NF', 'Pedido', 'BM', `Qtd (${un})`, `Acumulado (${un})`, `Saldo do pedido após NF (${un})`, 'Unit. na NF', 'Valor do item', 'REIDI do item', 'Boleto'],
+          linhas: porData.map((l) => { acum += vn(l.qtd); return [dataTexto(l.nf.data), l.nf.numero, l.ped?.numero || '', l.nf.bm ? `BM${l.nf.bm}` : '', l.qtd, acum, l.saldo ?? '', l.unit, l.total, l.reidi, statusBoletosTexto(l)]; }),
+        },
+        { titulo: 'Consumo por mês', colunas: ['Mês', `Quantidade (${un})`, 'Valor', 'NFs'], linhas: consumoPorMes(itens).map((x) => [x.rotulo, x.qtd, x.valor, x.nfs]), barra: 2 },
+      ],
+    };
+  }
+  if (tipo === 'terceiro') {
+    const ter = terceiroPorId(chave);
+    const itens = todos.filter((l) => l.ter?.id === chave);
+    const peds = pedidos.filter((p) => p.terceiroId === chave);
+    const valorPed = somar(peds, 'valor');
+    const nfs = [...new Set(itens.map((l) => l.nf))];
+    const fat = somar(nfs, 'valor');
+    const bols = nfs.flatMap((nf) => boletosDaNota(nf.id));
+    const abertos = bols.filter((x) => ['Em aberto', 'Vencido', 'Em contestação'].includes(statusBoleto(x)));
+    const porProd = new Map();
+    itens.filter((l) => l.tipo !== 'vazia').forEach((l) => {
+      const k = chaveNomeProduto(l);
+      const x = porProd.get(k) || { nome: l.produto, un: l.un, qtd: 0, valor: 0, reidi: 0 };
+      x.qtd += vn(l.qtd); x.valor += l.total; x.reidi += l.reidi;
+      porProd.set(k, x);
+    });
+    return {
+      ...cab(`Terceiro: ${ter?.nome || '—'}`, `${ter?.cnpj ? `CNPJ ${ter.cnpj} · ` : ''}${ter?.uf || ''} · ${insumoPorId(ter?.insumoId)?.nome || ''}`),
+      kpis: [
+        { rotulo: 'Comprometido em pedidos', valor: formatarMoeda(valorPed), sub: `${peds.length} pedido(s)` },
+        { rotulo: 'Faturado (NFs)', valor: formatarMoeda(fat), sub: formatarPercentual(valorPed ? (fat / valorPed) * 100 : 0, { casas: 2 }), progresso: valorPed ? (fat / valorPed) * 100 : 0 },
+        { rotulo: 'Saldo dos pedidos', valor: formatarMoeda(valorPed - fat), sub: `REIDI nas NFs ${formatarMoeda(somar(nfs, 'reidi'))}` },
+        { rotulo: 'Boletos', valor: `${bols.length}`, sub: `${abertos.length} em aberto · ${formatarMoeda(somar(abertos, 'valor'))}` },
+      ],
+      tabelas: [
+        {
+          titulo: 'Pedidos',
+          colunas: ['Pedido', 'Emissão', 'Valor', 'Faturado', 'Saldo', '% faturado', 'NFs'],
+          linhas: peds.map((p) => { const r = resumoPedido(p); return [p.numero, dataTexto(p.dataEmissao), vn(p.valor), r.faturado, r.saldo, r.perc, r.nfs.length]; }),
+        },
+        { titulo: 'Produtos faturados', colunas: ['Produto', 'Un', 'Quantidade', 'Valor', 'REIDI'], linhas: [...porProd.values()].map((x) => [x.nome, x.un, x.qtd, x.valor, x.reidi]) },
+        { titulo: 'Faturamento por mês', colunas: ['Mês', 'Valor', 'NFs'], linhas: consumoPorMes(itens).map((x) => [x.rotulo, x.valor, x.nfs]), barra: 1 },
+      ],
+    };
+  }
+  /* insumo */
+  const ins = insumoPorId(chave);
+  const itens = todos.filter((l) => l.ins?.id === chave);
+  const r = ins ? resumoInsumo(ins) : { vigente: 0, comprometido: 0, faturado: 0, saldoFaturar: 0 };
+  const ters = terceiros.filter((t) => t.insumoId === chave);
+  const porProd = new Map();
+  itens.filter((l) => l.tipo !== 'vazia').forEach((l) => {
+    const k = chaveNomeProduto(l);
+    const x = porProd.get(k) || { nome: l.produto, un: l.un, qtd: 0, valor: 0 };
+    x.qtd += vn(l.qtd); x.valor += l.total;
+    porProd.set(k, x);
+  });
+  return {
+    ...cab(`Insumo: ${ins?.nome || '—'}`, `${ters.length} terceiro(s) · ${pedidos.filter((p) => insumoDoPedido(p)?.id === chave).length} pedido(s)`),
+    kpis: [
+      { rotulo: 'Previsto (vigente)', valor: formatarMoeda(r.vigente) },
+      { rotulo: 'Comprometido', valor: formatarMoeda(r.comprometido), sub: formatarPercentual(r.vigente ? (r.comprometido / r.vigente) * 100 : 0, { casas: 2 }), progresso: r.vigente ? (r.comprometido / r.vigente) * 100 : 0 },
+      { rotulo: 'Faturado (NFs)', valor: formatarMoeda(r.faturado), sub: formatarPercentual(r.vigente ? (r.faturado / r.vigente) * 100 : 0, { casas: 2 }), progresso: r.vigente ? (r.faturado / r.vigente) * 100 : 0 },
+      { rotulo: 'Saldo a faturar', valor: formatarMoeda(r.saldoFaturar) },
+    ],
+    tabelas: [
+      {
+        titulo: 'Terceiros',
+        colunas: ['Terceiro', 'UF', 'Pedidos', 'Valor em pedidos', 'Faturado', 'Saldo'],
+        linhas: ters.map((t) => { const ps = pedidos.filter((p) => p.terceiroId === t.id); const v = somar(ps, 'valor'); const f = ps.reduce((s2, p) => s2 + resumoPedido(p).faturado, 0); return [t.nome, t.uf || '', ps.length, v, f, v - f]; }),
+      },
+      { titulo: 'Produtos faturados', colunas: ['Produto', 'Un', 'Quantidade', 'Valor'], linhas: [...porProd.values()].map((x) => [x.nome, x.un, x.qtd, x.valor]) },
+      { titulo: 'Faturamento por mês', colunas: ['Mês', 'Valor', 'NFs'], linhas: consumoPorMes(itens).map((x) => [x.rotulo, x.valor, x.nfs]), barra: 1 },
+    ],
+  };
+}
+
+/** Formata um valor de tabela de ficha conforme o nome da coluna. */
+function valorFichaTexto(col, v) {
+  if (v == null || v === '') return '—';
+  if (typeof v !== 'number') return String(v);
+  const t = normalizarTexto(col);
+  if (t.includes('%')) return formatarPercentual(v, { casas: 2 });
+  if (/qtd|quantidade|contratado \(|faturado \(|saldo \(|acumulado|saldo do pedido apos|^nfs$|^pedidos$/.test(t)) return numExato(v);
+  return formatarMoeda(v);
+}
+
+function abrirFicha(tipo, chave) {
+  const f = dadosFicha(tipo, chave);
+  const conteudo = h('div', { class: 'ctc-stack' },
+    f.subtitulo ? h('div', { class: 'ctc-text-sm ctc-text-muted' }, f.subtitulo) : null,
+    h('div', { class: 'ctc-grid ctc-grid--4' }, ...f.kpis.map((k) => criarKpi({
+      rotulo: k.rotulo, valor: k.valor, sub: k.sub,
+      progresso: k.progresso != null ? { percentual: Math.min(100, k.progresso), variante: k.progresso > 100.001 ? 'danger' : null } : undefined,
+    }).elemento)),
+    ...f.tabelas.map((tb) => {
+      const maior = tb.barra != null ? Math.max(1, ...tb.linhas.map((l) => vn(l[tb.barra]))) : 0;
+      return criarPainel({
+        titulo: tb.titulo, icone: 'tabela', semEspaco: true,
+        conteudo: criarTabela({
+          compacta: true, grade: true, listrada: true, altura: 'auto',
+          dados: tb.linhas.map((l) => Object.fromEntries(l.map((v, i) => [`c${i}`, v]))),
+          colunas: tb.colunas.map((c, i) => ({
+            campo: `c${i}`, titulo: c,
+            render: (v) => {
+              const texto = valorFichaTexto(c, v);
+              if (tb.barra === i && typeof v === 'number') {
+                return h('div', { class: 'ctc-stack' }, h('span', { class: 'ctc-num' }, texto), criarProgresso({ percentual: (v / maior) * 100, tamanho: 'sm', rotulo: c }));
+              }
+              return typeof v === 'number' ? h('span', { class: `ctc-num${v < -0.000001 ? ' ctc-text-danger' : ''}` }, texto) : texto;
+            },
+          })),
+          vazio: { titulo: 'Sem dados' },
+        }).elemento,
+      }).elemento;
+    }));
+  const modal = criarModal({
+    titulo: f.titulo, tamanho: 'xl', destruirAoFechar: true, conteudo,
+    acoes: [
+      { texto: 'Exportar Excel', icone: 'download', variante: 'outline', fechar: false, onClick: () => exportarFichaExcel(f) },
+      { texto: 'Exportar PDF', icone: 'download', variante: 'outline', fechar: false, onClick: () => exportarFichaPdf(f) },
+      { texto: 'Fechar', variante: 'primary' },
+    ],
+  });
+  modal.abrir();
+}
+
+function exportarFichaExcel(f) {
+  const nome = chaveColuna(f.titulo).slice(0, 40);
+  exportarPlanilha(`ficha-${nome}-${carimboArquivo()}`, [
+    { nome: 'Resumo', cabecalho: ['Indicador', 'Valor', 'Detalhe'], linhas: f.kpis.map((k) => [k.rotulo, k.valor, k.sub || '']), descricao: f.titulo },
+    ...f.tabelas.map((tb) => ({ nome: tb.titulo.slice(0, 31), cabecalho: tb.colunas, linhas: tb.linhas })),
+  ]);
+}
+
+function exportarFichaPdf(f) {
+  const tabelaHtml = (tb) => `<table class="nf-tab" data-dividir><thead><tr><th class="cab-th" colspan="${tb.colunas.length}">${esc(tb.titulo)}<span class="cont"></span></th></tr>
+    <tr>${tb.colunas.map((c, i) => `<th class="${i ? '' : 'e'}">${esc(c)}</th>`).join('')}</tr></thead>
+    ${tb.linhas.length ? tb.linhas.map((l) => `<tbody><tr>${l.map((v, i) => `<td class="${i ? '' : 'e'}">${esc(valorFichaTexto(tb.colunas[i], v))}</td>`).join('')}</tr></tbody>`).join('') : `<tbody><tr><td class="e" colspan="${tb.colunas.length}">Sem dados</td></tr></tbody>`}</table>`;
+  const d = dadosRelatorio(null);
+  const u = [
+    `<div data-cabecalho="nao">${topoRelClienteHtml(d).replace('Relatório — Faturamento Direto', esc(f.titulo))}</div>`,
+    `<div class="nf-grade" style="grid-template-columns:repeat(4,1fr)">${f.kpis.map((k) => `<div class="nf-card"><div class="tit">${esc(k.rotulo)}</div><div class="destaque">${esc(k.valor)}</div>${k.sub ? `<div class="lin"><span>${esc(k.sub)}</span></div>` : ''}</div>`).join('')}</div>`,
+    ...f.tabelas.map(tabelaHtml),
+  ];
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(f.titulo)}</title>
+<style>${CSS_REL_CLIENTE}${CSS_PDF_NF}${BARRA_IMPRESSAO_CSS}</style></head><body class="nf-doc">
+${barraImpressao('Ficha — use "Salvar como PDF" na janela de impressão (A4 retrato).')}
+<div class="doc"><div id="paginas"></div><div id="fonte">${u.join('')}</div></div></body></html>`;
+  const agora = agoraRel();
+  abrirDocumentoImpressao(html, {
+    aoCarregar: (doc) => paginarRelatorio(doc, {
+      alturaUtilMm: 274, classeFolha: 'retrato',
+      titulo: `<span><b>${esc(f.titulo)}</b></span><span>${esc(obra.nome || '')}</span>`,
+      rodape: `${esc(obra.nome || 'Obra')} · ${esc(f.titulo)} · emitido em ${agora.data}, ${agora.hora}`,
+    }),
+  });
+}
+
+/* ---- A grade ---- */
+
 function secaoNotasBoletos() {
-  const COLS = ['NF / boleto', 'Pedido', 'Terceiro', 'Insumo', 'Data / vencimento', 'BM', 'Valor', 'REIDI', 'UF', 'DIFAL', 'Pagamento', 'Status', 'e-clic (NF)', 'Produtos na NF', '', 'GRD'];
-  const n = COLS.length;
+  /*
+   * Cada opcao do seletor e uma BASE propria, em colunas (como uma planilha):
+   *  Notas (1 linha por NF) · Produtos das notas (1 por produto de cada NF) · Boletos (1 por boleto)
+   *  · Terceiros (1 por fornecedor) · Insumos (1 por atividade). Todas com filtro por coluna,
+   *  ordenacao pelo titulo, cabecalho e totais fixos e exportacao do que esta na tela.
+   */
+  const base = 'tudo';
+  const cfg = BASES_NOTAS[base]();
+  const filtros = filtrosColunaNotas[base] || (filtrosColunaNotas[base] = {});
+  const ordem = ordemColunaNotas[base] || (ordemColunaNotas[base] = { ...cfg.ordem });
+  const colunas = cfg.colunas;
   const corpo = h('tbody', {});
   const rodape = h('tfoot', {});
-  const codigos = codigosHierarquia();
-  const num = (v, classe = '') => h('td', { class: `ctc-col--num ctc-num ${classe}`.trim() }, v == null ? '' : formatarMoeda(v));
   const plural = (q, s1, sN) => `${q} ${q === 1 ? s1 : sN}`;
-  let filtradas = [];
-  let filtradosBol = [];
+  let estadoAtual = { filtros: filtroBase };
+  let visiveis = [];
+  const textoDe = (c, r) => {
+    if (c.texto) return c.texto(r);
+    const v = c.valor(r);
+    if (v == null || v === '') return '';
+    if (c.tipo === 'moeda') return formatarMoeda(v);
+    if (c.tipo === 'numero') return numExato(v);
+    if (c.tipo === 'perc') return formatarPercentual(v, { casas: 2 });
+    if (c.tipo === 'data') return formatarData(v);
+    return String(v);
+  };
 
-  function desenhar(estado = {}) {
+  function filtrar(estado) {
     const f = estado.filtros || {};
     const termo = normalizarTexto(estado.busca || '');
-    const linhas = [];
-    let totNf = 0; let totBol = 0; let totReidi = 0; let totDifal = 0;
-    filtradas = []; filtradosBol = [];
-    const lista = notas.map((nf) => ({ nf, cod: codigos.get(nf.id) || { ordem: '' } }))
-      .sort((a, b) => String(a.nf.data || '').localeCompare(String(b.nf.data || '')) || String(a.cod.ordem).localeCompare(String(b.cod.ordem)));
-    lista.forEach(({ nf }) => {
-      const ped = pedidoPorId(nf.pedidoId);
-      const ter = terceiroDoPedido(ped);
-      const ins = insumoDoPedido(ped);
-      if (f.insumo && ins?.nome !== f.insumo) return;
-      if (f.terceiro && ter?.nome !== f.terceiro) return;
-      if (f.bm && `BM${nf.bm}` !== f.bm) return;
-      const bols = ordenar(boletosDaNota(nf.id), 'vencimento', 'asc', 'data');
-      if (f.status && !(f.status === 'Sem boleto' ? !bols.length : bols.some((b) => statusBoleto(b) === f.status))) return;
-      const produtosNf = [
-        ...(nf.itens || []).map((i) => `${produtoPorId(i.produtoId)?.descricao || '(produto removido)'} (${formatarNumero(i.quantidade)})`),
-        ...(nf.itensSemVinculo || []).map((i) => `⚠ ${i.descricao}`),
-      ];
-      if (termo) {
-        const texto = normalizarTexto([nf.numero, ped?.numero, ter?.nome, ins?.nome, nf.observacoes, ...(nf.grds || []), ...produtosNf,
-          ...bols.flatMap((b) => [b.numero, b.observacoes, ...(b.grds || [])])].filter(Boolean).join(' '));
-        if (!texto.includes(termo)) return;
-      }
-      filtradas.push(nf); filtradosBol.push(...bols);
-      totNf += vn(nf.valor); totReidi += vn(nf.reidi); totDifal += vn(nf.difalValor);
-      totBol += bols.reduce((t, b) => t + vn(b.valor), 0);
-      /* boletos comecam fechados; a busca abre para mostrar o que foi encontrado */
-      const fechado = !nfsComBoletosAbertos.has(nf.id) && !termo;
-      const filhos = [];
-      const seta = bols.length ? h('button', {
-        type: 'button', class: 'ctc-btn ctc-btn--ghost ctc-btn--sm', title: fechado ? 'Mostrar boletos' : 'Ocultar boletos', 'aria-expanded': String(!fechado),
-        onClick: (e) => {
-          e.stopPropagation();
-          const fechar = !(filhos[0] && filhos[0].hidden);
-          if (fechar) nfsComBoletosAbertos.delete(nf.id); else nfsComBoletosAbertos.add(nf.id);
-          filhos.forEach((tr) => { tr.hidden = fechar; });
-          seta.replaceChildren(criarIcone(fechar ? 'chevron-direita' : 'chevron-baixo'));
-          seta.setAttribute('aria-expanded', String(!fechar));
-          seta.title = fechar ? 'Mostrar boletos' : 'Ocultar boletos';
-        },
-      }, criarIcone(fechado ? 'chevron-direita' : 'chevron-baixo')) : null;
-      const abertos = bols.filter((b) => ['Em aberto', 'Vencido', 'Em contestação'].includes(statusBoleto(b))).length;
-      linhas.push(h('tr', { class: 'ctc-row--info', onClick: () => abrirModalNota(nf), title: 'Abrir NF' },
-        h('td', {}, h('div', {},
-          h('div', { class: 'ctc-cluster' }, seta || h('span', { class: 'ctc-btn ctc-btn--ghost ctc-btn--sm', 'aria-hidden': 'true' }), h('span', { class: 'ctc-text-strong' }, `NF ${nf.numero}`)),
-          h('div', { class: 'ctc-text-xs ctc-text-muted' }, bols.length ? `${plural(bols.length, 'boleto', 'boletos')}${abertos ? ` · ${abertos} em aberto` : ' · quitados'}` : 'sem boleto'))),
-        h('td', {}, ped?.numero || '—'),
-        h('td', {}, ter?.nome || '—'),
-        h('td', {}, ins?.nome || '—'),
-        h('td', {}, formatarData(nf.data)),
-        h('td', {}, rotuloBM(nf.bm)),
-        num(vn(nf.valor), 'ctc-text-strong'),
-        num(vn(nf.reidi)),
-        h('td', { class: 'ctc-text-xs' }, `${nf.ufOrigem || '?'}→${nf.ufDestino || '?'}`),
-        h('td', { class: 'ctc-text-xs' }, `${formatarMoeda(nf.difalValor)} (${formatarPercentual(nf.difalPerc, { casas: 2 })})`),
-        h('td', {}), h('td', {}, bols.length ? '' : criarBadge({ texto: 'sem boleto', variante: 'warning' })), h('td', {}, seloEclic(nf)),
-        h('td', { class: 'ctc-text-xs' }, produtosNf.length ? produtosNf.join(' · ') : h('span', { class: 'ctc-text-subtle' }, 'nenhum produto marcado')),
-        h('td', {}, h('div', { class: 'ctc-cluster' },
-          botaoFD({ texto: 'Boleto', icone: 'mais', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Novo boleto da NF ${nf.numero}`, onClick: (e) => { if (e) e.stopPropagation(); abrirModalBoleto(null, nf.id); } }),
-          nf.eclic ? null : botaoFD({ icone: 'check', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Marcar NF lançada no e-clic (hoje)', onClick: (e) => { if (e) e.stopPropagation(); nf.eclic = true; if (!nf.eclicData) nf.eclicData = hojeIso(); registrarAlteracao(); toast.sucesso('NF lançada no e-clic', nf.numero); } }),
-          botaoFD({ icone: 'lixeira', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Excluir NF ${nf.numero}`, onClick: (e) => { if (e) e.stopPropagation(); excluirNota(nf); } }))),
-        h('td', {}, celulaGrd(nf))));
-      bols.forEach((b) => {
-        const prazo = prazoBoleto(b);
-        filhos.push(h('tr', { onClick: () => abrirModalBoleto(b), title: 'Abrir boleto' },
-          h('td', {}, h('div', {},
-            h('div', {}, `\u00a0\u00a0\u00a0\u00a0└ Boleto ${b.numero}`),
-            b.observacoes ? h('div', { class: 'ctc-text-xs ctc-text-muted' }, `\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0${b.observacoes}`) : null)),
-          h('td', {}), h('td', {}), h('td', {}),
-          h('td', {}, `venc. ${formatarData(b.vencimento)}`),
-          h('td', {}),
-          num(b.valor == null ? null : vn(b.valor)),
-          h('td', {}), h('td', {}), h('td', {}),
-          h('td', {}, b.pagamento ? formatarData(b.pagamento) : ''),
-          h('td', {}, criarBadge({ texto: prazo, variante: VARIANTE_PRAZO[prazo] })),
-          h('td', {}),
-          h('td', {}),
-          h('td', {}, botoesLinha([
-            { icone: 'lixeira', titulo: 'Excluir boleto', apenasEdicao: true, onClick: () => excluirBoleto(b) },
-          ])),
-          h('td', {}, celulaGrd(b))));
+    let linhas = cfg.linhas().filter((r) => {
+      if (f.insumo && cfg.insumoDe && cfg.insumoDe(r) !== f.insumo) return false;
+      if (f.terceiro && cfg.terceiroDe && cfg.terceiroDe(r) !== f.terceiro) return false;
+      if (termo && !normalizarTexto(colunas.map((c) => textoDe(c, r)).join(' ')).includes(termo)) return false;
+      return colunas.every((c) => {
+        const txt = normalizarTexto(textoDe(c, r));
+        if (filtros[`${c.id}__sel`] && txt !== normalizarTexto(filtros[`${c.id}__sel`])) return false;
+        return !filtros[c.id] || txt.includes(normalizarTexto(filtros[c.id]));
       });
-      filhos.forEach((tr) => { tr.hidden = fechado; });
-      linhas.push(...filhos);
     });
-    corpo.replaceChildren(...(linhas.length ? linhas : [h('tr', {}, h('td', { colspan: n, class: 'ctc-text-subtle' }, notas.length ? 'Nenhuma NF com estes filtros.' : 'Nenhuma NF lançada.'))]));
-    rodape.replaceChildren(h('tr', {},
-      h('td', {}, `Total — ${plural(filtradas.length, 'NF', 'NFs')} · ${plural(filtradosBol.length, 'boleto', 'boletos')}`),
-      ...Array.from({ length: 5 }, () => h('td', {})),
-      num(totNf), num(totReidi), h('td', {}), num(totDifal),
-      h('td', { class: 'ctc-text-xs', colspan: 3 }, `boletos ${formatarMoeda(totBol)}`),
-      ...Array.from({ length: 3 }, () => h('td', {}))));
-    definirMetaBase(`${plural(filtradas.length, 'NF', 'NFs')} · ${plural(filtradosBol.length, 'boleto', 'boletos')}`);
+    const col = ordem.coluna ? colunas.find((c) => c.id === ordem.coluna) : null;
+    if (col) {
+      const chave = (r) => {
+        const v = col.valor(r);
+        if (col.tipo === 'data') return v ? String(v) : '';
+        return typeof v === 'number' ? v : normalizarTexto(String(v ?? ''));
+      };
+      linhas = linhas.slice().sort((a, b) => {
+        const x = chave(a); const y = chave(b);
+        const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'pt-BR', { numeric: true });
+        return ordem.direcao === 'desc' ? -r : r;
+      });
+    }
+    return linhas;
   }
 
-  const elemento = h('div', { class: 'ctc-table-wrap ctc-table-wrap--auto' },
-    h('table', { class: 'ctc-table ctc-table--compact' },
-      h('thead', {}, h('tr', {}, COLS.map((c, i) => h('th', { class: [6, 7].includes(i) ? 'ctc-col--num' : null }, c)))),
-      corpo, rodape));
+  function celula(c, r, i) {
+    const classes = [c.tipo && c.tipo !== 'texto' && c.tipo !== 'data' && c.tipo !== 'badge' ? 'ctc-col--num' : '', i === 0 ? 'ctc-col--sticky' : '', c.forte ? 'ctc-text-strong' : '', c.fraco ? 'ctc-text-muted' : '']
+      .filter(Boolean).join(' ') || null;
+    if (c.render) return h('td', { class: classes }, c.render(r));
+    const v = c.valor(r);
+    const negativo = typeof v === 'number' && v < -0.000001 && c.alertaNegativo;
+    return h('td', { class: [classes, negativo ? 'ctc-text-danger' : ''].filter(Boolean).join(' ') || null }, textoDe(c, r));
+  }
+
+  function desenhar(estado = estadoAtual) {
+    estadoAtual = estado;
+    visiveis = filtrar(estado);
+    corpo.replaceChildren(...(visiveis.length
+      ? visiveis.map((r) => h('tr', { onClick: cfg.aoClicar ? () => cfg.aoClicar(r) : null, class: cfg.variante ? cfg.variante(r) : null, title: cfg.aoClicar ? 'Abrir' : null },
+        ...colunas.map((c, i) => celula(c, r, i)), h('td', {}, ...(cfg.acoes ? cfg.acoes(r) : []))))
+      : [h('tr', {}, h('td', { colspan: colunas.length + 1, class: 'ctc-text-subtle' }, 'Nenhuma linha com estes filtros.'))]));
+    rodape.replaceChildren(h('tr', {}, ...colunas.map((c, i) => {
+      if (i === 0) return h('td', { class: 'ctc-col--sticky' }, `Total · ${plural(visiveis.length, cfg.unidade[0], cfg.unidade[1])}`);
+      if (c.total) return h('td', { class: 'ctc-col--num' }, c.tipo === 'moeda' ? formatarMoeda(visiveis.reduce((t, r) => t + vn(c.valor(r)), 0)) : numExato(visiveis.reduce((t, r) => t + vn(c.valor(r)), 0)));
+      if (c.totalPorNota) {
+        const vistas = new Set();
+        const soma = visiveis.reduce((t, r) => { if (vistas.has(r.nf.id)) return t; vistas.add(r.nf.id); return t + vn(c.valor(r)); }, 0);
+        return h('td', { class: 'ctc-col--num' }, formatarMoeda(soma));
+      }
+      return h('td', {});
+    }), h('td', {})));
+    definirMetaBase(`${plural(visiveis.length, cfg.unidade[0], cfg.unidade[1])}`);
+  }
+
+  /* cabecalho fixo: titulo (clique ordena) + lista de valores (selecao) + filtro digitado */
+  const todasLinhas = cfg.linhas();
+  const cabecalho = h('tr', {}, ...colunas.map((c, i) => {
+    let campo = null;
+    let selecao = null;
+    if (!c.opcoes && !c.semFiltro && (!c.tipo || c.tipo === 'texto' || c.tipo === 'data')) {
+      const valores = [...new Set(todasLinhas.map((r) => textoDe(c, r)).filter((v) => v !== ''))].sort((a, b) => a.localeCompare(b, 'pt-BR', { numeric: true })).slice(0, 300);
+      selecao = h('select', { class: 'ctc-select ctc-select--sm', 'aria-label': `Selecionar ${c.titulo}` },
+        h('option', { value: '' }, '(todos)'), ...valores.map((v) => h('option', { value: v, selected: filtros[`${c.id}__sel`] === v ? true : null }, v)));
+      selecao.addEventListener('change', () => { filtros[`${c.id}__sel`] = selecao.value; desenhar(); });
+      selecao.addEventListener('click', (e) => e.stopPropagation());
+    }
+    if (c.opcoes) {
+      campo = h('select', { class: 'ctc-select ctc-select--sm', 'aria-label': `Filtrar ${c.titulo}` }, h('option', { value: '' }, 'todos'), ...c.opcoes.map((o) => h('option', { value: o, selected: filtros[c.id] === o ? true : null }, o)));
+      campo.addEventListener('change', () => { filtros[c.id] = campo.value; desenhar(); });
+    } else if (!c.semFiltro && (!c.tipo || c.tipo === 'texto' || c.tipo === 'data')) {
+      campo = h('input', { type: 'search', class: 'ctc-input ctc-input--sm', placeholder: 'filtrar…', value: filtros[c.id] || '', 'aria-label': `Filtrar ${c.titulo}` });
+      campo.addEventListener('input', () => { filtros[c.id] = campo.value; desenhar(); });
+    }
+    if (campo) campo.addEventListener('click', (e) => e.stopPropagation());
+    const seta = ordem.coluna === c.id ? (ordem.direcao === 'desc' ? ' ▼' : ' ▲') : '';
+    /* titulo clicavel (herda a cor branca do cabecalho) */
+    const ordenarPor = () => { ordemColunaNotas[base] = { coluna: c.id, direcao: ordem.coluna === c.id && ordem.direcao === 'asc' ? 'desc' : 'asc' }; recarregar(); };
+    const titulo = h('span', {
+      role: 'button', tabindex: '0', title: 'Clique para ordenar por esta coluna',
+      onClick: ordenarPor, onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ordenarPor(); } },
+    }, `${c.titulo}${seta}`);
+    return h('th', { class: [c.tipo && !['texto', 'data', 'badge'].includes(c.tipo) ? 'ctc-col--num' : '', i === 0 ? 'ctc-col--sticky' : ''].filter(Boolean).join(' ') || null },
+      h('div', {}, titulo), h('div', {}, selecao || (c.opcoes ? campo : '\u00a0')), h('div', {}, c.opcoes ? '\u00a0' : (campo || '\u00a0')));
+  }), h('th', {}));
+  const elemento = h('div', { class: 'ctc-table-wrap ctc-table-wrap--full' },
+    h('table', { class: 'ctc-table ctc-table--compact ctc-table--grid ctc-table--striped' }, h('thead', {}, cabecalho), corpo, rodape));
   desenhar({ filtros: filtroBase });
-  const vencidos = boletos.filter((b) => statusBoleto(b) === 'Vencido');
+
+  const vencidos = boletos.filter((x) => statusBoleto(x) === 'Vencido');
   return {
-    tabela: { elemento, atualizarConsulta: desenhar, obterFiltrados: () => filtradas.map((nf) => ({ nf })) },
-    titulo: 'Notas fiscais e boletos', icone: 'documento',
-    avisos: [vencidos.length ? criarAlerta({ tipo: 'danger', titulo: `${vencidos.length} boleto(s) vencido(s) sem pagamento`, mensagem: vencidos.map((b) => `${b.numero} (NF ${notaPorId(b.notaId)?.numero || '—'})`).join(', ') }) : null],
-    selects: [
-      { campo: 'bm', rotulo: 'BM', opcoes: opcoesBM().map((o) => `BM${o.valor}`) },
-      { campo: 'status', rotulo: 'Status boleto', opcoes: ['Em aberto', 'Vencido', 'Pago', 'Cancelado', 'Em contestação', 'Sem boleto'] },
+    tabela: { elemento, atualizarConsulta: desenhar, obterFiltrados: () => [] },
+    titulo: 'Base de notas fiscais e boletos — tudo em colunas', icone: 'tabela',
+    avisos: [
+      criarAlerta({ tipo: 'info', mensagem: `${cfg.explicacao} Clique no título da coluna para ordenar; digite na caixa abaixo do título para filtrar.` }),
+      vencidos.length ? criarAlerta({ tipo: 'danger', titulo: `${vencidos.length} boleto(s) vencido(s) sem pagamento`, mensagem: vencidos.map((x) => `${x.numero} (NF ${notaPorId(x.notaId)?.numero || '—'})`).join(', ') }) : null,
+      (() => {
+        const semBoleto = notas.filter((nf) => !boletosDaNota(nf.id).length);
+        return semBoleto.length ? criarAlerta({ tipo: 'info', titulo: `${semBoleto.length} NF(s) sem boleto lançado`, mensagem: semBoleto.map((nf) => nf.numero).join(', ') }) : null;
+      })(),
     ],
+    selects: [],
     acoes: [
-      { texto: 'Mostrar boletos', variante: 'ghost', tamanho: 'sm', onClick: () => { notas.forEach((x) => nfsComBoletosAbertos.add(x.id)); recarregar(); } },
-      { texto: 'Ocultar boletos', variante: 'ghost', tamanho: 'sm', onClick: () => { nfsComBoletosAbertos.clear(); recarregar(); } },
+      { texto: 'Limpar filtros', variante: 'ghost', tamanho: 'sm', onClick: () => { filtrosColunaNotas[base] = {}; delete ordemColunaNotas[base]; recarregar(); } },
+      {
+        texto: 'Exportar esta base', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exporta a base como está na tela (filtros e ordem) para Excel',
+        onClick: () => exportarPlanilha(`base-${chaveColuna(NOMES_BASES_NOTAS[base])}-${carimboArquivo()}`, [{
+          nome: NOMES_BASES_NOTAS[base],
+          cabecalho: colunas.map((c) => c.tituloExport || c.titulo),
+          linhas: visiveis.map((r) => colunas.map((c) => {
+            const v = c.valor(r);
+            if (c.tipo === 'data') return dataTexto(v);
+            return v == null ? '' : v;
+          })),
+        }]),
+      },
       { texto: 'Importar NF', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar NF: XML, PDF ou planilha', onClick: abrirImportacaoNF },
       { texto: 'Importar boletos', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar boletos (Excel, CSV ou PDF)', onClick: importarBoletos },
-      { texto: 'Exportar', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exportar NFs e boletos filtrados (Excel)', onClick: () => exportarNotasBoletos(filtradas, filtradosBol) },
       { texto: 'Novo boleto', icone: 'mais', variante: 'outline', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalBoleto() },
       { texto: 'Nova NF', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalNota() },
     ],
-    rodape: 'Cada NF (barra azul) guarda os seus boletos, mesmo lançados em outro momento: eles começam fechados; abra pela seta da NF ou por "Mostrar boletos". Clique na NF ou no boleto para abrir. O "+" da coluna GRD inclui números de GRD.',
+    rodape: cfg.rodape,
   };
 }
+
+const ordemColunaNotas = {};
+const NOMES_BASES_NOTAS = { tudo: 'Notas e boletos' };
+const iconeFicha = (tipo, chave, titulo) => botaoFD({ icone: 'grafico', variante: 'ghost', tamanho: 'sm', titulo, onClick: (e) => { if (e) e.stopPropagation(); abrirFicha(tipo, chave); } });
+const comFicha = (texto, tipo, chave, titulo) => [chave ? iconeFicha(tipo, chave, titulo) : null, h('span', {}, texto || '—')];
+
+/**
+ * Linhas da base "tudo" (mesma montagem da exportacao em Excel): por NF, linha j = produto j +
+ * boleto j; os dados da NF se repetem em todas as linhas dela.
+ */
+function linhasBaseTudo() {
+  const porNf = new Map();
+  itensDeNotas().forEach((l) => { if (!porNf.has(l.nf.id)) porNf.set(l.nf.id, []); porNf.get(l.nf.id).push(l); });
+  const linhas = [];
+  ordenar([...porNf.values()], [{ campo: '0.nf.data', direcao: 'asc', tipo: 'data' }, { campo: '0.nf.numero', direcao: 'asc' }]).forEach((its) => {
+    const { nf, ped, ter, ins, bols } = its[0];
+    const reais = its.filter((l) => l.tipo !== 'vazia');
+    for (let j = 0; j < Math.max(1, reais.length, bols.length); j += 1) {
+      const it = reais[j] || null;
+      linhas.push({ nf, ped, ter, ins, it, bol: bols[j] || null, primeira: j === 0, nBols: bols.length, semProdutos: !reais.length });
+    }
+  });
+  return linhas;
+}
+
+const BASES_NOTAS = {
+  tudo: () => ({
+    unidade: ['linha', 'linhas'], ordem: { coluna: '', direcao: 'asc' },
+    explicacao: 'Base completa, nas mesmas colunas da exportação em Excel: cada produto e cada boleto da NF na sua própria linha (linha 1 = 1º produto e 1º boleto); os dados da NF se repetem em todas as linhas dela.',
+    rodape: 'Totais: produtos e boletos somam linha a linha; Valor NF, REIDI da NF e DIFAL somam uma vez por nota. "Saldo após NF" = contratado no pedido − tudo o que foi faturado do produto até aquela nota. Clique na linha para abrir a NF (ou o boleto, nas linhas só de boleto).',
+    linhas: linhasBaseTudo,
+    insumoDe: (r) => r.ins?.nome, terceiroDe: (r) => r.ter?.nome,
+    aoClicar: (r) => (r.bol && !r.it ? abrirModalBoleto(r.bol) : abrirModalNota(r.nf)),
+    variante: (r) => (r.it?.tipo === 'sem' ? 'ctc-row--warning' : null),
+    colunas: [
+      { id: 'pedido', titulo: 'Nº Pedido', valor: (r) => r.ped?.numero || '' },
+      { id: 'terceiro', titulo: 'Terceiro', valor: (r) => r.ter?.nome || '', render: (r) => comFicha(r.ter?.nome, 'terceiro', r.ter?.id, 'Ficha do terceiro') },
+      { id: 'insumo', titulo: 'Insumo', valor: (r) => r.ins?.nome || '', render: (r) => comFicha(r.ins?.nome, 'insumo', r.ins?.id, 'Ficha do insumo') },
+      { id: 'nf', titulo: 'Nº NF', valor: (r) => r.nf.numero, forte: true },
+      { id: 'produto', titulo: 'Produto', valor: (r) => (r.it ? r.it.produto : r.semProdutos && r.primeira ? 'NF sem produtos marcados' : ''),
+        render: (r) => (r.it ? comFicha(r.it.produto, 'produto', r.it.pr ? chaveNomeProduto(r.it) : null, 'Ficha do produto') : h('span', { class: 'ctc-text-xs ctc-text-subtle' }, r.semProdutos && r.primeira ? 'NF sem produtos marcados' : '(boleto adicional da NF)')) },
+      { id: 'un', titulo: 'Unidade', valor: (r) => r.it?.un || '', semFiltro: true },
+      { id: 'qtd', titulo: 'Quantidade', tipo: 'numero', valor: (r) => (r.it ? r.it.qtd : null) },
+      { id: 'unit', titulo: 'Valor unit.', tipo: 'moeda', valor: (r) => (r.it ? r.it.unit : null) },
+      { id: 'total', titulo: 'Valor total item', tipo: 'moeda', total: true, forte: true, valor: (r) => (r.it ? r.it.total : null) },
+      { id: 'reidiItem', titulo: 'REIDI do item', tipo: 'moeda', total: true, valor: (r) => (r.it ? r.it.reidi : null) },
+      { id: 'saldo', titulo: 'Saldo após NF', tipo: 'numero', alertaNegativo: true, valor: (r) => (r.it ? r.it.saldo : null), texto: (r) => (r.it?.saldo == null ? '' : `${numExato(r.it.saldo)} ${r.it.un}`.trim()), tituloExport: 'Saldo do produto após NF' },
+      { id: 'semped', titulo: 'Item sem pedido', opcoes: ['Sim', 'Não'], valor: (r) => (r.it ? (r.it.tipo === 'sem' ? 'Sim' : 'Não') : '') },
+      { id: 'data', titulo: 'Data NF', tipo: 'data', valor: (r) => r.nf.data },
+      { id: 'bm', titulo: 'BM', valor: (r) => rotuloBM(r.nf.bm) },
+      { id: 'valornf', titulo: 'Valor NF', tipo: 'moeda', totalPorNota: true, valor: (r) => vn(r.nf.valor) },
+      { id: 'reidi', titulo: 'REIDI da NF', tipo: 'moeda', totalPorNota: true, valor: (r) => vn(r.nf.reidi) },
+      { id: 'ufo', titulo: 'UF origem', valor: (r) => r.nf.ufOrigem || '', semFiltro: true },
+      { id: 'ufd', titulo: 'UF destino', valor: (r) => r.nf.ufDestino || '', semFiltro: true },
+      { id: 'importado', titulo: 'Importado (4%)', opcoes: ['Sim', 'Não'], valor: (r) => (r.nf.importado ? 'Sim' : 'Não') },
+      { id: 'difalperc', titulo: 'DIFAL (%)', tipo: 'perc', valor: (r) => vn(r.nf.difalPerc) },
+      { id: 'difal', titulo: 'Valor DIFAL', tipo: 'moeda', totalPorNota: true, valor: (r) => vn(r.nf.difalValor) },
+      { id: 'grd', titulo: 'GRD (NF)', valor: (r) => textoGrds(r.nf.grds) },
+      { id: 'eclic', titulo: 'Lançada no e-clic', opcoes: ['Sim', 'Não'], valor: (r) => (r.nf.eclic ? 'Sim' : 'Não'), render: (r) => seloEclic(r.nf) },
+      { id: 'eclicdata', titulo: 'Data e-clic', tipo: 'data', valor: (r) => r.nf.eclicData || '' },
+      { id: 'boleto', titulo: 'Boleto Nº', valor: (r) => r.bol?.numero || '' },
+      { id: 'valorbol', titulo: 'Boleto valor', tipo: 'moeda', total: true, valor: (r) => (r.bol && r.bol.valor != null ? vn(r.bol.valor) : null) },
+      { id: 'venc', titulo: 'Boleto vencimento', tipo: 'data', valor: (r) => r.bol?.vencimento || '' },
+      { id: 'pag', titulo: 'Boleto pagamento', tipo: 'data', valor: (r) => r.bol?.pagamento || '' },
+      {
+        id: 'status', titulo: 'Boleto status', opcoes: ['Pago', 'A vencer', 'Vence em até 2 dias', 'Vencido', 'Em contestação', 'Cancelado', 'Sem boleto'],
+        valor: (r) => (r.bol ? prazoBoleto(r.bol) : r.primeira && !r.nBols ? 'Sem boleto' : ''),
+        render: (r) => (r.bol ? criarBadge({ texto: prazoBoleto(r.bol), variante: VARIANTE_PRAZO[prazoBoleto(r.bol)] }) : r.primeira && !r.nBols ? criarBadge({ texto: 'Sem boleto', variante: 'warning' }) : ''),
+      },
+      { id: 'grdbol', titulo: 'Boleto GRD', valor: (r) => (r.bol ? textoGrds(r.bol.grds) : '') },
+      { id: 'obs', titulo: 'Observações', valor: (r) => (r.primeira ? r.nf.observacoes || '' : '') },
+    ],
+    acoes: (r) => (r.primeira ? [
+      botaoFD({ icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: `PDF da NF ${r.nf.numero}`, onClick: (e) => { if (e) e.stopPropagation(); gerarPdfNota(r.nf); } }),
+      botaoFD({ icone: 'mais', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Novo boleto da NF ${r.nf.numero}`, onClick: (e) => { if (e) e.stopPropagation(); abrirModalBoleto(null, r.nf.id); } }),
+      r.nf.eclic ? null : botaoFD({ icone: 'check', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Marcar NF lançada no e-clic (hoje)', onClick: (e) => { if (e) e.stopPropagation(); r.nf.eclic = true; if (!r.nf.eclicData) r.nf.eclicData = hojeIso(); registrarAlteracao(); toast.sucesso('NF lançada no e-clic', r.nf.numero); } }),
+      botaoFD({ icone: 'lixeira', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Excluir NF ${r.nf.numero}`, onClick: (e) => { if (e) e.stopPropagation(); excluirNota(r.nf); } }),
+    ].filter(Boolean) : []),
+  }),
+};
 
 /* =============================================================================
    09b. BASE UNICA: TERCEIROS, PEDIDOS, NOTAS E BOLETOS
@@ -10572,6 +11287,7 @@ function paginaAliquotas() {
    ========================================================================== */
 
 const URL_SHEETJS = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm';
+const URL_EXCELJS = 'https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
 const URL_PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs';
 const URL_PDFJS_WORKER = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs';
 
@@ -11643,24 +12359,214 @@ function valorCsv(v) {
 }
 
 /** abas: [{ nome, cabecalho: [], linhas: [[]] }] */
+/* ---- Exportacao para Excel (padrao unico de todas as bases) ---- */
+
+function carregarExcelJS() {
+  if (window.ExcelJS) return Promise.resolve(window.ExcelJS);
+  return new Promise((resolver, rejeitar) => {
+    const script = document.createElement('script');
+    script.src = URL_EXCELJS;
+    script.onload = () => (window.ExcelJS ? resolver(window.ExcelJS) : rejeitar(new Error('Gerador de Excel indisponível.')));
+    script.onerror = () => { script.remove(); rejeitar(new Error('Não foi possível carregar o gerador de Excel.')); };
+    document.head.append(script);
+  });
+}
+
+/** Tipo de cada coluna pelo nome (e pelos valores): define formato, alinhamento e total. */
+function tipoColunaExport(nome, valores) {
+  const t = normalizarTexto(String(nome || ''));
+  const numerico = valores.some((v) => typeof v === 'number') && valores.every((v) => v === '' || v == null || typeof v === 'number');
+  if (/^n[ºo°]?\s|^nº|^n\b|cnpj|grd|\bbm\b|^uf\b|^uf |status|situac|modo|tipo|e-clic|eclic|sim\/nao/.test(t)) return 'texto';
+  if (/data|emiss|vencim|pagamento|recebid|inicio|\bfim\b|aprovad|reprovad|novo fim/.test(t)) return 'data';
+  if (t.includes('%')) return numerico ? 'perc' : 'texto';
+  if (/qtd|quantidade|qtde|unidades|duracao|dias|saldo do produto|saldo \(qtd\)|saldo \(un\)|contratado|^(pedidos|nfs|itens|produtos|boletos|linhas)$/.test(t)) return numerico ? 'numero' : 'texto';
+  if (/valor|total|saldo|reidi|difal|faturad|comprometid|em pedidos|previst|vigente|unit|preco|r\$|pago|desvio|real|tendenc|estimad|aditivo|a distribuir|falta|^bm\d/.test(t)) return numerico ? 'moeda' : 'texto';
+  return numerico ? 'numero' : 'texto';
+}
+/* colunas que repetem o valor do "pai" em cada linha (pedido/NF): nao somar */
+const COLUNA_REPETIDA = /valor ?nf|valor da nf|reidi da nf|^reidi$|^reidi \(r\$\)$|valor difal|valor pedido|valor do pedido|faturado \(nfs\) do pedido|saldo do pedido|unit|preco|saldo do produto|acumulad/;
+
+const FORMATO_EXCEL = {
+  moeda: '"R$" #,##0.00;[Red]-"R$" #,##0.00',
+  numero: '#,##0.00####;[Red]-#,##0.00####',
+  inteiro: '#,##0;[Red]-#,##0',
+  perc: '0.00"%";[Red]-0.00"%"',
+  data: 'dd/mm/yyyy',
+};
+const COR_ABA = ['1A2F4E', '2E86AB', 'C2702E', '2D9E6B', '7C3AED', 'E6A817', 'E63946', '475569'];
+
+/** Data "dd/mm/aaaa" (ou ISO) vira data do Excel; o resto fica como esta. */
+function valorCelulaExport(v, tipo) {
+  if (v == null || v === '') return null;
+  if (tipo === 'data' && typeof v === 'string') {
+    const d = paraData(v);
+    return d ? new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 12)) : v;
+  }
+  return v;
+}
+const nomeAbaExcel = (nome) => String(nome || 'Aba').replace(/[[\]:*?/\\]/g, ' ').slice(0, 31);
+
+/**
+ * Exporta abas [{ nome, cabecalho, linhas, descricao? }] num Excel formatado:
+ *  linha 1 titulo (obra · base) · linha 2 data e quantidade · linha 3 totais (SUBTOTAL, so linhas
+ *  visiveis no filtro) · linha 4 cabecalho com filtro · dados com formato por tipo de coluna.
+ * O cabecalho continua sendo a linha com os nomes das colunas: as importacoes leem o arquivo.
+ */
 async function exportarPlanilha(nomeArquivo, abas) {
   const total = abas.reduce((t, a) => t + a.linhas.length, 0);
   try {
-    const XLSX = await import(URL_SHEETJS);
-    const livro = XLSX.utils.book_new();
-    abas.forEach((a) => {
-      const folha = XLSX.utils.aoa_to_sheet([a.cabecalho, ...a.linhas]);
-      folha['!cols'] = a.cabecalho.map((c) => ({ wch: Math.min(45, Math.max(12, String(c).length + 2)) }));
-      XLSX.utils.book_append_sheet(livro, folha, a.nome.slice(0, 31));
+    const ExcelJS = await carregarExcelJS();
+    const livro = new ExcelJS.Workbook();
+    livro.creator = 'CTC · Faturamento Direto';
+    livro.created = new Date();
+    const agora = `${formatarData(new Date())} ${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
+    const borda = { style: 'thin', color: { argb: 'FFE3E7ED' } };
+    const bordas = { top: borda, left: borda, bottom: borda, right: borda };
+    const nomesUsados = new Set();
+    const unico = (nome) => { let n = nomeAbaExcel(nome); let i = 2; while (nomesUsados.has(n)) n = `${nomeAbaExcel(nome).slice(0, 28)} ${i++}`; nomesUsados.add(n); return n; };
+    /* aba "Leia-me" quando ha varias abas */
+    if (abas.length > 1) {
+      const ws = livro.addWorksheet(unico('Leia-me'), { properties: { tabColor: { argb: 'FF475569' } }, views: [{ showGridLines: false }] });
+      ws.columns = [{ width: 30 }, { width: 16 }, { width: 70 }];
+      ws.mergeCells('A1:C1');
+      Object.assign(ws.getCell('A1'), { value: `${obra.nome || 'Obra'} — Faturamento Direto`, font: { bold: true, size: 16, color: { argb: 'FFFFFFFF' } }, fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2F4E' } }, alignment: { vertical: 'middle', indent: 1 } });
+      ws.getRow(1).height = 30;
+      [['Cliente', obra.cliente || '—'], ['Consórcio', obra.consorcio || '—'], ['Período da obra', `${formatarData(obra.inicio) || '—'} a ${formatarData(fimVigente()) || '—'}`], ['Exportado em', agora]].forEach(([k, v], i) => {
+        ws.getCell(`A${i + 3}`).value = k; ws.getCell(`A${i + 3}`).font = { bold: true, color: { argb: 'FF6C757D' } };
+        ws.mergeCells(`B${i + 3}:C${i + 3}`); ws.getCell(`B${i + 3}`).value = v;
+      });
+      const cab = ws.getRow(8);
+      cab.values = ['Aba', 'Linhas', 'Conteúdo'];
+      cab.eachCell((c) => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF243D61' } }; c.border = bordas; });
+      abas.forEach((a, i) => {
+        const r = ws.getRow(9 + i);
+        r.values = [a.nome, a.linhas.length, a.descricao || `${a.cabecalho.length} colunas: ${a.cabecalho.slice(0, 6).join(', ')}${a.cabecalho.length > 6 ? '…' : ''}`];
+        r.eachCell((c) => { c.border = bordas; c.alignment = { wrapText: true, vertical: 'top' }; });
+        r.getCell(1).font = { bold: true, color: { argb: `FF${COR_ABA[i % COR_ABA.length]}` } };
+      });
+      const leg = 10 + abas.length;
+      [['Como usar', 'Cada aba tem: título, linha de TOTAIS (soma só o que estiver visível no filtro), cabeçalho com filtro e os dados.'],
+        ['Cores', 'Valores negativos em vermelho. Linhas alternadas para leitura. Painel congelado no cabeçalho e na 1ª coluna.'],
+        ['Reimportar', 'Este arquivo pode ser importado de volta (Importar / Exportar): o sistema reconhece as abas e o cabeçalho.']].forEach(([k, v], i) => {
+        ws.getCell(`A${leg + i}`).value = k; ws.getCell(`A${leg + i}`).font = { bold: true };
+        ws.mergeCells(`B${leg + i}:C${leg + i}`); ws.getCell(`B${leg + i}`).value = v; ws.getCell(`B${leg + i}`).alignment = { wrapText: true };
+      });
+    }
+    abas.forEach((a, ia) => {
+      const nCol = a.cabecalho.length;
+      const ws = livro.addWorksheet(unico(a.nome), {
+        properties: { tabColor: { argb: `FF${COR_ABA[ia % COR_ABA.length]}` } },
+        views: [{ state: 'frozen', xSplit: 1, ySplit: 4 }],
+      });
+      const tipos = a.cabecalho.map((c, i) => {
+        const valores = a.linhas.map((l) => l[i]);
+        const tipo = tipoColunaExport(c, valores);
+        /* contagens e quantidades inteiras sem casas decimais */
+        return tipo === 'numero' && valores.every((v) => typeof v !== 'number' || Number.isInteger(v)) ? 'inteiro' : tipo;
+      });
+      const ultimaCol = ws.getColumn(nCol).letter;
+      /* titulo e subtitulo */
+      ws.mergeCells(`A1:${ultimaCol}1`);
+      Object.assign(ws.getCell('A1'), {
+        value: `${obra.nome || 'Obra'} — ${a.nome}`,
+        font: { bold: true, size: 14, color: { argb: 'FFFFFFFF' } },
+        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A2F4E' } },
+        alignment: { vertical: 'middle', indent: 1 },
+      });
+      ws.getRow(1).height = 26;
+      ws.mergeCells(`A2:${ultimaCol}2`);
+      Object.assign(ws.getCell('A2'), {
+        value: `Exportado em ${agora} · ${a.linhas.length} linha(s)${obra.cliente ? ` · Cliente: ${obra.cliente}` : ''}${obra.consorcio ? ` · ${obra.consorcio}` : ''}`,
+        font: { italic: true, size: 9, color: { argb: 'FF6C757D' } },
+      });
+      /* cabecalho (linha 4) */
+      const cab = ws.getRow(4);
+      cab.values = a.cabecalho;
+      cab.height = 32;
+      cab.eachCell((c, i) => {
+        c.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF243D61' } };
+        c.alignment = { vertical: 'middle', horizontal: ['moeda', 'numero', 'inteiro', 'perc'].includes(tipos[i - 1]) ? 'right' : 'left', wrapText: true };
+        c.border = bordas;
+      });
+      /* dados (a partir da linha 5) */
+      a.linhas.forEach((linha, il) => {
+        const r = ws.getRow(5 + il);
+        r.values = linha.map((v, i) => valorCelulaExport(v, tipos[i]));
+        r.eachCell({ includeEmpty: true }, (c, i) => {
+          if (i > nCol) return;
+          const tipo = tipos[i - 1];
+          if (FORMATO_EXCEL[tipo]) c.numFmt = FORMATO_EXCEL[tipo];
+          c.border = bordas;
+          c.alignment = { vertical: 'top', wrapText: tipo === 'texto' && String(c.value ?? '').length > 40, horizontal: tipo === 'data' ? 'center' : undefined };
+          if (il % 2) c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF5F7FA' } };
+        });
+        r.getCell(1).font = { bold: true, color: { argb: 'FF1A2F4E' } };
+      });
+      /* totais (linha 3): SUBTOTAL(109) soma so as linhas visiveis no filtro */
+      const ini = 5; const fim = Math.max(5, 4 + a.linhas.length);
+      const tot = ws.getRow(3);
+      let comTotal = false;
+      tipos.forEach((tipo, i) => {
+        if (i === 0 || !a.linhas.length || !['moeda', 'numero', 'inteiro'].includes(tipo) || COLUNA_REPETIDA.test(normalizarTexto(String(a.cabecalho[i])))) return;
+        const col = ws.getColumn(i + 1).letter;
+        const soma = a.linhas.reduce((t, l) => t + (typeof l[i] === 'number' ? l[i] : 0), 0);
+        const c = tot.getCell(i + 1);
+        c.value = { formula: `SUBTOTAL(109,${col}${ini}:${col}${fim})`, result: soma };
+        c.numFmt = FORMATO_EXCEL[tipo];
+        c.font = { bold: true, color: { argb: 'FF1A2F4E' } };
+        comTotal = true;
+      });
+      if (comTotal) {
+        tot.getCell(1).value = 'TOTAIS (linhas visíveis)';
+        tot.getCell(1).font = { bold: true, size: 9, color: { argb: 'FF1A2F4E' } };
+      }
+      for (let i = 1; comTotal && i <= nCol; i += 1) {
+        const c = tot.getCell(i);
+        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE3F0FB' } };
+        c.border = { top: borda, bottom: { style: 'medium', color: { argb: 'FF1A2F4E' } } };
+      }
+      tot.height = 20;
+      /* filtro e larguras */
+      if (a.linhas.length) ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: fim, column: nCol } };
+      a.cabecalho.forEach((nome, i) => {
+        const tipo = tipos[i];
+        const maior = a.linhas.slice(0, 400).reduce((m, l) => {
+          const v = l[i];
+          const tam = tipo === 'moeda' ? formatarMoeda(v).length + 1 : tipo === 'data' ? 10 : String(v ?? '').length;
+          return Math.max(m, tam);
+        }, 0);
+        ws.getColumn(i + 1).width = Math.min(48, Math.max(tipo === 'data' ? 12 : 9, Math.ceil(Math.max(maior, Math.min(String(nome).length, 22)) * 1.1) + 2));
+      });
+      ws.pageSetup = { orientation: nCol > 8 ? 'landscape' : 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0, paperSize: 9, printTitlesRow: '4:4' };
     });
-    XLSX.writeFile(livro, `${nomeArquivo}.xlsx`);
+    const buffer = await livro.xlsx.writeBuffer();
+    const url = URL.createObjectURL(new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+    const link = h('a', { href: url, download: `${nomeArquivo}.xlsx` });
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
     toast.sucesso('Planilha exportada', `${nomeArquivo}.xlsx · ${total} linha(s)`);
   } catch (erro) {
-    abas.forEach((a) => {
-      const sufixo = abas.length > 1 ? `-${chaveColuna(a.nome)}` : '';
-      baixarTextoFD(`${nomeArquivo}${sufixo}.csv`, `${[a.cabecalho, ...a.linhas].map((l) => l.map(valorCsv).join(';')).join('\n')}\n`);
-    });
-    toast.info('Exportado em CSV', 'O gerador de Excel não carregou (internet ou rede bloqueada). O CSV abre normalmente no Excel.');
+    /* sem o gerador formatado: tenta o simples (SheetJS) e, por ultimo, CSV */
+    try {
+      const XLSX = await import(URL_SHEETJS);
+      const livro = XLSX.utils.book_new();
+      abas.forEach((a) => {
+        const folha = XLSX.utils.aoa_to_sheet([a.cabecalho, ...a.linhas]);
+        folha['!cols'] = a.cabecalho.map((c) => ({ wch: Math.min(45, Math.max(12, String(c).length + 2)) }));
+        XLSX.utils.book_append_sheet(livro, folha, nomeAbaExcel(a.nome));
+      });
+      XLSX.writeFile(livro, `${nomeArquivo}.xlsx`);
+      toast.info('Planilha exportada sem formatação', 'O gerador formatado não carregou; o arquivo saiu simples.');
+    } catch (erro2) {
+      abas.forEach((a) => {
+        const sufixo = abas.length > 1 ? `-${chaveColuna(a.nome)}` : '';
+        baixarTextoFD(`${nomeArquivo}${sufixo}.csv`, `${[a.cabecalho, ...a.linhas].map((l) => l.map(valorCsv).join(';')).join('\n')}\n`);
+      });
+      toast.info('Exportado em CSV', 'O gerador de Excel não carregou (internet ou rede bloqueada). O CSV abre normalmente no Excel.');
+    }
   }
 }
 
@@ -11884,9 +12790,18 @@ function exportarPedidos(lista = pedidos) {
 
 /* ---- Notas fiscais ---- */
 
-const CAB_NOTAS = ['Nº Pedido', 'Terceiro', 'Insumo', 'Nº NF', 'Data NF', 'BM', 'Valor NF', 'REIDI', 'UF Origem', 'UF Destino', 'Importado (4%)',
-  'DIFAL (%)', 'Valor DIFAL', 'GRD', 'Observações', 'Descrição do Item', 'Quantidade', 'Valor Unit', 'Valor Total Item', 'Item sem Pedido', 'Conferência',
-  'Lançada no e-clic (Sim/Não)', 'Data e-clic'];
+/*
+ * NFs em formato de base: a NF logo depois do pedido/terceiro, em seguida CADA PRODUTO numa
+ * linha propria e CADA BOLETO na sua propria coluna (linha 1 = 1o produto e 1o boleto, linha 2 =
+ * 2o produto e 2o boleto...). Os dados da NF se repetem em todas as linhas dela. A importacao
+ * le as colunas pelo nome (a ordem nao importa).
+ */
+const CAB_NOTAS = ['Nº Pedido', 'Terceiro', 'Insumo', 'Nº NF',
+  'Descrição do Item', 'Detalhe do produto', 'Unidade', 'Quantidade', 'Valor Unit', 'Valor Total Item', 'Benefício REIDI do item', 'Item sem Pedido',
+  'Data NF', 'BM', 'Valor NF', 'REIDI', 'UF Origem', 'UF Destino', 'Importado (4%)', 'DIFAL (%)', 'Valor DIFAL', 'GRD',
+  'Lançada no e-clic (Sim/Não)', 'Data e-clic', 'Conferência',
+  'Boleto Nº', 'Boleto Valor', 'Boleto Vencimento', 'Boleto Pagamento', 'Boleto Status', 'Boleto GRD',
+  'Observações'];
 
 function exportarNotas(lista = notas) {
   exportarPlanilha(`${FORMATO_BASE}-notas-fiscais-${carimboArquivo()}`, [{ nome: 'NFs e itens', cabecalho: CAB_NOTAS, linhas: linhasExportNotas(lista) }]);
@@ -11900,22 +12815,29 @@ function exportarNotasBoletos(listaNfs = notas, listaBoletos = boletos) {
   ]);
 }
 
-function linhasExportNotas(lista) {
+function linhasNfExport(n) {
+  const ped = pedidoPorId(n.pedidoId);
+  const inicio = [ped?.numero || '', terceiroDoPedido(ped)?.nome || '', insumoDoPedido(ped)?.nome || '', n.numero];
+  const dadosNf = [dataTexto(n.data), n.bm ? `BM${n.bm}` : '', vn(n.valor), vn(n.reidi), n.ufOrigem || '', n.ufDestino || '', simNao(n.importado),
+    vn(n.difalPerc), vn(n.difalValor), textoGrds(n.grds), simNao(n.eclic), dataTexto(n.eclicData), analisarNota(n).situacao];
+  const itens = [
+    ...(n.itens || []).map((i) => {
+      const pr = produtoPorId(i.produtoId);
+      const reidi = pr ? vn(i.quantidade) * Math.max(0, vn(pr.unitSem) - vn(i.valorUnit)) : 0;
+      return [pr?.descricao || '(produto removido)', pr?.detalhe || '', pr?.unidade || '', vn(i.quantidade), vn(i.valorUnit), vn(i.quantidade) * vn(i.valorUnit), reidi, 'Não'];
+    }),
+    ...(n.itensSemVinculo || []).map((i) => [i.descricao, '', '', vn(i.quantidade), vn(i.quantidade) ? (vn(i.valorTotal) / vn(i.quantidade)) : '', vn(i.valorTotal), 0, 'Sim']),
+  ];
+  const bols = ordenar(boletosDaNota(n.id), 'vencimento', 'asc', 'data').map((b) => [b.numero, b.valor == null ? '' : vn(b.valor), dataTexto(b.vencimento), dataTexto(b.pagamento), statusBoleto(b), textoGrds(b.grds)]);
   const linhas = [];
-  lista.forEach((n) => {
-    const ped = pedidoPorId(n.pedidoId);
-    const base = [ped?.numero || '', terceiroDoPedido(ped)?.nome || '', insumoDoPedido(ped)?.nome || '', n.numero, dataTexto(n.data), n.bm ? `BM${n.bm}` : '',
-      vn(n.valor), vn(n.reidi), n.ufOrigem || '', n.ufDestino || '', simNao(n.importado), vn(n.difalPerc), vn(n.difalValor), textoGrds(n.grds), n.observacoes || ''];
-    const situacao = analisarNota(n).situacao;
-    const itens = [
-      ...(n.itens || []).map((i) => [produtoPorId(i.produtoId)?.descricao || '(produto removido)', vn(i.quantidade), vn(i.valorUnit), (vn(i.quantidade) * vn(i.valorUnit)), 'Não']),
-      ...(n.itensSemVinculo || []).map((i) => [i.descricao, vn(i.quantidade), vn(i.quantidade) ? (vn(i.valorTotal) / vn(i.quantidade)) : '', vn(i.valorTotal), 'Sim']),
-    ];
-    const eclic = [simNao(n.eclic), dataTexto(n.eclicData)];
-    if (!itens.length) linhas.push([...base, '', '', '', '', '', situacao, ...eclic]);
-    else itens.forEach((it) => linhas.push([...base, ...it, situacao, ...eclic]));
-  });
+  for (let j = 0; j < Math.max(1, itens.length, bols.length); j += 1) {
+    linhas.push([...inicio, ...(itens[j] || ['', '', '', '', '', '', '', '']), ...dadosNf, ...(bols[j] || ['', '', '', '', '', '']), n.observacoes || '']);
+  }
   return linhas;
+}
+
+function linhasExportNotas(lista) {
+  return ordenar(lista, [{ campo: 'data', direcao: 'asc', tipo: 'data' }, { campo: 'numero', direcao: 'asc' }]).flatMap(linhasNfExport);
 }
 
 const MAPA_NOTAS = [
@@ -12104,20 +13026,7 @@ function exportarTudo({ comAditivos = false } = {}) {
       linhasPedidos.push([...base, pr.detalhe || pr.descricao, pr.unidade || '', vn(pr.quantidade), a.unitSem, (a.unitCom), vn(p.difalPerc), a.qtdFaturada, ...fim, pr.descricao]);
     });
   });
-  const linhasNotas = [];
-  nfs.forEach((n) => {
-    const ped = pedidoPorId(n.pedidoId);
-    const base = [ped?.numero || '', terceiroDoPedido(ped)?.nome || '', insumoDoPedido(ped)?.nome || '', n.numero, dataTexto(n.data), n.bm ? `BM${n.bm}` : '',
-      vn(n.valor), vn(n.reidi), n.ufOrigem || '', n.ufDestino || '', simNao(n.importado), vn(n.difalPerc), vn(n.difalValor), textoGrds(n.grds), n.observacoes || ''];
-    const situacao = analisarNota(n).situacao;
-    const itens = [
-      ...(n.itens || []).map((i) => [produtoPorId(i.produtoId)?.descricao || '', vn(i.quantidade), vn(i.valorUnit), (vn(i.quantidade) * vn(i.valorUnit)), 'Não']),
-      ...(n.itensSemVinculo || []).map((i) => [i.descricao, vn(i.quantidade), vn(i.quantidade) ? (vn(i.valorTotal) / vn(i.quantidade)) : '', vn(i.valorTotal), 'Sim']),
-    ];
-    const eclic = [simNao(n.eclic), dataTexto(n.eclicData)];
-    if (!itens.length) linhasNotas.push([...base, '', '', '', '', '', situacao, ...eclic]);
-    itens.forEach((it) => linhasNotas.push([...base, ...it, situacao, ...eclic]));
-  });
+  const linhasNotas = linhasExportNotas(nfs);
   const linhasBoletos = bols.map((b) => {
     const nf = notaPorId(b.notaId);
     const ped = pedidoPorId(nf?.pedidoId);
@@ -12183,13 +13092,13 @@ const opcoesRelCliente = {
   capa: true, reidi: true, relacaoNotas: true, totalGeral: true, kpis: true, grafico: true, visaoPedidos: true, atividades: true,
 };
 const opcoesRelTerceiro = {
-  relacaoNotas: true, linhaTotal: true, grafico: true, consumoMes: true, capa: true,
+  atividades: true, relacaoNotas: true, linhaTotal: true, grafico: true, consumoMes: true, capa: true,
 };
 let terceirosRelatorio = null;   // ids escolhidos; null = todos
 
 const esc = (v) => escaparHtml(v == null ? '' : String(v));
 const moedaRel = (v) => formatarMoeda(vn(v));
-const percRel = (v) => formatarPercentual(vn(v), { casas: 1 });
+const percRel = (v, casas = 1) => formatarPercentual(vn(v), { casas });
 const dataRel = (v) => (v ? formatarData(v) : '—');
 const mesCurtoRel = (iso) => {
   const [a, m] = String(iso || '').split('-');
@@ -12939,17 +13848,17 @@ function destaquesCapaHtml(d) {
  * - demais blocos: inteiros na folha atual ou na seguinte.
  * Cada folha recebe cabecalho curto (menos a capa) e rodape com "Pagina X de Y".
  */
-function paginarRelatorio(doc, { titulo, rodape }) {
+function paginarRelatorio(doc, { titulo, rodape, alturaUtilMm = 187, classeFolha = '' }) {
   const fonte = doc.getElementById('fonte');
   const destino = doc.getElementById('paginas');
   if (!fonte || !destino) return;
   const mm = (v) => (v * 96) / 25.4;
-  const ALTURA = mm(187);
+  const ALTURA = mm(alturaUtilMm);
   let corpo = null;
   let cheia = false;
   const novaPagina = (comCabecalho = true) => {
     const pagina = doc.createElement('div');
-    pagina.className = 'pagina';
+    pagina.className = `pagina ${classeFolha}`.trim();
     corpo = doc.createElement('div');
     corpo.className = 'corpo';
     if (comCabecalho) {
@@ -12971,7 +13880,8 @@ function paginarRelatorio(doc, { titulo, rodape }) {
     return nova;
   };
   const colocarBloco = (bloco) => {
-    if (!corpo || cheia || (bloco.dataset.folhaNova != null && !vazia())) novaPagina();
+    if (!corpo) novaPagina(bloco.dataset.cabecalho !== 'nao');
+    else if (cheia || (bloco.dataset.folhaNova != null && !vazia())) novaPagina();
     corpo.append(bloco);
     if (cabe() || vazia()) return;
     /* tabela que deve ficar inteira: tenta caber na folha atual em versao compacta */
@@ -13075,6 +13985,382 @@ function gerarRelatorioCliente() {
     aoCarregar: (doc) => paginarRelatorio(doc, {
       titulo: `<span><b>Relatório — Faturamento Direto</b>${esc(obra.nome || '')}</span><span>${esc(obra.cliente || '')}${obra.consorcio ? ` · ${esc(obra.consorcio)}` : ''}</span>`,
       rodape: `${esc(obra.nome || 'Obra')} · Relatório — Faturamento Direto · emitido em ${agora.data}, ${agora.hora}`,
+    }),
+  });
+}
+
+
+/* =============================================================================
+   13a2. PDF DA NOTA FISCAL (ficha completa, A4 retrato)
+   ========================================================================== */
+
+const CSS_PDF_NF = `
+@page { size: A4 portrait; margin: 0; }
+.pagina.retrato { width: 210mm; height: 296.5mm; padding: 9mm 10mm 0; }
+.pagina.retrato .corpo { width: 190mm; }
+@media print { .pagina.retrato { height: 296.5mm; } }
+.nf-doc #fonte { width: 190mm; }
+.nf-doc .topo .marca img { height: 34px; }
+.nf-doc .titulo-doc h1 { font-size: 17px; }
+.nf-hero { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; background: linear-gradient(135deg, #1A2F4E 0%, #243D61 60%, #2E86AB 130%); color: #fff; border-radius: 10px; padding: 16px 20px; margin: 4px 0 12px; }
+.nf-hero .rot { font-size: 8px; letter-spacing: .8px; text-transform: uppercase; opacity: .75; font-weight: 700; }
+.nf-hero .num { font-size: 26px; font-weight: 800; letter-spacing: .3px; margin-top: 2px; }
+.nf-hero .sub { font-size: 10px; opacity: .9; margin-top: 3px; }
+.nf-hero .valor { text-align: right; }
+.nf-hero .valor .v { font-size: 26px; font-weight: 800; }
+.nf-hero .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.nf-chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 9px; font-size: 9px; font-weight: 700; background: rgba(255,255,255,.14); color: #fff; }
+.nf-chip i { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.nf-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 12px; }
+.nf-card { border: 1px solid #E3E7ED; border-radius: 8px; padding: 9px 11px; background: #FBFCFD; border-top: 3px solid var(--cor, #1A2F4E); }
+.nf-card .tit { font-size: 8px; text-transform: uppercase; letter-spacing: .6px; color: #6C757D; font-weight: 800; margin-bottom: 5px; }
+.nf-card .lin { display: flex; justify-content: space-between; gap: 8px; font-size: 9.6px; padding: 2.5px 0; border-bottom: 1px dashed #EEF1F5; }
+.nf-card .lin:last-child { border-bottom: 0; }
+.nf-card .lin span { color: #6C757D; }
+.nf-card .lin b { color: #1A1A2E; text-align: right; }
+.nf-card .destaque { font-size: 15px; font-weight: 800; margin: 2px 0 4px; }
+.nf-sec { border: 1px solid #E3E7ED; border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+.nf-sec > .cab, .nf-tab .cab-th { background: #1A2F4E; color: #fff; font-weight: 700; font-size: 10.5px; padding: 7px 11px; text-align: left; }
+.nf-tab { width: 100%; border-collapse: collapse; border: 1px solid #E3E7ED; margin-bottom: 12px; }
+.nf-tab th { background: #243D61; color: #fff; font-size: 7.6px; text-transform: uppercase; letter-spacing: .3px; padding: 6px 7px; text-align: right; }
+.nf-tab th.e, .nf-tab td.e { text-align: left; }
+.nf-tab th.cab-th { text-transform: none; letter-spacing: 0; font-size: 10.5px; padding: 7px 11px; background: #1A2F4E; }
+.nf-tab td { font-size: 9.2px; padding: 6px 7px; border-bottom: 1px solid #EEF1F5; text-align: right; vertical-align: top; }
+.nf-tab td:not(.e) { white-space: nowrap; }
+.nf-tab--itens td { font-size: 8.7px; padding: 6px 5px; }
+.nf-tab--itens th { padding: 5px 5px; font-size: 7.2px; }
+.nf-tab tr.grupos th { background: #1A2F4E; font-size: 7.4px; letter-spacing: .6px; padding: 4px 5px; text-align: center; }
+.nf-tab tr.grupos th.g-qtd { background: #2E86AB; }
+.nf-tab tr.grupos th.g-val { background: #C2702E; }
+.nf-tab td.sal { font-weight: 800; color: #2D9E6B; background: #F1FAF4 !important; }
+.nf-tab td.sal.zero { color: #495057; background: #F3F4F6 !important; }
+.nf-tab td.sal.neg { color: #E63946; background: #FDECEE !important; }
+.nf-tab tr.excede td.e { box-shadow: inset 3px 0 0 #E63946; }
+.nf-tab tr.semvinc td.e { box-shadow: inset 3px 0 0 #E6A817; }
+.nf-alerta { margin: 9px 11px 0; padding: 7px 10px; border-radius: 6px; background: #FDECEE; color: #B42318; font-size: 9.2px; font-weight: 700; }
+.nf-alerta.ok { background: #EAF7EF; color: #1E7A4E; }
+.nf-tab tbody:nth-of-type(even) td { background: #F8FAFC; }
+.nf-tab td small { display: block; color: #8A94A6; font-size: 8px; margin-top: 1px; }
+.nf-tab tr.tot td { background: #E3F0FB !important; font-weight: 800; border-top: 2px solid #1A2F4E; }
+.nf-tab .roxo { color: #7C3AED; font-weight: 700; }
+.nf-pos { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; }
+.nf-pos > div { padding: 9px 11px; border-right: 1px solid #EEF1F5; }
+.nf-pos > div:last-child { border-right: 0; }
+.nf-pos .rot { font-size: 7.6px; text-transform: uppercase; letter-spacing: .5px; color: #6C757D; font-weight: 700; }
+.nf-pos .v { font-size: 12.5px; font-weight: 800; margin-top: 3px; }
+.nf-pos .d { font-size: 8.4px; color: #6C757D; margin-top: 2px; }
+.nf-barra { padding: 4px 11px 11px; }
+.nf-barra .trilho { position: relative; height: 12px; border-radius: 6px; background: #E6F4EA; overflow: hidden; }
+.nf-barra .antes { position: absolute; left: 0; top: 0; bottom: 0; background: #9AA3AD; }
+.nf-barra .esta { position: absolute; top: 0; bottom: 0; background: #E63946; }
+.nf-barra .leg { display: flex; gap: 14px; font-size: 8.4px; color: #495057; margin-top: 5px; }
+.nf-barra .leg i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.nf-conf { display: grid; grid-template-columns: repeat(4, 1fr); }
+.nf-conf > div { padding: 9px 11px; border-right: 1px solid #EEF1F5; }
+.nf-conf > div:last-child { border-right: 0; }
+.nf-obs { padding: 10px 12px; font-size: 9.6px; color: #343A40; white-space: pre-wrap; }
+.selo { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 2px 8px; font-size: 8.4px; font-weight: 700; }
+.selo i { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+`;
+
+/** Ficha completa de uma NF em HTML (folhas A4 retrato montadas pelo paginador). */
+function htmlPdfNota(nf) {
+  const d = dadosRelatorio(null);
+  const ped = pedidoPorId(nf.pedidoId);
+  const ter = terceiroDoPedido(ped);
+  const ins = insumoDoPedido(ped);
+  const an = analisarNota(nf);
+  const rp = ped ? resumoPedido(ped) : null;
+  const nfsPed = ped ? ordenar(notasDoPedido(ped.id), [{ campo: 'data', direcao: 'asc', tipo: 'data' }, { campo: 'numero', direcao: 'asc' }]) : [nf];
+  const pos = nfsPed.findIndex((x) => x.id === nf.id);
+  const antes = nfsPed.slice(0, Math.max(0, pos)).reduce((t, x) => t + vn(x.valor), 0);
+  const valorPed = ped ? vn(ped.valor) : 0;
+  const depois = antes + vn(nf.valor);
+  const pc = (v) => (valorPed > 0 ? (v / valorPed) * 100 : 0);
+  const bols = ordenar(boletosDaNota(nf.id), 'vencimento', 'asc', 'data');
+  const selo = (texto, cor, fundo) => `<span class="selo" style="background:#${fundo};color:#${cor}"><i style="background:#${cor}"></i>${esc(texto)}</span>`;
+  const linha = (rot, val) => `<div class="lin"><span>${esc(rot)}</span><b>${val}</b></div>`;
+  const corSit = { Conferida: [COR_REL.verde, 'D4F4E2'], 'Sem itens': [COR_REL.cinzaPonto, 'EEF0F3'] }[an.situacao] || [COR_REL.ambar, 'FEF3C7'];
+  /* produtos: quantidade, precos SEM/COM REIDI, REIDI do item e saldo do produto apos esta NF */
+  const itens = (nf.itens || []).map((it) => {
+    const pr = produtoPorId(it.produtoId);
+    const qtd = vn(it.quantidade);
+    const unitNf = vn(it.valorUnit);
+    const unitSem = pr ? vn(pr.unitSem) : 0;
+    const dif = Math.max(0, unitSem - unitNf);
+    /* saldo do produto: quantidade do pedido - outras NFs - esta NF (mesma conta do cadastro da NF) */
+    const outras = notas.filter((x) => x.id !== nf.id).reduce((t, x) => t + (x.itens || []).filter((i) => i.produtoId === it.produtoId).reduce((s2, i) => s2 + vn(i.quantidade), 0), 0);
+    const contratado = pr ? vn(pr.quantidade) : 0;
+    const bruto = contratado - outras - qtd;
+    return {
+      pr, qtd, unitNf, unitSem, total: qtd * unitNf, reidi: qtd * dif, perc: unitSem > 0 ? (dif / unitSem) * 100 : 0,
+      contratado, outras, saldo: Number(bruto.toFixed(6)) === 0 ? 0 : bruto,
+    };
+  });
+  const sem = nf.itensSemVinculo || [];
+  const u = [];
+  u.push(`<div data-cabecalho="nao">${topoRelClienteHtml(d).replace('Relatório — Faturamento Direto', 'Nota Fiscal — Ficha de Controle')}</div>`);
+  u.push(`<div class="nf-hero">
+    <div>
+      <div class="rot">Nota fiscal</div>
+      <div class="num">NF ${esc(nf.numero)}</div>
+      <div class="sub">${esc(ter?.nome || '—')} · Pedido ${esc(ped?.numero || '—')} · ${esc(ins?.nome || '—')}</div>
+      <div class="chips">
+        <span class="nf-chip">Emissão ${dataRel(nf.data)}</span>
+        <span class="nf-chip">${nf.bm ? `BM${esc(nf.bm)}` : 'sem BM'}</span>
+        <span class="nf-chip"><i style="background:#${corSit[0]}"></i>${esc(an.situacao)}</span>
+        <span class="nf-chip"><i style="background:#${nf.eclic ? COR_REL.verde : COR_REL.vermelho}"></i>${nf.eclic ? `e-clic ${nf.eclicData ? dataRel(nf.eclicData) : 'ok'}` : 'sem e-clic'}</span>
+        <span class="nf-chip"><i style="background:#${bols.length ? statusBoletoRel(bols[0]).cor : COR_REL.ambar}"></i>${bols.length ? `${bols.length} boleto(s) · ${esc(statusBoletoRel(bols[0]).texto)}` : 'sem boleto'}</span>
+      </div>
+    </div>
+    <div class="valor"><div class="rot">Valor da NF (COM REIDI)</div><div class="v">${moedaRel(nf.valor)}</div>
+      ${pos >= 0 && ped ? `<div class="sub">${pos + 1}ª NF de ${nfsPed.length} do pedido</div>` : ''}</div>
+  </div>`);
+  u.push(`<div class="nf-grade">
+    <div class="nf-card" style="--cor:#1A2F4E"><div class="tit">Pedido de compra</div>
+      ${linha('Nº do pedido', esc(ped?.numero || '—'))}${linha('Emissão', dataRel(ped?.dataEmissao))}
+      ${linha('Valor do pedido', moedaRel(valorPed))}${linha('REIDI', esc(ped ? rotuloReidiPedido(ped) : '—'))}
+      ${linha('Atividade', esc(ins?.nome || '—'))}</div>
+    <div class="nf-card" style="--cor:#2E86AB"><div class="tit">Fornecedor (terceiro)</div>
+      ${linha('Razão social', esc(ter?.nome || '—'))}${linha('CNPJ', esc(ter?.cnpj || '—'))}${linha('UF', esc(ter?.uf || '—'))}
+      ${linha('Obra', esc(obra.nome || '—'))}${linha('Cliente', esc(obra.cliente || '—'))}</div>
+    <div class="nf-card" style="--cor:#7C3AED"><div class="tit">Tributos e lançamento</div>
+      <div class="destaque" style="color:#7C3AED">REIDI ${moedaRel(nf.reidi)}</div>
+      ${linha('DIFAL', `${moedaRel(nf.difalValor)} (${formatarPercentual(nf.difalPerc, { casas: 2 })})`)}
+      ${linha('Origem → destino', `${esc(nf.ufOrigem || '?')} → ${esc(nf.ufDestino || '?')}${nf.importado ? ' · importada (4%)' : ''}`)}
+      ${linha('e-clic (via assinada)', nf.eclic ? `Lançada${nf.eclicData ? ` em ${dataRel(nf.eclicData)}` : ''}` : 'Não lançada')}
+      ${linha('Nº GRD', esc(textoGrds(nf.grds) || '—'))}</div>
+  </div>`);
+  if (ped) {
+    u.push(`<div class="nf-sec"><div class="cab">Posição do pedido ${esc(ped.numero)} com esta NF</div>
+      <div class="nf-pos">
+        <div><div class="rot">Valor do pedido</div><div class="v">${moedaRel(valorPed)}</div><div class="d">${(rp?.prods || []).length} produto(s)</div></div>
+        <div><div class="rot">Faturado antes</div><div class="v">${moedaRel(antes)}</div><div class="d">${Math.max(0, pos)} NF(s) anteriores · ${percRel(pc(antes))}</div></div>
+        <div><div class="rot">Esta NF</div><div class="v" style="color:#E63946">${moedaRel(nf.valor)}</div><div class="d">${percRel(pc(nf.valor))} do pedido</div></div>
+        <div><div class="rot">Acumulado após</div><div class="v">${moedaRel(depois)}</div><div class="d">${percRel(pc(depois))} do pedido</div></div>
+        <div><div class="rot">Saldo após esta NF</div><div class="v" style="color:#${valorPed - depois < -0.005 ? COR_REL.vermelho : COR_REL.verde}">${moedaRel(valorPed - depois)}</div><div class="d">saldo atual: ${moedaRel(rp?.saldo)}</div></div>
+      </div>
+      <div class="nf-barra"><div class="trilho"><div class="antes" style="width:${Math.min(100, pc(antes))}%"></div><div class="esta" style="left:${Math.min(100, pc(antes))}%;width:${Math.max(0, Math.min(100, pc(depois)) - Math.min(100, pc(antes)))}%"></div></div>
+        <div class="leg"><span><i style="background:#9AA3AD"></i>Faturado antes</span><span><i style="background:#E63946"></i>Esta NF</span><span><i style="background:#E6F4EA;border:1px solid #CDE8D6"></i>Saldo do pedido</span></div></div>
+    </div>`);
+  }
+  /* produtos da NF (tabela que continua na folha seguinte, se precisar) */
+  const un = (x) => esc(x.pr?.unidade || '');
+  const corpoItens = itens.map((x) => `<tbody><tr${x.saldo < 0 ? ' class="excede"' : ''}>
+      <td class="e"><b>${esc(x.pr?.descricao || '(produto removido)')}</b>${x.pr?.detalhe ? `<small>${esc(x.pr.detalhe)}</small>` : ''}</td>
+      <td>${numExato(x.contratado)} ${un(x)}</td><td>${numExato(x.outras)}</td><td><b>${numExato(x.qtd)}</b></td>
+      <td class="sal${x.saldo < 0 ? ' neg' : x.saldo === 0 ? ' zero' : ''}">${numExato(x.saldo)}<small>${x.saldo < 0 ? `excede ${numExato(-x.saldo)} ${un(x)}` : x.saldo === 0 ? 'produto zerado' : `${un(x)} a faturar`}</small></td>
+      <td>${moedaRel(x.unitSem)}</td><td>${moedaRel(x.unitNf)}</td><td><b>${moedaRel(x.total)}</b></td>
+      <td class="roxo">${x.reidi > 0.004 ? moedaRel(x.reidi) : '—'}<small>${x.reidi > 0.004 ? `${percExato(x.perc)} · ${moedaRel(x.unitSem - x.unitNf)}/${esc(x.pr?.unidade || 'un')}` : ''}</small></td></tr></tbody>`);
+  sem.forEach((i) => corpoItens.push(`<tbody><tr class="semvinc"><td class="e"><b>${esc(i.descricao)}</b><small>item sem produto no pedido</small></td><td>—</td><td>—</td><td><b>${formatarNumero(i.quantidade)}</b></td><td>—</td><td>—</td><td>—</td><td><b>${moedaRel(i.valorTotal)}</b></td><td>—</td></tr></tbody>`));
+  if (!corpoItens.length) corpoItens.push('<tbody><tr><td class="e" colspan="9">Nenhum produto marcado nesta NF</td></tr></tbody>');
+  const totItens = itens.reduce((t, x) => t + x.total, 0) + sem.reduce((t, i) => t + vn(i.valorTotal), 0);
+  corpoItens.push(`<tbody><tr class="tot"><td class="e">Total dos itens</td><td></td><td></td><td></td><td></td><td></td><td></td><td>${moedaRel(totItens)}</td><td>${moedaRel(itens.reduce((t, x) => t + x.reidi, 0))}</td></tr></tbody>`);
+  u.push(`<table class="nf-tab nf-tab--itens" data-dividir><thead><tr><th class="cab-th" colspan="9">Produtos faturados nesta NF — quantidades, saldo e valores<span class="cont"></span></th></tr>
+    <tr class="grupos"><th class="e"></th><th colspan="4" class="g-qtd">Quantidade do produto</th><th colspan="4" class="g-val">Valores</th></tr>
+    <tr><th class="e" style="width:23%">Produto</th><th>Qtd pedido</th><th>Em outras NFs</th><th>Nesta NF</th><th>Saldo após NF</th><th>Unit. SEM REIDI</th><th>Unit. na NF</th><th>Total na NF</th><th>REIDI do item</th></tr></thead>${corpoItens.join('')}</table>`);
+  /* conferencia */
+  const excedidos = itens.filter((x) => x.saldo < 0);
+  const zerados = itens.filter((x) => x.saldo === 0);
+  u.push(`<div class="nf-sec"><div class="cab">Conferência da NF</div>
+    ${excedidos.length ? `<div class="nf-alerta">⚠ ${excedidos.length} produto(s) passam da quantidade do pedido com esta NF: ${excedidos.map((x) => `${esc(x.pr?.descricao || '')} (excede ${numExato(-x.saldo)} ${esc(x.pr?.unidade || '')})`).join(' · ')}</div>` : ''}
+    ${!excedidos.length && itens.length ? `<div class="nf-alerta ok">✓ Todas as quantidades dentro do pedido${zerados.length ? ` · ${zerados.length} produto(s) zerado(s) com esta NF` : ''}</div>` : ''}
+    <div class="nf-conf">
+    <div><div class="nf-card" style="border:0;background:none;padding:0"><div class="tit">Situação</div>${selo(an.situacao, corSit[0], corSit[1])}</div></div>
+    <div><div class="nf-card" style="border:0;background:none;padding:0"><div class="tit">Soma dos itens</div><div class="destaque" style="font-size:12.5px">${moedaRel(totItens)}</div></div></div>
+    <div><div class="nf-card" style="border:0;background:none;padding:0"><div class="tit">Valor da NF</div><div class="destaque" style="font-size:12.5px">${moedaRel(nf.valor)}</div></div></div>
+    <div><div class="nf-card" style="border:0;background:none;padding:0"><div class="tit">Diferença</div><div class="destaque" style="font-size:12.5px;color:#${Math.abs(vn(nf.valor) - totItens) < 0.05 ? COR_REL.verde : COR_REL.vermelho}">${moedaRel(Math.abs(vn(nf.valor) - totItens) < 0.005 ? 0 : vn(nf.valor) - totItens)}</div></div></div>
+  </div></div>`);
+  /* boletos */
+  const linhasBol = bols.map((b) => {
+    const st = statusBoletoRel(b);
+    return `<tbody><tr><td class="e"><b>${esc(b.numero)}</b>${b.observacoes ? `<small>${esc(b.observacoes)}</small>` : ''}</td><td>${moedaRel(b.valor)}</td><td>${dataRel(b.vencimento)}</td><td>${b.pagamento ? dataRel(b.pagamento) : '—'}</td>
+      <td>${selo(st.texto, st.cor, st.fundo)}</td><td>${esc(textoGrds(b.grds) || '—')}</td></tr></tbody>`;
+  });
+  if (!linhasBol.length) linhasBol.push('<tbody><tr><td class="e" colspan="6">Nenhum boleto lançado para esta NF</td></tr></tbody>');
+  else linhasBol.push(`<tbody><tr class="tot"><td class="e">Total dos boletos</td><td>${moedaRel(somar(bols, 'valor'))}</td><td colspan="4" class="e">${bols.filter((b) => statusBoleto(b) === 'Pago').length} pago(s) de ${bols.length}</td></tr></tbody>`);
+  u.push(`<table class="nf-tab" data-dividir><thead><tr><th class="cab-th" colspan="6">Boletos da NF<span class="cont"></span></th></tr>
+    <tr><th class="e">Nº documento</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Status</th><th>Nº GRD (boleto)</th></tr></thead>${linhasBol.join('')}</table>`);
+  if (nf.observacoes) u.push(`<div class="nf-sec"><div class="cab">Observações</div><div class="nf-obs">${esc(nf.observacoes)}</div></div>`);
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>NF ${esc(nf.numero)} — ${esc(ter?.nome || '')}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<style>${CSS_REL_CLIENTE}${CSS_PDF_NF}${BARRA_IMPRESSAO_CSS}</style></head><body class="nf-doc">
+${barraImpressao('Ficha da nota fiscal — use "Salvar como PDF" na janela de impressão (A4 retrato).')}
+<div class="doc"><div id="paginas"></div><div id="fonte">${u.join('')}</div></div></body></html>`;
+}
+
+function gerarPdfNota(nf) {
+  const agora = agoraRel();
+  const ter = terceiroDoPedido(pedidoPorId(nf.pedidoId));
+  abrirDocumentoImpressao(htmlPdfNota(nf), {
+    aoCarregar: (doc) => paginarRelatorio(doc, {
+      alturaUtilMm: 274, classeFolha: 'retrato',
+      titulo: `<span><b>NF ${esc(nf.numero)}</b>${esc(ter?.nome || '')}</span><span>${esc(obra.nome || '')}</span>`,
+      rodape: `${esc(obra.nome || 'Obra')} · NF ${esc(nf.numero)} · emitido em ${agora.data}, ${agora.hora}`,
+    }),
+  });
+}
+
+
+/* =============================================================================
+   13a3. ANEXO DE SOLICITACAO DE DISTRATO DE SALDO (PDF A4 retrato)
+   ========================================================================== */
+
+/** Valor em reais por extenso (ate centenas de bilhoes). */
+function valorPorExtenso(valor) {
+  const U = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const D = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const C = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  const ate999 = (n) => {
+    if (n === 0) return '';
+    if (n === 100) return 'cem';
+    const c = Math.floor(n / 100); const r = n % 100;
+    const partes = [];
+    if (c) partes.push(C[c]);
+    if (r) partes.push(r < 20 ? U[r] : D[Math.floor(r / 10)] + (r % 10 ? ` e ${U[r % 10]}` : ''));
+    return partes.join(' e ');
+  };
+  const inteiro = Math.floor(Math.abs(vn(valor)) + 1e-9);
+  const centavos = Math.round((Math.abs(vn(valor)) - inteiro) * 100);
+  const grupos = [];
+  let n = inteiro;
+  while (n > 0) { grupos.push(n % 1000); n = Math.floor(n / 1000); }
+  const escalas = [['', ''], ['mil', 'mil'], ['milhão', 'milhões'], ['bilhão', 'bilhões']];
+  const textos = [];
+  grupos.forEach((g, i) => {
+    if (!g) return;
+    if (i === 1 && g === 1) { textos.unshift('mil'); return; }
+    textos.unshift(`${ate999(g)}${escalas[i][0] ? ` ${g === 1 ? escalas[i][0] : escalas[i][1]}` : ''}`);
+  });
+  /* "e" antes do ultimo grupo quando ele e menor que 100 ou centena redonda */
+  let reais = '';
+  textos.forEach((t, i) => {
+    if (!i) { reais = t; return; }
+    const ultimo = grupos[0];
+    reais += i === textos.length - 1 && grupos[0] && (ultimo < 100 || ultimo % 100 === 0) ? ` e ${t}` : `, ${t}`;
+  });
+  reais = reais.replace(/, /g, ' ');
+  const milhaoRedondo = inteiro >= 1e6 && inteiro % 1e6 === 0;
+  const parteReais = inteiro ? `${reais}${milhaoRedondo ? ' de' : ''} ${inteiro === 1 ? 'real' : 'reais'}` : '';
+  const parteCent = centavos ? `${ate999(centavos)} ${centavos === 1 ? 'centavo' : 'centavos'}` : '';
+  return [parteReais, parteCent].filter(Boolean).join(' e ') || 'zero real';
+}
+
+const CSS_DISTRATO = `
+.dist-topo { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 10px; border-bottom: 3px solid #0B2559; margin-bottom: 14px; }
+.dist-topo img { height: 74px; }
+.dist-topo .tit { text-align: right; max-width: 108mm; }
+.dist-topo h1 { font-size: 16.5px; line-height: 1.25; color: #0B2559; font-weight: 800; letter-spacing: .2px; margin: 4px 0 6px; text-transform: uppercase; }
+.dist-topo .num { display: inline-block; background: #0B2559; color: #fff; border-radius: 4px; padding: 3px 9px; font-size: 10px; font-weight: 800; letter-spacing: .5px; }
+.dist-topo .data { font-size: 10px; color: #6C757D; margin-top: 5px; }
+.dist-topo .num.st-solicitado { background: #F5B700; color: #0B2559; }
+.dist-topo .num.st-aprovado { background: #2D9E6B; }
+.dist-topo .num.st-reprovado { background: #E63946; }
+.dist-ident { display: grid; grid-template-columns: 1.15fr 1fr; gap: 8px; margin-bottom: 14px; }
+.dist-ident > div { background: #F0F2F5; border-radius: 6px; padding: 9px 12px; }
+.dist-ident .rot { font-size: 7.6px; text-transform: uppercase; letter-spacing: .5px; color: #6C757D; font-weight: 700; }
+.dist-ident .v { font-size: 11.5px; font-weight: 800; color: #1A2F4E; margin-top: 2px; }
+.dist-ident .s { font-size: 9.6px; color: #343A40; margin-top: 2px; }
+.dist-sec { display: flex; align-items: center; gap: 10px; margin: 16px 0 9px; }
+.dist-sec span.b { width: 5px; height: 17px; background: #F5B700; border-radius: 1px; }
+.dist-sec h2 { font-size: 12.5px; font-weight: 800; color: #0B2559; margin: 0; text-transform: uppercase; }
+.dist-sec span.l { flex: 1; height: 1px; background: #DDE2E8; }
+.dist-texto { font-size: 10.6px; line-height: 1.55; color: #212529; text-align: justify; white-space: pre-wrap; }
+.dist-dados { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.dist-dados > div { background: #F0F2F5; border-radius: 4px; padding: 8px 11px; }
+.dist-dados .rot { font-size: 7.6px; text-transform: uppercase; letter-spacing: .5px; color: #6C757D; font-weight: 700; }
+.dist-dados .v { font-size: 11.6px; font-weight: 800; color: #1A1A2E; margin-top: 3px; }
+.dist-dados .larga { grid-column: span 3; }
+.dist-dados .meia { grid-column: span 2; }
+.dist-valor { background: #0B2559; color: #fff; border-left: 6px solid #F5B700; padding: 12px 18px; margin: 14px 0 4px; display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; }
+.dist-valor .rot { font-size: 8.6px; letter-spacing: .6px; color: #F5B700; font-weight: 800; text-transform: uppercase; }
+.dist-valor .v { font-size: 24px; font-weight: 800; margin-top: 2px; }
+.dist-valor .ext { font-size: 9.2px; opacity: .85; margin-top: 3px; }
+.dist-valor .lado { text-align: right; font-size: 9.2px; opacity: .9; line-height: 1.5; }
+.dist-valor .lado b { font-size: 12px; }
+.dist-tab { width: 100%; border-collapse: collapse; margin-top: 2px; }
+.dist-tab th { background: #0B2559; color: #fff; font-size: 8.4px; font-weight: 700; padding: 6px 6px; text-align: right; }
+.dist-tab th.e, .dist-tab td.e { text-align: left; }
+.dist-tab th.c, .dist-tab td.c { text-align: center; }
+.dist-tab td { font-size: 9.2px; padding: 6px 6px; border-bottom: 1px solid #E6E9EE; text-align: right; white-space: nowrap; }
+.dist-tab td.e { white-space: normal; }
+.dist-tab td small { display: block; color: #8A94A6; font-size: 7.8px; white-space: normal; }
+.dist-tab tr.tot td { background: #E6EAF0; font-weight: 800; border-top: 1.5px solid #0B2559; }
+.dist-tab td.sal { font-weight: 800; color: #0B2559; }
+.dist-nota { font-size: 8.4px; color: #6C757D; margin-top: 6px; }
+`;
+
+function htmlPdfDistrato(dist) {
+  const ped = pedidoPorId(dist.pedidoId);
+  const ter = terceiroDoPedido(ped);
+  const ins = insumoDoPedido(ped);
+  const logos = identidade.logosRelatorio || {};
+  const logoCons = logos.logoConsorcio === null ? '' : (logos.logoConsorcio || IMAGENS_MODELO.logoConsorcio);
+  const perc = dist.valorOriginal > 0 ? (dist.faturado / dist.valorOriginal) * 100 : 0;
+  const percSaldo = dist.valorOriginal > 0 ? (dist.valorSaldo / dist.valorOriginal) * 100 : 0;
+  const nfs = ped ? ordenar(notasDoPedido(ped.id), [{ campo: 'data', direcao: 'asc', tipo: 'data' }, { campo: 'numero', direcao: 'asc' }]) : [];
+  const u = [];
+  u.push(`<div data-cabecalho="nao"><div class="dist-topo">
+      <div>${logoCons ? `<img src="${logoCons}" alt="">` : ''}</div>
+      <div class="tit"><h1>Anexo de Solicitação de Distrato de Saldo de Faturamento Direto</h1>
+        <span class="num">${esc(dist.numero)}</span> <span class="num st-${statusDistrato(dist).toLowerCase()}">${esc(statusDistrato(dist).toUpperCase())}</span><div class="data">Data da solicitação: ${dataRel(dist.data)}</div></div>
+    </div>
+    <div class="dist-ident">
+      <div><div class="rot">Contratada (fornecedor)</div><div class="v">${esc((ter?.nome || '—').toUpperCase())}</div>
+        <div class="s">CNPJ ${esc(ter?.cnpj || '—')}${ter?.uf ? ` — ${esc(ter.uf)}` : ''}</div></div>
+      <div><div class="rot">Obra / Cliente</div><div class="v">${esc(obra.nome || '—')}</div>
+        <div class="s">${esc(obra.cliente || '—')}${obra.consorcio ? ` · ${esc(obra.consorcio)}` : ''}</div></div>
+    </div></div>`);
+  const secao = (n, t) => `<div class="dist-sec"><span class="b"></span><h2>${n}. ${esc(t)}</h2><span class="l"></span></div>`;
+  u.push(`<div>${secao(1, 'Descrição da solicitação')}<div class="dist-texto">${esc(dist.descricao || '')}</div></div>`);
+  u.push(`<div>${secao(2, 'Dados do pedido')}<div class="dist-dados">
+      <div><div class="rot">Pedido de compra nº</div><div class="v">${esc(ped?.numero || '—')}</div></div>
+      <div><div class="rot">Data do pedido</div><div class="v">${dataRel(ped?.dataEmissao)}</div></div>
+      <div><div class="rot">Insumo (atividade)</div><div class="v">${esc(ins?.nome || '—')}</div></div>
+      <div><div class="rot">Valor do pedido</div><div class="v">${moedaRel(dist.valorOriginal)}</div></div>
+      <div><div class="rot">Valor faturado</div><div class="v">${moedaRel(dist.faturado)} (${percRel(perc, 2)})</div></div>
+      <div><div class="rot">Saldo</div><div class="v">${moedaRel(dist.valorSaldo)}</div></div>
+      <div><div class="rot">Notas fiscais</div><div class="v">${dist.qtdNotas} NF(s)</div></div>
+      <div class="meia"><div class="rot">Motivo</div><div class="v">${esc(dist.motivo || '—')}</div></div>
+    </div>
+    <div class="dist-valor"><div><div class="rot">Saldo a distratar</div><div class="v">${moedaRel(dist.valorSaldo)}</div>
+      <div class="ext">(${esc(valorPorExtenso(dist.valorSaldo))}) — ${percRel(percSaldo, 2)} do valor do pedido</div></div>
+      <div class="lado">Status<br><b>${esc(statusDistrato(dist).toUpperCase())}</b><br>${statusDistrato(dist) === 'Aprovado' ? `aprovado em ${dataRel(dist.aprovadoEm || dist.data)} · retorna à atividade ${esc(ins?.nome || '')}` : statusDistrato(dist) === 'Reprovado' ? `reprovado em ${dataRel(dist.reprovadoEm || dist.data)}` : 'aguardando aprovação'}</div></div></div>`);
+  /* saldo por produto */
+  const linhasP = (dist.itens || []).map((x) => `<tbody><tr><td class="e"><b>${esc(x.descricao)}</b>${x.detalhe ? `<small>${esc(x.detalhe)}</small>` : ''}</td>
+      <td class="c">${esc(x.unidade)}</td><td>${numExato(x.qtdContratada)}</td><td>${numExato(x.qtdFaturada)}</td><td class="sal">${numExato(x.saldoQtd)}</td>
+      <td>${moedaRel(x.unitCom)}</td><td class="sal">${moedaRel(x.saldoCom)}</td></tr></tbody>`);
+  linhasP.push(`<tbody><tr class="tot"><td class="e" colspan="6">Total do saldo por produto</td><td>${moedaRel((dist.itens || []).reduce((t, x) => t + vn(x.saldoCom), 0))}</td></tr></tbody>`);
+  u.push(`<div>${secao(3, 'Saldo por produto')}</div>`);
+  u.push(`<table class="dist-tab" data-dividir><thead><tr><th class="e" style="width:30%">Produto<span class="cont"></span></th><th class="c">Un</th><th>Contratado</th><th>Faturado</th><th>Saldo (qtd)</th><th>Valor unitário</th><th>Saldo</th></tr></thead>${linhasP.join('')}</table>`);
+  /* notas fiscais faturadas */
+  let acum = 0;
+  const linhasN = nfs.map((n, i) => {
+    acum += vn(n.valor);
+    const itens = (n.itens || []).length + (n.itensSemVinculo || []).length;
+    return `<tbody><tr><td class="c">${i + 1}ª</td><td class="c"><b>${esc(n.numero)}</b></td><td class="c">${dataRel(n.data)}</td>
+      <td class="c">${itens}</td><td>${moedaRel(n.valor)}</td><td>${moedaRel(acum)}</td><td>${moedaRel(dist.valorOriginal - acum)}</td><td>${percRel(dist.valorOriginal > 0 ? (acum / dist.valorOriginal) * 100 : 0, 2)}</td></tr></tbody>`;
+  });
+  if (!linhasN.length) linhasN.push('<tbody><tr><td class="e" colspan="8">Nenhuma nota fiscal lançada neste pedido</td></tr></tbody>');
+  else linhasN.push(`<tbody><tr class="tot"><td></td><td class="c">Total</td><td></td><td class="c">${nfs.reduce((t, n) => t + (n.itens || []).length + (n.itensSemVinculo || []).length, 0)}</td>
+    <td>${moedaRel(somar(nfs, 'valor'))}</td><td></td><td>${moedaRel(dist.valorOriginal - somar(nfs, 'valor'))}</td><td>${percRel(dist.valorOriginal > 0 ? (somar(nfs, 'valor') / dist.valorOriginal) * 100 : 0, 2)}</td></tr></tbody>`);
+  u.push(`<div>${secao(4, 'Notas fiscais faturadas')}</div>`);
+  u.push(`<table class="dist-tab" data-dividir><thead><tr><th class="c">Ordem<span class="cont"></span></th><th class="c">NF</th><th class="c">Emissão</th><th class="c">Itens</th><th>Valor da NF</th><th>Acumulado</th><th>Saldo</th><th>% acum.</th></tr></thead>${linhasN.join('')}</table>`);
+  u.push('<div class="dist-nota">Valores efetivamente faturados (com REIDI). "Itens" = linhas de produto lançadas em cada NF. Saldo e retrato dos produtos na data do distrato.</div>');
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${esc(dist.numero)} — Pedido ${esc(ped?.numero || '')}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+<style>${CSS_REL_CLIENTE}${CSS_PDF_NF}${CSS_DISTRATO}${BARRA_IMPRESSAO_CSS}</style></head><body class="nf-doc">
+${barraImpressao('Anexo de distrato — use "Salvar como PDF" na janela de impressão (A4 retrato).')}
+<div class="doc"><div id="paginas"></div><div id="fonte">${u.join('')}</div></div></body></html>`;
+}
+
+function gerarPdfDistrato(dist) {
+  const ped = pedidoPorId(dist.pedidoId);
+  abrirDocumentoImpressao(htmlPdfDistrato(dist), {
+    aoCarregar: (doc) => paginarRelatorio(doc, {
+      alturaUtilMm: 274, classeFolha: 'retrato',
+      titulo: `<span><b>${esc(dist.numero)}</b>Pedido ${esc(ped?.numero || '')}</span><span>${esc(obra.consorcio || '')}</span>`,
+      rodape: `${esc(obra.consorcio || 'Consórcio')} · ${esc(obra.nome || '')} · ${esc(dist.numero)}`,
     }),
   });
 }
@@ -13299,6 +14585,66 @@ function slideConsumoMes(d) {
   return { elementos: el };
 }
 
+/** Atividades Contratuais (contrato inteiro): previsto x comprometido x consumido, com total. */
+function slidesAtividades(d, op) {
+  const lista = ordenar(insumos.map((ins) => ({ ins, r: resumoInsumo(ins) })), 'ins.nome');
+  if (!lista.length) return [];
+  const cab = [
+    celCab('Atividade', { alinhar: 'left' }), celCab('Previsto (R$)', { alinhar: 'right' }), celCab('Comprometido (R$)', { alinhar: 'right' }),
+    celCab('Consumido NFs (R$)', { alinhar: 'right' }), celCab('Saldo a contratar (R$)', { alinhar: 'right' }),
+    celCab('Comprometido %'), celCab('Consumido %'), celCab('Status'),
+  ];
+  const linhas = lista.map(({ ins, r }) => {
+    const pComp = r.vigente > 0 ? (r.comprometido / r.vigente) * 100 : 0;
+    const pCons = r.vigente > 0 ? (r.faturado / r.vigente) * 100 : 0;
+    return [
+      { texto: ins.nome, alinhar: 'left' },
+      { texto: moedaRel(r.vigente), alinhar: 'right' },
+      { texto: moedaRel(r.comprometido), alinhar: 'right' },
+      { texto: moedaRel(r.faturado), alinhar: 'right' },
+      { texto: moedaRel(r.saldoContratar), alinhar: 'right', cor: COR_REL.verde },
+      { texto: percRel(pComp), alinhar: 'center' },
+      { texto: percRel(pCons), alinhar: 'center' },
+      { texto: '●', tamanho: 14, cor: corSituacaoRel(pComp), alinhar: 'center' },
+    ];
+  });
+  const T = 'E8F4FC';
+  const prev = lista.reduce((t, x) => t + x.r.vigente, 0);
+  const comp = lista.reduce((t, x) => t + x.r.comprometido, 0);
+  const cons = lista.reduce((t, x) => t + x.r.faturado, 0);
+  const total = [
+    { texto: 'TOTAL', negrito: true, alinhar: 'left', preenchimento: T },
+    { texto: moedaRel(prev), negrito: true, alinhar: 'right', preenchimento: T },
+    { texto: moedaRel(comp), negrito: true, alinhar: 'right', preenchimento: T },
+    { texto: moedaRel(cons), negrito: true, alinhar: 'right', preenchimento: T },
+    { texto: moedaRel(prev - comp), negrito: true, alinhar: 'right', preenchimento: T },
+    { texto: percRel(prev > 0 ? (comp / prev) * 100 : 0), negrito: true, alinhar: 'center', preenchimento: T },
+    { texto: percRel(prev > 0 ? (cons / prev) * 100 : 0), negrito: true, alinhar: 'center', preenchimento: T },
+    { texto: '', preenchimento: T },
+  ];
+  /* ate 15 atividades num slide (linhas ajustadas a altura); acima disso, continua no seguinte */
+  const POR_SLIDE = 15;
+  const partes = [];
+  for (let i = 0; i < linhas.length; i += POR_SLIDE) partes.push(linhas.slice(i, i + POR_SLIDE));
+  if (op.linhaTotal !== false) partes[partes.length - 1].push(total);
+  return partes.map((parte, i) => {
+    const el = slideBase(`Atividades Contratuais${i ? ' (continuação)' : ''}`, `Previsto x Comprometido x Consumido — contrato inteiro — posição em ${d.agora.data}`);
+    const todas = [cab, ...parte];
+    const altura = Math.min(0.36, 4.75 / todas.length);
+    el.push({
+      tipo: 'tabela', x: 0.46, y: 1.68, w: 12.33, colunas: [3.6, 1.45, 1.4, 1.4, 1.5, 1.05, 1.05, 0.88],
+      linhas: todas, alturas: todas.map(() => altura), tamanho: todas.length > 12 ? 9 : 10, cor: COR_REL.texto,
+    });
+    el.push(linhaLegenda(6.45, [
+      { texto: 'Status (% comprometido do previsto da atividade):   ' },
+      { texto: '● ', cor: COR_REL.verde }, { texto: 'até 79,9%   ' },
+      { texto: '● ', cor: COR_REL.ambar }, { texto: 'de 80% a 99,9%   ' },
+      { texto: '● ', cor: COR_REL.vermelho }, { texto: '100% ou mais' },
+    ]));
+    return { elementos: el };
+  });
+}
+
 /** Slides de um pedido: cartoes + tabela NF/boleto, paginada pela altura. */
 function slidesPedido(p, d, op) {
   const COLS = [0.85, 0.82, 0.8, 1.16, 0.8, 1.15, 0.85, 1.05, 0.8, 0.8, 0.8, 1.1, 1.25];
@@ -13414,6 +14760,7 @@ async function montarSlidesTerceiros(ids, op) {
   const d = dadosRelatorio(ids);
   const slides = [];
   if (op.capa) slides.push(slideCapa(d));
+  if (op.atividades) slides.push(...slidesAtividades(d, op));
   slides.push(...slidesResumo(d, op));
   if (op.grafico) slides.push(await slideGrafico(op));
   if (op.consumoMes) { const sm = slideConsumoMes(d); if (sm) slides.push(sm); }
@@ -13686,6 +15033,7 @@ function abaGerarRelatorios() {
         criarBotao({ texto: 'Limpar', variante: 'outline', tamanho: 'sm', onClick: () => { terceirosRelatorio = []; desenharChips(); } })),
       chips,
       h('div', { class: 'ctc-text-sm ctc-text-strong' }, 'Opções'),
+      caixaOpcao(opcoesRelTerceiro, 'atividades', 'Incluir Atividades Contratuais (previsto x comprometido x consumido) — após a página inicial'),
       caixaOpcao(opcoesRelTerceiro, 'relacaoNotas', 'Incluir relação de Notas Fiscais (um slide por pedido, com boletos)'),
       caixaOpcao(opcoesRelTerceiro, 'linhaTotal', 'Incluir linha de total'),
       caixaOpcao(opcoesRelTerceiro, 'grafico', 'Incluir gráfico de evolução mensal'),
@@ -14162,7 +15510,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           ],
         },
       ],
-      rodape: 'Faturamento Direto v1.44 · CTC App Standard v1.6',
+      rodape: 'Faturamento Direto v1.68 · CTC App Standard v1.6',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
