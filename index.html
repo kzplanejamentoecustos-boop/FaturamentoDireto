@@ -6588,7 +6588,9 @@ return { iniciarFirebase, observarLogin, sair, criarTelaLogin, obraDaUrl, papelN
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.70.0
+   Versao: 1.71.0
+   1.71.0: aba Notas e boletos sem os avisos do topo (explicacao da base, boletos vencidos e NFs
+           sem boleto lancado).
    1.70.0: "Visao geral" sai das abas da base e vira item proprio do menu (com a mesma barra de
            filtros e indicadores). Aba Notas e boletos sem a barra de pesquisa/insumo/terceiro do topo e sem as caixas
            de filtro abaixo dos titulos: filtro estilo Excel no proprio titulo (botao com ordenar
@@ -11152,18 +11154,11 @@ function secaoNotasBoletos() {
     h('table', { class: 'ctc-table ctc-table--compact ctc-table--grid ctc-table--striped' }, h('thead', {}, cabecalho), corpo, rodape));
   desenhar({ filtros: filtroBase });
 
-  const vencidos = boletos.filter((x) => statusBoleto(x) === 'Vencido');
   return {
     tabela: { elemento, atualizarConsulta: desenhar, obterFiltrados: () => [] },
     titulo: 'Base de notas fiscais e boletos — tudo em colunas', icone: 'tabela',
-    avisos: [
-      criarAlerta({ tipo: 'info', mensagem: `${cfg.explicacao} Clique no título da coluna para ordenar; use o botão ▼ ao lado do título para filtrar (como no Excel).` }),
-      vencidos.length ? criarAlerta({ tipo: 'danger', titulo: `${vencidos.length} boleto(s) vencido(s) sem pagamento`, mensagem: vencidos.map((x) => `${x.numero} (NF ${notaPorId(x.notaId)?.numero || '—'})`).join(', ') }) : null,
-      (() => {
-        const semBoleto = notas.filter((nf) => !boletosDaNota(nf.id).length);
-        return semBoleto.length ? criarAlerta({ tipo: 'info', titulo: `${semBoleto.length} NF(s) sem boleto lançado`, mensagem: semBoleto.map((nf) => nf.numero).join(', ') }) : null;
-      })(),
-    ],
+    /* sem avisos nesta aba (v1.71): vencidos e NFs sem boleto ficam no Dashboard e no filtro das colunas */
+    avisos: [],
     selects: [],
     acoes: [
       { texto: 'Limpar filtros', variante: 'ghost', tamanho: 'sm', onClick: () => { filtrosColunaNotas[base] = {}; delete ordemColunaNotas[base]; recarregar(); } },
@@ -16283,7 +16278,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           ],
         },
       ],
-      rodape: 'Faturamento Direto v1.70 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.71 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
