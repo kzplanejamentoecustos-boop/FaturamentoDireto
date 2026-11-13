@@ -7236,7 +7236,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.84.0
+   Versao: 1.85.0
+   1.85.0: Composição do pedido com 2 abas: Itens do pedido (qtd e valor total, consumido e
+           saldo por item, da aba Pedidos e produtos) e Notas fiscais (como antes).
    1.84.0: sai o Dashboard FD; a Visão geral passa a se chamar Dashboard e é a tela principal.
    1.83.0: sai a aba Terceiros da Visão geral; Pedidos e produtos vira item próprio do menu.
    1.82.0: Visão geral sem o título do topo e sem a barra de pesquisa/Insumo/Terceiro.
@@ -12624,6 +12626,49 @@ function abrirComposicaoPedido(ped) {
       { campo: 'vencimento', titulo: 'Vencimento', tipo: 'data' },
     ],
   });
+  /* v1.85: itens do pedido (aba Pedidos e produtos): quantidade e valor total, consumido e saldo */
+  const qtdTxt = (v, un, perigo) => h('span', { class: classes('ctc-num', perigo && v < -0.0001 && 'ctc-text-danger') },
+    `${formatarNumero(v)}${un ? ` ${un}` : ''}`);
+  const barraPct = (v) => h('div', { class: 'fd-arv__avanco' },
+    h('div', { class: 'fd-arv__trilho' }, h('i', { class: classes(v > 100.005 && 'is-acima', v >= 99.995 && v <= 100.005 && 'is-cheio'), style: `width:${Math.min(100, Math.max(0, v))}%` })),
+    h('span', {}, formatarPercentual(v, { casas: 1 })));
+  const itens = produtosDoPedido(ped.id).map((pr, i) => {
+    const an = analisarProduto(pr);
+    const q = vn(pr.quantidade);
+    const consumidoValor = nfsDoProduto(pr).reduce((t, x) => t + x.qtd * vn((x.nf.itens || []).find((it) => it.produtoId === pr.id)?.valorUnit), 0);
+    return {
+      _pr: pr, ordem: i + 1, descricao: pr.descricao, detalhe: pr.detalhe || '', un: pr.unidade || '',
+      qtdTotal: q, qtdConsumida: an.qtdFaturada, qtdSaldo: an.saldoQtd, unit: an.unitCom,
+      valorTotal: an.totalCom, valorConsumido: consumidoValor, valorSaldo: an.totalCom - consumidoValor,
+      perc: q ? (an.qtdFaturada / q) * 100 : 0,
+    };
+  });
+  const tabelaItens = criarTabela({
+    dados: itens, compacta: true, listrada: true, altura: 'auto',
+    vazio: { titulo: 'Nenhum item neste pedido', mensagem: 'Os produtos do pedido são cadastrados em Pedidos e produtos (botão "+" do pedido).' },
+    onLinhaClick: (l) => abrirModalProduto(l._pr, ped),
+    colunas: [
+      { campo: 'descricao', titulo: 'Item', render: (v, l) => h('div', {}, h('b', {}, `${l.ordem}. ${v}`), l.detalhe ? h('div', { class: 'ctc-text-xs ctc-text-muted' }, l.detalhe) : null) },
+      { campo: 'un', titulo: 'Un' },
+      { campo: 'qtdTotal', titulo: 'Qtd total', tipo: 'numero', render: (v, l) => qtdTxt(v, '') },
+      { campo: 'qtdConsumida', titulo: 'Qtd consumida', tipo: 'numero', render: (v) => qtdTxt(v, '') },
+      { campo: 'qtdSaldo', titulo: 'Saldo (qtd)', tipo: 'numero', render: (v) => qtdTxt(v, '', true) },
+      { campo: 'unit', titulo: 'Unitário', tipo: 'moeda' },
+      { campo: 'valorTotal', titulo: 'Valor total', tipo: 'moeda', total: 'soma' },
+      { campo: 'valorConsumido', titulo: 'Consumido', tipo: 'moeda', total: 'soma' },
+      { campo: 'valorSaldo', titulo: 'Saldo R$', tipo: 'moeda', total: 'soma', render: (v) => h('span', { class: v < -0.004 ? 'ctc-text-danger ctc-num' : 'ctc-num' }, formatarMoeda(v)) },
+      { campo: 'perc', titulo: '% consumido', tipo: 'percentual', ordenavel: false, render: (v) => barraPct(v) },
+    ],
+  });
+  const abas = criarAbas({
+    abas: [
+      { id: 'itens', texto: `Itens do pedido (${itens.length})`, conteudo: h('div', { class: 'ctc-stack' }, tabelaItens.elemento,
+        h('div', { class: 'ctc-text-xs ctc-text-subtle' }, 'Quantidade e valor de cada item: total contratado, consumido pelas NFs e saldo. Clique num item para abrir o produto.')) },
+      { id: 'nfs', texto: `Notas fiscais (${nfs.length})`, conteudo: h('div', { class: 'ctc-stack' }, tabela.elemento,
+        h('div', { class: 'ctc-text-xs ctc-text-subtle' }, 'Clique numa NF para abrir os detalhes dela.')) },
+    ],
+  });
+
   const info = (rotulo, valor, classe) => h('div', { class: 'fd-comp__info' }, h('span', {}, rotulo), h('b', { class: classe || null }, valor));
   const modal = criarModal({
     titulo: `Composição do pedido ${ped.numero}`,
@@ -12643,8 +12688,7 @@ function abrirComposicaoPedido(ped) {
             h('div', { class: 'fd-arv__avanco' },
               h('div', { class: 'fd-arv__trilho' }, h('i', { class: classes(pct > 100.005 && 'is-acima', pct >= 99.995 && pct <= 100.005 && 'is-cheio'), style: `width:${Math.min(100, Math.max(0, pct))}%` })),
               h('span', {}, formatarPercentual(pct, { casas: 1 })))))),
-      tabela.elemento,
-      h('div', { class: 'ctc-text-xs ctc-text-subtle' }, 'Clique numa NF para abrir os detalhes dela.'),
+      abas.elemento,
     ],
     acoes: [
       { texto: 'Abrir pedido', variante: 'outline', onClick: () => { abrirPedido(ped); } },
@@ -17411,7 +17455,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.84 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.85 · KZ App Standard v1.7',
     },
     paginas: {
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
