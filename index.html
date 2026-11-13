@@ -1161,18 +1161,20 @@ img { max-width: 100%; display: block; }
 }
 
 /* v1.78: resumo do topo em grafico (Pedidos x faturado + Boletos) */
-.fd-resumo { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 14px; }
-@media (max-width: 1100px) { .fd-resumo { grid-template-columns: 1fr; } }
+.fd-resumo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .fd-resumo__bloco { background: #fff; border-radius: 14px; padding: 16px 18px; box-shadow: var(--ctc-shadow-1);
   display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .fd-resumo__cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .fd-resumo__tit { font-size: 13px; font-weight: 700; color: #1e293b; text-transform: uppercase; letter-spacing: .3px; }
 .fd-resumo__total { font-size: 18px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
 .fd-resumo__total small { font-size: 12px; font-weight: 500; color: #64748b; }
-.fd-resumo__barra { display: flex; height: 38px; border-radius: 10px; overflow: hidden; background: #e2e8f0;
+.fd-resumo__barra { display: flex; height: 46px; border-radius: 10px; overflow: hidden; background: #e2e8f0;
   box-shadow: inset 0 1px 2px rgba(15,23,42,.12); }
 .fd-resumo__seg { display: flex; align-items: center; justify-content: center; min-width: 0; color: #fff; font-size: 12.5px; font-weight: 700;
   transition: width .6s cubic-bezier(.2,.8,.2,1); white-space: nowrap; overflow: hidden; }
+.fd-resumo__seg span { padding: 0 8px; text-align: center; line-height: 1.15; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fd-resumo__seg span b { font-weight: 800; }
+.fd-resumo__seg.is-estreita { min-width: 104px; font-size: 11.5px; }
 .fd-resumo__seg.is-faturado { background: linear-gradient(180deg, #3b82f6, #1d4ed8); }
 .fd-resumo__seg.is-saldo { background: linear-gradient(180deg, #22c55e, #15803d); }
 .fd-resumo__seg.is-acima { background: repeating-linear-gradient(45deg, #dc2626 0 8px, #ef4444 8px 16px); }
@@ -7115,7 +7117,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.78.0
+   Versao: 1.79.0
+   1.79.0: barra Pedidos × faturado mostra "% (valor)" em cada parte e ocupa toda a largura;
+           sai a rosca dos boletos do resumo do topo.
    1.78.0: o resumo do topo (Visão geral e Base de faturamento) vira gráfico: barra Pedidos ×
            faturado (faturado e saldo, com valores e %) e rosca dos boletos por situação.
    1.77.0: sai a barra "Cadastrar" (Insumo, Terceiro, Pedido, Nota fiscal, Boleto) da Visão geral.
@@ -12541,24 +12545,29 @@ function resumoBase() {
   const bols = boletos.filter((b) => idsNf.has(b.notaId));
   const valor = somar(peds, 'valor');
   const faturado = somar(nfs, 'valor');
-  return graficoResumoBase({ peds, nfs, bols, valor, faturado });
+  return graficoResumoBase({ peds, nfs, valor, faturado });
 }
 
 /*
  * v1.78: resumo do topo em grafico (no lugar dos 4 cards):
- *   - barra "Pedidos x faturado": o valor dos pedidos dividido em Faturado em NFs e Saldo;
- *   - rosca "Boletos": pagos, a vencer, vencidos e em contestacao (valor), com o total em aberto no centro.
+ *   - barra "Pedidos x faturado": o valor dos pedidos dividido em Faturado em NFs e Saldo,
+ *     com "% (valor)" dentro de cada parte (v1.79: a rosca dos boletos saiu; a barra usa toda a largura).
  */
 const pctFD = (parte, total) => (total ? (parte / total) * 100 : 0);
 
-function graficoResumoBase({ peds, nfs, bols, valor, faturado }) {
+function graficoResumoBase({ peds, nfs, valor, faturado }) {
   const saldo = valor - faturado;
   const acima = saldo < 0;
   const escala = Math.max(valor, faturado) || 1;
+  const semMoeda = (v) => formatarMoeda(v).replace(/R\$\s?/, '').trim();
   const segmento = (classe, v, rotulo) => {
     const largura = (v / escala) * 100;
-    return h('div', { class: `fd-resumo__seg ${classe}`, style: `width:${largura}%`, title: `${rotulo}: ${formatarMoeda(v)}` },
-      largura >= 9 ? h('span', {}, formatarPercentual(pctFD(v, valor), { casas: 1 })) : null);
+    const pct = formatarPercentual(pctFD(v, valor), { casas: 1 });
+    const estreita = largura < 22;
+    return h('div', {
+      class: classes('fd-resumo__seg', classe, estreita && 'is-estreita'),
+      style: `width:${largura}%`, title: `${rotulo}: ${pct} (${formatarMoeda(v)})`,
+    }, v > 0 ? h('span', {}, h('b', {}, pct), estreita ? h('br') : ' ', `(${semMoeda(v)})`) : null);
   };
   const barra = h('div', { class: 'fd-resumo__barra', role: 'img',
     'aria-label': `Pedidos ${formatarMoeda(valor)}: faturado ${formatarMoeda(faturado)}, saldo ${formatarMoeda(saldo)}` },
@@ -12584,47 +12593,7 @@ function graficoResumoBase({ peds, nfs, bols, valor, faturado }) {
         : legenda('is-saldo', 'Saldo dos pedidos', saldo, `${formatarPercentual(pctFD(saldo, valor), { casas: 2 })} a faturar`),
       legenda('is-pedidos', `Pedidos (${peds.length})`, valor, 'valor dos pedidos de compra')));
 
-  /* boletos por situacao (cancelados ficam de fora) */
-  const GRUPOS = [
-    { id: 'Pago', rotulo: 'Pagos', cor: '#16a34a' },
-    { id: 'Em aberto', rotulo: 'A vencer', cor: '#2563eb' },
-    { id: 'Vencido', rotulo: 'Vencidos', cor: '#ea580c' },
-    { id: 'Em contestação', rotulo: 'Em contestação', cor: '#9333ea' },
-  ].map((g) => {
-    const lista = bols.filter((b) => statusBoleto(b) === g.id);
-    return { ...g, qtd: lista.length, valor: somar(lista, 'valor') };
-  });
-  const totalBol = GRUPOS.reduce((a, g) => a + g.valor, 0);
-  let acumulado = 0;
-  const fatias = GRUPOS.filter((g) => g.valor > 0).map((g) => {
-    const ini = acumulado;
-    acumulado += (g.valor / totalBol) * 100;
-    return `${g.cor} ${ini}% ${acumulado}%`;
-  });
-  const abertos = GRUPOS.filter((g) => g.id !== 'Pago');
-  const qtdAberto = abertos.reduce((a, g) => a + g.qtd, 0);
-  const valorAberto = abertos.reduce((a, g) => a + g.valor, 0);
-  const rosca = h('div', {
-    class: 'fd-resumo__rosca', role: 'img',
-    style: `background:${fatias.length ? `conic-gradient(${fatias.join(',')})` : '#e2e8f0'}`,
-    'aria-label': GRUPOS.map((g) => `${g.rotulo}: ${g.qtd}`).join(', '),
-  }, h('div', { class: 'fd-resumo__furo' },
-    h('b', {}, String(qtdAberto)),
-    h('span', {}, 'em aberto'),
-    h('small', {}, formatarMoeda(valorAberto))));
-  const blocoBoletos = h('div', { class: 'fd-resumo__bloco' },
-    h('div', { class: 'fd-resumo__cab' },
-      h('span', { class: 'fd-resumo__tit' }, 'Boletos'),
-      h('span', { class: 'fd-resumo__total' }, `${formatarMoeda(totalBol)} `, h('small', {}, `em ${GRUPOS.reduce((a, g) => a + g.qtd, 0)} boleto(s)`))),
-    h('div', { class: 'fd-resumo__boletos' },
-      rosca,
-      h('div', { class: 'fd-resumo__lista' }, GRUPOS.map((g) => h('div', { class: classes('fd-resumo__item', !g.qtd && 'is-zero') },
-        h('span', { class: 'fd-resumo__ponto', style: `background:${g.cor}` }),
-        h('span', { class: 'fd-resumo__item-rot' }, g.rotulo),
-        h('b', {}, String(g.qtd)),
-        h('span', { class: 'fd-resumo__item-val' }, formatarMoeda(g.valor)))))));
-
-  return h('div', { class: 'fd-resumo' }, blocoPedidos, blocoBoletos);
+  return h('div', { class: 'fd-resumo' }, blocoPedidos);
 }
 
 /* Base de faturamento (v1.76): so Notas e boletos */
@@ -17026,7 +16995,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.78 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.79 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
