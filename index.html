@@ -7236,7 +7236,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.82.0
+   Versao: 1.83.0
+   1.83.0: sai a aba Terceiros da Visão geral; Pedidos e produtos vira item próprio do menu.
    1.82.0: Visão geral sem o título do topo e sem a barra de pesquisa/Insumo/Terceiro.
            Visão geral vai até os pedidos; o botão "Composição" do pedido abre as NFs numa
            janela. Cada nível aberto vira um bloco recuado com a cor dele (insumo azul-marinho,
@@ -12085,9 +12086,11 @@ const BASES_NOTAS = {
 
 let abaBase = 'geral';
 /* v1.76: ultima aba aberta em cada pagina (Visao geral e Base de faturamento) */
-const ultimaAbaPagina = { visao: 'geral', base: 'notas' };
+const ultimaAbaPagina = { visao: 'geral', base: 'notas', pedidos: 'pedidos' };
 /* v1.76: Terceiros e Pedidos e produtos ficam na Visao geral; Notas e boletos na Base de faturamento */
-const ABAS_VISAO = ['geral', 'terceiros', 'pedidos'];
+const ABAS_VISAO = ['geral'];
+/* v1.83: a aba Terceiros saiu; Pedidos e produtos virou item proprio do menu */
+const PAGINA_DA_ABA = { geral: 'visao', terceiros: 'visao', pedidos: 'pedidos', notas: 'base' };
 let filtroBase = { insumo: '', terceiro: '' };
 let definirMetaBase = () => {};
 
@@ -12101,8 +12104,8 @@ const SECOES_BASE = [
 
 function irParaBase(aba) {
   /* v1.76: Visao geral, Terceiros e Pedidos ficam na pagina Visao geral; Notas e boletos na Base */
-  const pagina = ABAS_VISAO.includes(aba) ? 'visao' : 'base';
-  ultimaAbaPagina[pagina] = aba;
+  const pagina = PAGINA_DA_ABA[aba] || 'base';
+  ultimaAbaPagina[pagina] = aba === 'terceiros' ? 'geral' : aba;
   if (appAtual) appAtual.navegar(pagina);
 }
 
@@ -13002,10 +13005,15 @@ function graficoResumoBase({ peds, nfs, valor, faturado, totalFD, qtdInsumos }) 
 
 /* Base de faturamento (v1.76): so Notas e boletos */
 function paginaBase() {
-  return montarPaginaBase(SECOES_BASE.filter((s) => !ABAS_VISAO.includes(s.id)), 'base');
+  return montarPaginaBase(SECOES_BASE.filter((s) => s.id === 'notas'), 'base');
 }
 
 /* Visao geral (v1.76): abas Visao geral / Terceiros / Pedidos e produtos */
+/* Pedidos e produtos (v1.83): item proprio do menu */
+function paginaPedidosProdutos() {
+  return montarPaginaBase(SECOES_BASE.filter((s) => s.id === 'pedidos'), 'pedidos');
+}
+
 function paginaVisaoGeral() {
   return montarPaginaBase(SECOES_BASE.filter((s) => ABAS_VISAO.includes(s.id)), 'visao');
 }
@@ -17372,6 +17380,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             { id: 'painel', texto: 'Dashboard FD', emoji: '📊' },
             { id: 'insumos', texto: 'Insumos', emoji: '💰' },
             { id: 'visao', texto: 'Visão geral', emoji: '🔎' },
+            { id: 'pedidos', texto: 'Pedidos e produtos', emoji: '🧾' },
             { id: 'base', texto: 'Base de faturamento', emoji: '🗂️' },
             { id: 'tendencia', texto: 'Tendência', emoji: '📈' },
             { id: 'importar', texto: 'Importar / Exportar', emoji: '📤' },
@@ -17402,7 +17411,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.82 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.83 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
@@ -17418,6 +17427,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       },
       /* v1.82: sem titulo/caminho no topo (o nome da pagina ja aparece no cabecalho) */
       visao: { titulo: '', nomeCurto: 'Visão geral', render: paginaVisaoGeral },
+      pedidos: { titulo: 'Pedidos e produtos', caminho: ['Principal'], render: paginaPedidosProdutos },
       base: { titulo: 'Base de faturamento — notas fiscais e boletos', caminho: ['Principal'], render: paginaBase },
       aliquotas: { titulo: 'Tabela ICMS / DIFAL', caminho: ['Configurações'], render: paginaAliquotas },
       importar: { titulo: 'Importar / Exportar — Excel e base completa', caminho: ['Principal'], render: paginaImportarExportar },
@@ -17429,7 +17439,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
 
   /* v1.75: nome da pagina aberta ao lado do titulo, como no Controle de Custos */
   const NOME_PAGINA = {
-    painel: 'Dashboard', insumos: 'Insumos', visao: 'Visão geral', base: 'Base de faturamento', tendencia: 'Tendência',
+    painel: 'Dashboard', insumos: 'Insumos', visao: 'Visão geral', pedidos: 'Pedidos e produtos', base: 'Base de faturamento', tendencia: 'Tendência',
     importar: 'Importar / Exportar', obra: 'Obra e aditivos', aliquotas: 'Tabela ICMS / DIFAL',
   };
   const chipPagina = h('span', { class: 'fd-hdr-pagina' });
