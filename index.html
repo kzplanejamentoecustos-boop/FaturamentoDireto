@@ -971,6 +971,222 @@ img { max-width: 100%; display: block; }
   background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: var(--ctc-fs-xs); }
 .fd-entrada__portal[hidden] { display: none; }
 .fd-entrada__portal svg { flex: none; }
+/* =============================================================================
+   v1.75: PADRAO DO CONTROLE DE CUSTOS (menu, cabecalho, botoes, boas-vindas, carregamento)
+   ========================================================================== */
+/* Cabecalho: botoes em vidro claro sobre o azul */
+.ctc-header .ctc-btn {
+  height: 28px; padding: 0 12px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.38);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 3px 10px rgba(0,0,0,.18);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+.ctc-header .ctc-btn:hover,
+.ctc-header__menu-toggle[aria-expanded="true"] { background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.14)); transform: scale(1.04); }
+.ctc-header .ctc-btn svg { width: 14px; height: 14px; }
+.fd-hdr-pagina { display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; background: rgba(255,255,255,.10);
+  color: #cbd5e1; font-size: 11px; font-weight: 600; }
+.fd-hdr-pagina:empty { display: none; }
+
+/* Menu em cascata: vidro claro e transparente */
+.ctc-app--menu-botao .ctc-sidebar {
+  width: auto; min-width: 230px; max-width: 290px; padding: 6px; color: #1e293b; isolation: isolate;
+  background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.70); border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(15,23,42,.06), 0 16px 40px rgba(15,23,42,.22);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+}
+.ctc-app--menu-botao .ctc-sidebar::before,
+.ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none;
+  -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
+}
+.ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub {
+  min-width: 200px; padding: 6px; color: #1e293b; isolation: isolate;
+  background: rgba(255,255,255,.45); border: 1px solid rgba(255,255,255,.70); border-radius: 16px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 0 0 1px rgba(15,23,42,.06), 0 16px 40px rgba(15,23,42,.22);
+}
+.ctc-app--menu-botao .ctc-sidebar__label { display: none; }
+.ctc-app--menu-botao .ctc-sidebar__section + .ctc-sidebar__section { margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(15,23,42,.10); }
+.ctc-app--menu-botao .ctc-sidebar__item {
+  min-height: 34px; padding: 7px 12px; gap: 10px; border-radius: 10px; color: #1e293b; font-size: 13px; font-weight: 600;
+}
+.ctc-app--menu-botao .ctc-sidebar__item:hover,
+.ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group[open] > .ctc-sidebar__item { background: rgba(15,23,42,.06); color: #0f172a; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active,
+.ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"] { background: rgba(0,122,255,.12); color: #0a58ca; }
+.ctc-app--menu-botao .ctc-sidebar__item.is-active::before,
+.ctc-app--menu-botao .ctc-sidebar__item[aria-current="page"]::before { background: #007aff; }
+.ctc-app--menu-botao .ctc-sidebar__icon { font-size: 14px; line-height: 1; }
+.ctc-app--menu-botao .ctc-sidebar__sub .ctc-sidebar__item { min-height: 32px; font-size: 13px; font-weight: 400; }
+.ctc-app--menu-botao .ctc-sidebar__footer { margin-top: 6px; padding: 6px 12px 4px; border-top: 1px solid rgba(15,23,42,.10); color: #64748b; font-size: 10.5px; }
+@media (max-width: 1024px) {
+  .ctc-app--menu-botao .ctc-sidebar { max-width: none; }
+  .ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub {
+    background: none; border: 0; border-left: 1px solid rgba(15,23,42,.12); border-radius: 0; box-shadow: none; padding: 0 0 0 8px;
+  }
+  .ctc-app--menu-botao .ctc-sidebar--cascata .ctc-sidebar__group > .ctc-sidebar__sub::before { display: none; }
+}
+
+/* Botoes das abas: vidro colorido com brilho ao passar o mouse */
+.ctc-main .ctc-btn:not(.ctc-btn--icon), .ctc-modal .ctc-btn:not(.ctc-btn--icon) { position: relative; overflow: hidden; isolation: isolate; }
+.ctc-main .ctc-btn:not(.ctc-btn--icon) {
+  border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.50), inset 0 -1px 0 rgba(0,0,0,.12), inset 0 0 0 1px rgba(255,255,255,.16), 0 2px 8px rgba(15,23,42,.14);
+  transition: transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s, filter .2s, background .15s, border-color .15s;
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(180deg, rgba(255,255,255,.34) 0%, rgba(255,255,255,.10) 46%, rgba(255,255,255,0) 54%, rgba(255,255,255,.07) 100%);
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(.is-loading)::after,
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(.is-loading)::after {
+  content: ""; position: absolute; top: -20%; bottom: -20%; left: -70%; width: 45%; pointer-events: none; z-index: 1; opacity: 0;
+  background: linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.55) 50%, rgba(255,255,255,0) 100%); transform: skewX(-18deg);
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover::after,
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover::after { animation: fd-vidro-brilho .85s cubic-bezier(.4,0,.2,1); }
+@keyframes fd-vidro-brilho { 0% { left: -70%; opacity: 0; } 15% { opacity: 1; } 100% { left: 130%; opacity: 0; } }
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover {
+  transform: translateY(-1px); filter: brightness(1.07) saturate(1.05);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.60), inset 0 -1px 0 rgba(0,0,0,.12), inset 0 0 0 1px rgba(255,255,255,.22), 0 6px 16px rgba(15,23,42,.20);
+}
+.ctc-main .ctc-btn:not(.ctc-btn--icon):not(:disabled):active { transform: scale(.97); filter: brightness(.97); transition-duration: .08s; }
+/* cores das barras de acoes: cinza (padrao), azul (principal), verde (exportar/Excel) */
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) .ctc-btn:not(.ctc-btn--icon) { font-size: 12px; font-weight: 600; }
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) :is(.ctc-btn--ghost, .ctc-btn--outline, .ctc-btn--secondary):not(.ctc-btn--icon) {
+  --_bg: #475569; --_fg: #fff; --_bd: transparent; --_bg-hover: #334155;
+}
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) .ctc-btn--primary:not(.ctc-btn--icon) { --_bg: #1e3a5f; --_bg-hover: #27496f; }
+.ctc-main :is(.ctc-toolbar, .ctc-page-header__actions, .ctc-panel__actions) :is(.ctc-btn--success, .fd-btn--verde):not(.ctc-btn--icon) {
+  --_bg: #15803d; --_fg: #fff; --_bd: transparent; --_bg-hover: #166534;
+}
+
+/* Janelas: botoes em vidro claro (pilula); a cor do botao vai para o texto; o principal fica azul */
+.ctc-modal .ctc-btn:not(.ctc-btn--icon) {
+  border-radius: 999px; font-weight: 600; letter-spacing: -.1px; color: #1e293b;
+  background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.30));
+  border: 1px solid rgba(255,255,255,.90);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.95), inset 0 -1px 2px rgba(15,23,42,.06), 0 0 0 1px rgba(15,23,42,.08), 0 3px 10px rgba(15,23,42,.10);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s, box-shadow .2s;
+}
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(:disabled):hover { background: linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.50)); transform: scale(1.04); }
+.ctc-modal .ctc-btn:not(.ctc-btn--icon):not(:disabled):active { transform: scale(.95); transition-duration: .1s; }
+.ctc-modal :is(.ctc-btn--danger, .ctc-btn--danger-soft):not(.ctc-btn--icon) { color: #b91c1c; }
+.ctc-modal .ctc-btn--warning:not(.ctc-btn--icon) { color: #b45309; }
+.ctc-modal :is(.ctc-btn--success, .fd-btn--verde):not(.ctc-btn--icon) { color: #15803d; }
+.ctc-modal .ctc-btn--primary:not(.ctc-btn--icon) {
+  color: #fff; border-color: rgba(255,255,255,.45);
+  background: linear-gradient(180deg, rgba(0,122,255,.92), rgba(0,98,214,.86));
+  box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 4px 14px rgba(0,98,214,.30);
+}
+.ctc-modal .ctc-btn--primary:not(.ctc-btn--icon):not(:disabled):hover { background: linear-gradient(180deg, rgba(26,136,255,.95), rgba(0,110,230,.90)); }
+.ctc-modal--danger .ctc-modal__footer .ctc-btn--danger { color: #fff; border-color: rgba(255,255,255,.45);
+  background: linear-gradient(180deg, #ef4444, #dc2626); box-shadow: inset 0 1px 1px rgba(255,255,255,.45), 0 4px 14px rgba(220,38,38,.28); }
+.ctc-modal .ctc-btn:disabled { opacity: .5; transform: none; }
+.ctc-modal .ctc-btn.is-loading::after { border-color: currentColor; border-right-color: transparent; }
+.ctc-modal__close {
+  width: 30px; height: 30px; border-radius: 50%; color: #fff;
+  background: linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08));
+  border: 1px solid rgba(255,255,255,.38); box-shadow: inset 0 1px 1px rgba(255,255,255,.55), 0 3px 10px rgba(0,0,0,.18);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+.ctc-modal__close:hover { background: linear-gradient(180deg, rgba(255,255,255,.38), rgba(255,255,255,.14)); transform: scale(1.06); }
+
+/* Boas-vindas: o app desfocado ao fundo e um cartao de vidro */
+#fd-bv { position: fixed; inset: 0; z-index: 10090; display: none; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
+  background: rgba(1,24,80,.28); -webkit-backdrop-filter: blur(7px) saturate(120%); backdrop-filter: blur(7px) saturate(120%);
+  font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0f172a; }
+#fd-bv.on { display: flex; animation: fd-bv-fade .4s ease-out; }
+#fd-bv.saindo { animation: fd-bv-sai .45s ease-in forwards; }
+.fd-bv__card { width: min(440px, 90vw); text-align: center; padding: 30px 32px 24px; border-radius: 22px;
+  background: rgba(255,255,255,.80); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid rgba(255,255,255,.92); box-shadow: 0 24px 60px rgba(1,24,80,.28); animation: fd-bv-entra .6s ease both; }
+.fd-bv__logo { display: flex; align-items: center; justify-content: center; min-height: 56px; margin: 0 auto 18px; }
+.fd-bv__logo img { max-width: 190px; max-height: 84px; object-fit: contain; display: block; }
+.fd-bv__logo span { font-size: 40px; }
+.fd-bv__ola { margin: 0; font-size: 24px; font-weight: 600; color: var(--bv-cor, #011850); letter-spacing: -.2px; line-height: 1.2; }
+.fd-bv__obra { color: #5b6474; font-size: 13.5px; margin: 6px 0 18px; }
+.fd-bv__chips { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+.fd-bv__chips span { font-size: 12px; background: #fff; border: 1px solid #e2e8f0; border-radius: 999px; padding: 5px 11px; color: #334155; }
+.fd-bv__cont { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 12.5px; color: #5b6474; }
+.fd-bv__cont svg { width: 26px; height: 26px; }
+.fd-bv__anel { stroke: var(--bv-cor, #011850); stroke-dasharray: 94.2; stroke-dashoffset: 94.2; }
+#fd-bv.on .fd-bv__anel { animation: fd-bv-anel 5s linear forwards; }
+@keyframes fd-bv-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fd-bv-sai { to { opacity: 0; } }
+@keyframes fd-bv-entra { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes fd-bv-anel { to { stroke-dashoffset: 0; } }
+
+/* Carregamento: logo ao centro, barra nas cores da logo e as etapas sendo marcadas */
+#fd-car { position: fixed; inset: 0; z-index: 10080; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 26px;
+  background: #fff; font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #0f172a;
+  --car-g: linear-gradient(90deg, #1e3a5f, #2f6f5e); }
+#fd-car.on { display: flex; animation: fd-car-fade .25s ease-out; }
+#fd-car.saindo { animation: fd-car-sai .35s ease-in forwards; }
+.fd-car__marca { display: flex; align-items: center; justify-content: center; min-height: 60px; animation: fd-car-sobe .5s ease both; }
+.fd-car__marca img { max-width: 240px; max-height: 96px; object-fit: contain; display: block; }
+.fd-car__marca span { font-size: 22px; font-weight: 700; color: #1e3a5f; }
+.fd-car__caixa { width: min(380px, 86vw); opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
+#fd-car.pronto .fd-car__caixa { opacity: 1; transform: none; }
+.fd-car__lin { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+.fd-car__tit { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+.fd-car__pct { font-size: 12.5px; color: #64748b; font-variant-numeric: tabular-nums; }
+.fd-car__barra { height: 6px; border-radius: 6px; background: #e8edf4; overflow: hidden; }
+.fd-car__barra i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--car-g); transition: width .35s ease; }
+.fd-car__sub { font-size: 11.5px; color: #94a3b8; margin-top: 6px; min-height: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fd-car__etapas { list-style: none; margin: 10px 0 0; padding: 0; font-size: 13px; color: #94a3b8; }
+.fd-car__etapas li { display: flex; align-items: center; gap: 10px; padding: 5px 0; transition: color .3s; }
+.fd-car__etapas .ic { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #d5dce6; flex: none; position: relative; transition: background .3s, border-color .3s; }
+.fd-car__etapas li.at { color: #0f172a; }
+.fd-car__etapas li.at .ic { border-color: var(--car-c1, #1e3a5f); border-top-color: transparent; animation: fd-car-gira .8s linear infinite; }
+.fd-car__etapas li.ok { color: #334155; }
+.fd-car__etapas li.ok .ic { background: #34c759; border-color: #34c759; }
+.fd-car__etapas li.ok .ic::after { content: ""; position: absolute; left: 5px; top: 2px; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+.fd-car__etapas li.er { color: #b91c1c; }
+.fd-car__etapas li.er .ic { background: #ef4444; border-color: #ef4444; }
+.fd-car__etapas li.er .ic::after { content: "!"; position: absolute; inset: 0; color: #fff; font-size: 11px; font-weight: 800; text-align: center; line-height: 14px; }
+#fd-car.ok .fd-car__barra i { background: #34c759; }
+#fd-car.erro .fd-car__barra i { background: #ef4444; }
+#fd-car.erro .fd-car__tit { color: #b91c1c; }
+.fd-car__rod { position: absolute; bottom: 18px; left: 0; right: 0; text-align: center; font-size: 11px; color: #a0a9b8; }
+@keyframes fd-car-gira { to { transform: rotate(360deg); } }
+@keyframes fd-car-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fd-car-sai { to { opacity: 0; } }
+@keyframes fd-car-sobe { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  #fd-car *, #fd-bv * { animation: none !important; }
+  .fd-bv__anel { stroke-dashoffset: 0; }
+  .ctc-main .ctc-btn::after, .ctc-modal .ctc-btn::after { animation: none !important; }
+}
+
+/* v1.75: Abrir Versao (Nuvem) em cartoes */
+.fd-versoes .ctc-modal__dialog { max-width: 560px; overflow: hidden; }
+.fd-versoes .ctc-modal__header { background: #1e293b; color: #fff; border-bottom: 0; }
+.fd-versoes .ctc-modal__title { color: #fff; font-weight: 700; }
+.fd-versoes .ctc-modal__close { color: #fff; border: 1.5px solid rgba(255,255,255,.6); border-radius: 50%;
+  width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; background: transparent; }
+.fd-versoes .ctc-modal__close:hover { background: rgba(255,255,255,.12); }
+.fd-versoes__intro { margin: 0 0 14px; font-size: var(--ctc-fs-sm); color: #475569; }
+.fd-versoes__projeto { display: flex; align-items: center; gap: 6px; padding: 4px 2px 6px; margin-bottom: 8px;
+  color: #0f766e; font-weight: 700; font-size: var(--ctc-fs-sm); border-bottom: 2px solid #99f6e4; }
+.fd-versoes__lista { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; padding-right: 4px; }
+.fd-versoes__cartao { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border: 1px solid #ccfbf1; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+.fd-versoes__cartao:hover { border-color: #5eead4; }
+.fd-versoes__info { min-width: 0; }
+.fd-versoes__nome { font-weight: 700; color: #0f172a; font-size: var(--ctc-fs-sm); overflow-wrap: anywhere; }
+.fd-versoes__data { margin-top: 2px; font-size: var(--ctc-fs-xs); color: #94a3b8; }
+.fd-versoes__acoes { display: flex; align-items: center; gap: 8px; flex: none; }
+.fd-versoes__lapis { width: 34px; height: 28px; border-radius: 999px; border: 1px solid #e2e8f0; background: #fff;
+  cursor: pointer; font-size: 13px; line-height: 1; filter: grayscale(1); }
+.fd-versoes__lapis:hover { background: #f1f5f9; }
+.fd-versoes__carregar { padding: 6px 14px; border: 0; border-radius: 999px; cursor: pointer; font-weight: 700;
+  font-size: var(--ctc-fs-xs); color: #fff; background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 1px 3px rgba(29,78,216,.35); }
+.fd-versoes__carregar:hover { filter: brightness(1.08); }
+.fd-versoes__carregar:disabled { opacity: .6; cursor: progress; }
+.fd-versoes__vazio { padding: 24px 12px; text-align: center; color: #64748b; font-size: var(--ctc-fs-sm); }
 .fd-entrada__fontes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
 .fd-entrada__fontes[hidden] { display: none; }
 .fd-entrada__tile--celeste { background: #e0f2fe; color: #0369a1; }
@@ -3690,6 +3906,7 @@ function criarBotao({
       bloco && 'ctc-btn--block',
       somenteIcone && 'ctc-btn--icon',
       apenasEdicao && 'ctc-edit-only',
+      /exportar|excel/i.test(texto) && 'fd-btn--verde',
       classe,
     ),
     title: titulo,
@@ -3807,7 +4024,8 @@ function criarMenuLateral({
 
   const iconeItem = (item, nivel) => {
     if (nivel > 0) return null;
-    const conteudo = item.icone ? criarIcone(item.icone, 18) : (item.texto || '?').trim().charAt(0).toUpperCase();
+    const conteudo = item.emoji ? item.emoji
+      : item.icone ? criarIcone(item.icone, 18) : (item.texto || '?').trim().charAt(0).toUpperCase();
     return h('span', { class: 'ctc-sidebar__icon', 'aria-hidden': 'true' }, conteudo);
   };
 
@@ -5282,24 +5500,28 @@ function criarTelaEntrada({
   }
 
   function abrirVersaoSalva() {
-    abrirListaVersoes({
+    abrirVersoesNuvem({
       armazenamento,
-      titulo: 'Abrir versão salva',
-      textoAcao: 'Abrir',
-      onEscolher: async (versao) => {
+      projeto: titulo || 'Faturamento Direto',
+      podeRenomear: !acessoPortal || portalPermite('editor'),
+      onCarregar: async (versao) => {
         if (!(await podeSubstituirBase())) return false;
+        const car = typeof mostrarCarregamentoFD === 'function' ? mostrarCarregamentoFD('nuvem', versao.nome) : null;
         let registro;
         try {
           registro = await armazenamento.abrir(versao.id);
         } catch (erro) {
+          if (car) await car.fim(false, 'Versão não aberta');
           toast.erro('Versão não aberta', erro.message);
           return false;
         }
         const resultado = validarBase(registro.base, { formato });
         if (!resultado.valida) {
+          if (car) await car.fim(false, 'Versão não aberta');
           toast.erro('Versão não aberta', resultado.erros.join(' '));
           return false;
         }
+        if (car) car.fim(true);
         base = resultado.base;
         nomeArquivo = `Nuvem: ${registro.nome}`;
         importada = true;
@@ -5316,9 +5538,11 @@ function criarTelaEntrada({
     entrada.value = '';
     if (!arquivo) return;
     if (!(await podeSubstituirBase())) return;
+    const car = typeof mostrarCarregamentoFD === 'function' ? mostrarCarregamentoFD('json', arquivo.name) : null;
     try {
       const resultado = validarBase(await lerArquivoJSON(arquivo), { formato });
       if (!resultado.valida) {
+        if (car) await car.fim(false, 'Base não importada');
         toast.erro('Base não importada', resultado.erros.join(' '));
         return;
       }
@@ -5328,8 +5552,10 @@ function criarTelaEntrada({
       await adotarNuvemDaBase(base);
       pendenteExportar = false;
       atualizarStatus();
+      if (car) await car.fim(true);
       toast.sucesso('Base importada', arquivo.name);
     } catch (erro) {
+      if (car) await car.fim(false, 'Base não importada');
       toast.erro('Base não importada', erro.message);
     }
   });
@@ -5890,6 +6116,77 @@ async function abrirListaVersoes({
 }
 
 /**
+ * v1.75: lista de versoes da nuvem em cartoes (nome, data, lapis para renomear, "Carregar").
+ *   abrirVersoesNuvem({ armazenamento, projeto, podeRenomear, onCarregar: async (versao) => true | false })
+ */
+async function abrirVersoesNuvem({ armazenamento, projeto = '', podeRenomear = true, onCarregar } = {}) {
+  let versoes;
+  try {
+    versoes = await armazenamento.listar();
+  } catch (erro) {
+    toast.erro('Não foi possível listar as versões', erro.message);
+    return null;
+  }
+  versoes.sort((a, b) => String(b.salvoEm || '').localeCompare(String(a.salvoEm || '')));
+  let modal = null;
+  const lista = h('div', { class: 'fd-versoes__lista' });
+
+  function cartao(versao) {
+    const elNome = h('div', { class: 'fd-versoes__nome' }, versao.nome || 'Sem nome');
+    const elData = h('div', { class: 'fd-versoes__data' },
+      versao.salvoEm ? formatarData(versao.salvoEm, 'data-hora') : '', versao.autor ? ` · ${versao.autor}` : '');
+    const botaoCarregar = h('button', { type: 'button', class: 'fd-versoes__carregar' }, 'Carregar');
+    botaoCarregar.addEventListener('click', async () => {
+      const fechar = await comCarregamento(botaoCarregar, () => onCarregar(versao));
+      if (fechar !== false) modal.fechar();
+    });
+    let botaoRenomear = null;
+    if (podeRenomear && typeof armazenamento.renomear === 'function') {
+      botaoRenomear = h('button', { type: 'button', class: 'fd-versoes__lapis', title: 'Renomear', 'aria-label': `Renomear ${versao.nome}` }, '✏️');
+      botaoRenomear.addEventListener('click', async () => {
+        const nome = await solicitarValor({
+          titulo: 'Renomear versão',
+          rotulo: 'Nome',
+          obrigatorio: true,
+          regras: { minCaracteres: 3, maxCaracteres: 80 },
+          valor: versao.nome || '',
+          textoConfirmar: 'Renomear',
+        });
+        if (nome == null || nome.trim() === versao.nome) return;
+        try {
+          const registro = await armazenamento.renomear(versao.id, nome);
+          versao.nome = registro.nome;
+          elNome.textContent = registro.nome;
+          toast.sucesso('Versão renomeada', registro.nome);
+        } catch (erro) {
+          toast.erro('Não foi possível renomear', erro.message);
+        }
+      });
+    }
+    return h('div', { class: 'fd-versoes__cartao' },
+      h('div', { class: 'fd-versoes__info' }, elNome, elData),
+      h('div', { class: 'fd-versoes__acoes' }, botaoRenomear, botaoCarregar));
+  }
+
+  if (versoes.length) lista.append(...versoes.map(cartao));
+  else lista.append(h('div', { class: 'fd-versoes__vazio' }, 'Nenhuma versão salva ainda. Use "Salvar na nuvem" no painel do Controlador para criar a primeira.'));
+
+  modal = criarModal({
+    titulo: '☁️ Abrir Versão (Nuvem)',
+    tamanho: 'md',
+    destruirAoFechar: true,
+    conteudo: [
+      h('p', { class: 'fd-versoes__intro' }, 'Escolha uma versão salva no Firebase para carregar. Isso vai substituir os dados atuais desta tela.'),
+      projeto ? h('div', { class: 'fd-versoes__projeto' }, '📁 ', h('span', {}, `Projeto: ${projeto}`)) : null,
+      lista,
+    ],
+  });
+  modal.elemento.classList.add('fd-versoes');
+  modal.abrir();
+  return modal;
+}
+
+/**
  * Editor do cabecalho: logo (imagem importada), titulo e subtitulo.
  *   abrirEditorCabecalho({ identidade: { logo, titulo, subtitulo }, onSalvar(novaIdentidade) })
  */
@@ -6436,6 +6733,14 @@ function criarArmazenamentoObra({ obra, controle, limite = 900000 }) {
       await lote.commit();
       return { id, ...meta };
     }),
+    renomear: (id, nome) => executar(async ({ db, fs }) => {
+      const refMeta = fs.doc(db, ...colecao, id);
+      const atual = await fs.getDoc(refMeta);
+      if (!atual.exists()) throw new Error('Versão não encontrada na nuvem.');
+      const meta = { ...atual.data(), nome: String(nome).trim() };
+      await fs.setDoc(refMeta, meta);
+      return { id, ...meta };
+    }),
     abrir: (id) => executar(async ({ db, fs }) => {
       const [meta, dados] = await Promise.all([fs.getDoc(fs.doc(db, ...colecao, id)), fs.getDoc(fs.doc(db, ...colecaoConteudo, id))]);
       if (!meta.exists() || !dados.exists()) throw new Error('Versão não encontrada na nuvem.');
@@ -6768,7 +7073,12 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.74.0
+   Versao: 1.75.0
+   1.75.0: padrão visual do Controle de Custos: menu em vidro claro (emojis, separadores e
+           Sair/Trocar), botões do cabeçalho em pílula de vidro e nome da página ao lado do título,
+           botões das abas em vidro colorido (exportar em verde) e das janelas em pílula, tela de
+           boas-vindas ao entrar, tela de carregamento com etapas ao abrir/salvar a base, e
+           "Versão na nuvem" em cartões (Abrir Versão (Nuvem)) com lápis para renomear e Carregar.
    1.74.0: aberto pelo Portal KZ ja logado, a tela de entrada mostra "Conectado pelo Portal" e
            nao pede login/senha: Visualizador livre, Controlador e Projeto novo para Editor/Admin,
            Administrador leva a Equipe da obra no Portal. Sem login do Portal, tudo como antes.
@@ -7169,14 +7479,39 @@ const nuvem = {
     ultimaAbertaNuvem = { id, nome: registro.nome };
     return registro;
   },
-  async substituir(id, dados) {
+  async renomear(id, nome) {
     await garantirNuvemKZ();
-    const registro = await armazenamento.substituir(id, dados);
-    vinculoNuvem = { id: registro.id, nome: registro.nome };
+    const registro = await armazenamento.renomear(id, nome);
+    if (vinculoNuvem && vinculoNuvem.id === id) vinculoNuvem = { id, nome: registro.nome };
+    if (ultimaAbertaNuvem && ultimaAbertaNuvem.id === id) ultimaAbertaNuvem = { id, nome: registro.nome };
     return registro;
   },
-  async salvar({ nome, base, autor }) {
+  async substituir(id, dados) {
     await garantirNuvemKZ();
+    const car = mostrarCarregamentoFD('salvar', vinculoNuvem && vinculoNuvem.id === id ? vinculoNuvem.nome : '');
+    try {
+      const registro = await armazenamento.substituir(id, dados);
+      vinculoNuvem = { id: registro.id, nome: registro.nome };
+      await car.fim(true);
+      return registro;
+    } catch (erro) {
+      await car.fim(false, 'Não foi possível salvar');
+      throw erro;
+    }
+  },
+  async salvar(dados) {
+    await garantirNuvemKZ();
+    const car = mostrarCarregamentoFD('salvar', vinculoNuvem ? vinculoNuvem.nome : dados.nome);
+    try {
+      const registro = await this.salvarSemTela(dados);
+      await car.fim(true);
+      return registro;
+    } catch (erro) {
+      await car.fim(false, 'Não foi possível salvar');
+      throw erro;
+    }
+  },
+  async salvarSemTela({ nome, base, autor }) {
     if (vinculoNuvem) {
       try {
         const registro = await armazenamento.substituir(vinculoNuvem.id, { base: { ...base, vinculoNuvem }, autor });
@@ -16544,23 +16879,24 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
       ],
     },
     menu: {
+      /* v1.75: menu no padrao do Controle de Custos (vidro claro, emojis, separadores e Sair/Trocar) */
       secoes: [
         {
           titulo: 'Principal',
           itens: [
-            { id: 'painel', texto: 'Dashboard FD', icone: 'painel' },
-            { id: 'insumos', texto: 'Insumos', icone: 'moeda' },
-            { id: 'visao', texto: 'Visão geral', icone: 'olho' },
-            { id: 'base', texto: 'Base de faturamento', icone: 'tabela' },
-            { id: 'tendencia', texto: 'Tendência', icone: 'grafico' },
-            { id: 'importar', texto: 'Importar / Exportar', icone: 'upload' },
+            { id: 'painel', texto: 'Dashboard FD', emoji: '📊' },
+            { id: 'insumos', texto: 'Insumos', emoji: '💰' },
+            { id: 'visao', texto: 'Visão geral', emoji: '🔎' },
+            { id: 'base', texto: 'Base de faturamento', emoji: '🗂️' },
+            { id: 'tendencia', texto: 'Tendência', emoji: '📈' },
+            { id: 'importar', texto: 'Importar / Exportar', emoji: '📤' },
           ],
         },
         {
           titulo: 'Configurações',
           itens: [
             {
-              id: 'grupo-config', texto: 'Obra e referência', icone: 'configuracao',
+              id: 'grupo-config', texto: 'Configurações', emoji: '⚙️',
               itens: [
                 { id: 'obra', texto: 'Obra e aditivos' },
                 { id: 'aliquotas', texto: 'Tabela ICMS / DIFAL' },
@@ -16568,8 +16904,20 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
             },
           ],
         },
+        { itens: [{ id: 'sair', texto: 'Sair/Trocar', emoji: '↶' }] },
       ],
-      rodape: 'Faturamento Direto v1.74 · KZ App Standard v1.7',
+      onNavegar: async (id) => {
+        if (id !== 'sair') return;
+        app.menu.definirAtivo(app.paginaAtual());
+        if (sessao.obter().alteracoes && !(await confirmar({
+          titulo: 'Sair sem salvar?',
+          mensagem: 'Há alterações que ainda não foram salvas. Se sair agora, elas serão perdidas.',
+          textoConfirmar: 'Sair sem salvar',
+          perigo: true,
+        }))) return;
+        sair();
+      },
+      rodape: 'Faturamento Direto v1.75 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
@@ -16593,11 +16941,211 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   });
   appAtual = app;
 
-  toast.info(`Bem-vindo, ${usuario ? usuario.nome : NOME_PERFIL[perfil]}`,
-    perfil === 'visualizador' ? 'Acesso somente para visualização.' : 'Lembre-se de salvar a base em Controlador > Ferramentas.');
+  /* v1.75: nome da pagina aberta ao lado do titulo, como no Controle de Custos */
+  const NOME_PAGINA = {
+    painel: 'Dashboard', insumos: 'Insumos', visao: 'Visão geral', base: 'Base de faturamento', tendencia: 'Tendência',
+    importar: 'Importar / Exportar', obra: 'Obra e aditivos', aliquotas: 'Tabela ICMS / DIFAL',
+  };
+  const chipPagina = h('span', { class: 'fd-hdr-pagina' });
+  const titulos = app.cabecalho.elemento.querySelector('.ctc-header__titles');
+  if (titulos) titulos.append(chipPagina);
+  const atualizarChip = () => { chipPagina.textContent = NOME_PAGINA[app.paginaAtual()] || ''; };
+  // cada navegacao troca o conteudo da area principal: o nome acompanha
+  new MutationObserver(atualizarChip).observe(app.main, { childList: true });
+  atualizarChip();
+
+  mostrarBoasVindasFD({
+    nome: usuario ? String(usuario.nome || '').replace(/\s*\([^)]*\)\s*$/, '') : '',
+    perfil: NOME_PERFIL[perfil] || perfil,
+    visualizador: perfil === 'visualizador',
+    obra: obra.nome || '',
+    logo: identidade.logo,
+  });
 
   /* Exposto apenas para inspecao no console do navegador durante testes */
   window.ctcFaturamento = { app, sessao, obterBaseParaSalvar };
+}
+
+/* =============================================================================
+   v1.75: TELA DE BOAS-VINDAS E TELA DE CARREGAMENTO (padrao do Controle de Custos)
+   ========================================================================== */
+
+/** Logo usada no carregamento e nas boas-vindas: a da base aberta ou a do consorcio. */
+function logoTelasFD(logo) {
+  const valida = (v) => typeof v === 'string' && /^(data:image|https?:|blob:)/.test(v);
+  if (valida(logo)) return logo;
+  if (appAtual && valida(identidade.logo)) return identidade.logo;
+  return valida(IMAGENS_MODELO.logoConsorcio) ? IMAGENS_MODELO.logoConsorcio : '';
+}
+
+/** Cores predominantes da logo (ignora preto, branco e cinza). cb(['#rrggbb', ...] | null) */
+const _coresLogoFD = new Map();
+function coresDaLogoFD(src, cb) {
+  if (!src) { cb(null); return; }
+  const chave = `${src.length}:${src.slice(-40)}`;
+  if (_coresLogoFD.has(chave)) { cb(_coresLogoFD.get(chave)); return; }
+  const im = new Image();
+  im.onload = () => {
+    let cores = null;
+    try {
+      const n = 64;
+      const r = Math.min(1, n / Math.max(im.width, im.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(1, Math.round(im.width * r));
+      cv.height = Math.max(1, Math.round(im.height * r));
+      const cx = cv.getContext('2d');
+      cx.drawImage(im, 0, 0, cv.width, cv.height);
+      const px = cx.getImageData(0, 0, cv.width, cv.height).data;
+      const bins = {};
+      for (let i = 0; i < px.length; i += 4) {
+        if (px[i + 3] < 200) continue;
+        const R = px[i] / 255; const G = px[i + 1] / 255; const B = px[i + 2] / 255;
+        const mx = Math.max(R, G, B); const mn = Math.min(R, G, B); const d = mx - mn;
+        if (mx < 0.18 || d / mx < 0.35) continue;
+        let hh = mx === R ? ((G - B) / d) % 6 : mx === G ? (B - R) / d + 2 : (R - G) / d + 4;
+        hh = (hh * 60 + 360) % 360;
+        const bk = Math.round(hh / 20) % 18;
+        const o = bins[bk] || (bins[bk] = { n: 0, r: 0, g: 0, b: 0, h: 0 });
+        o.n += 1; o.r += px[i]; o.g += px[i + 1]; o.b += px[i + 2]; o.h += hh;
+      }
+      const lista = Object.values(bins).filter((o) => o.n >= 4).sort((a, b) => b.n - a.n).slice(0, 4)
+        .map((o) => ({ h: o.h / o.n, cor: `#${[o.r, o.g, o.b].map((v) => (`0${Math.round(v / o.n).toString(16)}`).slice(-2)).join('')}` }))
+        .sort((a, b) => b.h - a.h);
+      cores = lista.length ? lista.map((o) => o.cor) : null;
+    } catch (erro) { cores = null; }
+    _coresLogoFD.set(chave, cores);
+    cb(cores);
+  };
+  im.onerror = () => cb(null);
+  im.src = src;
+}
+
+/** Boas-vindas ao entrar: o app desfocado ao fundo e um cartao de vidro. Some em 5 s ou com clique/tecla. */
+let _bvTimerFD = null;
+function mostrarBoasVindasFD({ nome = '', perfil = '', visualizador = false, obra = '', logo } = {}) {
+  let o = document.getElementById('fd-bv');
+  if (!o) {
+    o = h('div', { id: 'fd-bv', role: 'dialog', 'aria-label': 'Boas-vindas' });
+    document.body.append(o);
+    o.addEventListener('mousedown', fecharBoasVindasFD);
+    o.addEventListener('touchstart', fecharBoasVindasFD, { passive: true });
+  }
+  const hora = new Date().getHours();
+  const saudacao = hora < 12 ? 'Bom dia' : hora < 18 ? 'Boa tarde' : 'Boa noite';
+  const src = logoTelasFD(logo);
+  const elLogo = h('div', { class: 'fd-bv__logo' });
+  if (src) { const img = h('img', { alt: '' }); img.src = src; elLogo.append(img); } else elLogo.append(h('span', {}, '📊'));
+  const chips = [obra && `📍 ${obra}`, `👤 ${perfil}`, `📅 ${new Date().toLocaleDateString('pt-BR')}`].filter(Boolean);
+  const svg = '<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" stroke="#e2e8f0" stroke-width="3" fill="none"/>'
+    + '<circle class="fd-bv__anel" cx="18" cy="18" r="15" stroke-width="3" fill="none" stroke-linecap="round" transform="rotate(-90 18 18)"/></svg>';
+  const cont = h('div', { class: 'fd-bv__cont' });
+  cont.innerHTML = `${svg}<span>Entrando…</span>`;
+  o.replaceChildren(h('div', { class: 'fd-bv__card' },
+    elLogo,
+    h('h2', { class: 'fd-bv__ola' }, visualizador || !nome ? `${saudacao}!` : `${saudacao}, ${nome}`),
+    h('div', { class: 'fd-bv__obra' }, 'Bem-vindo(a) ao Faturamento Direto'),
+    h('div', { class: 'fd-bv__chips' }, chips.map((c) => h('span', {}, c))),
+    cont));
+  coresDaLogoFD(src, (c) => o.style.setProperty('--bv-cor', (c && c[0]) || '#1e3a5f'));
+  o.classList.remove('on', 'saindo');
+  void o.offsetWidth;
+  o.classList.add('on');
+  clearTimeout(_bvTimerFD);
+  _bvTimerFD = setTimeout(fecharBoasVindasFD, 5000);
+  setTimeout(() => document.addEventListener('keydown', fecharBoasVindasFD, true), 150);
+}
+function fecharBoasVindasFD(e) {
+  const o = document.getElementById('fd-bv');
+  if (!o || !o.classList.contains('on') || o.classList.contains('saindo')) return;
+  if (e && e.type === 'keydown') { e.preventDefault(); e.stopPropagation(); }
+  clearTimeout(_bvTimerFD);
+  document.removeEventListener('keydown', fecharBoasVindasFD, true);
+  o.classList.add('saindo');
+  setTimeout(() => o.classList.remove('on', 'saindo'), 480);
+}
+
+/**
+ * Tela de carregamento: logo ao centro, barra nas cores da logo e as etapas sendo marcadas.
+ *   const car = mostrarCarregamentoFD('json' | 'nuvem' | 'salvar', 'nome do arquivo');
+ *   await car.fim(true)  |  await car.fim(false, 'mensagem do erro')
+ */
+const ETAPAS_CARREGAMENTO_FD = {
+  json: { titulo: 'Carregando base de dados', etapas: ['Lendo o arquivo da base', 'Conferindo a estrutura dos dados', 'Carregando terceiros, pedidos e notas', 'Calculando saldos e indicadores', 'Base pronta'] },
+  nuvem: { titulo: 'Carregando base de dados', etapas: ['Baixando da nuvem', 'Conferindo a estrutura dos dados', 'Carregando terceiros, pedidos e notas', 'Calculando saldos e indicadores', 'Base pronta'] },
+  salvar: { titulo: 'Salvando na nuvem', etapas: ['Preparando os dados', 'Enviando para a nuvem', 'Confirmando o salvamento'] },
+};
+function mostrarCarregamentoFD(tipo, sub = '') {
+  const def = ETAPAS_CARREGAMENTO_FD[tipo] || { titulo: 'Carregando', etapas: ['Carregando'] };
+  let o = document.getElementById('fd-car');
+  if (!o) {
+    o = h('div', { id: 'fd-car', role: 'status', 'aria-live': 'polite' });
+    document.body.append(o);
+  }
+  const src = logoTelasFD();
+  const marca = h('div', { class: 'fd-car__marca' });
+  if (src) { const img = h('img', { alt: '' }); img.src = src; marca.append(img); } else marca.append(h('span', {}, 'Faturamento Direto'));
+  const elTit = h('span', { class: 'fd-car__tit' }, def.titulo);
+  const elPct = h('span', { class: 'fd-car__pct' }, '0%');
+  const elBarra = h('i');
+  const itens = def.etapas.map((t) => h('li', {}, h('span', { class: 'ic' }), h('span', { class: 'tx' }, t)));
+  o.replaceChildren(marca,
+    h('div', { class: 'fd-car__caixa' },
+      h('div', { class: 'fd-car__lin' }, elTit, elPct),
+      h('div', { class: 'fd-car__barra' }, elBarra),
+      h('div', { class: 'fd-car__sub' }, sub),
+      h('ul', { class: 'fd-car__etapas' }, itens)),
+    h('div', { class: 'fd-car__rod' }, [appAtual && obra ? obra.nome : '', 'Faturamento Direto'].filter(Boolean).join(' · ')));
+  coresDaLogoFD(src, (c) => {
+    let cores = c && c.length ? c : ['#1e3a5f', '#2f6f5e'];
+    if (cores.length === 1) cores = [cores[0], cores[0]];
+    o.style.setProperty('--car-g', `linear-gradient(90deg,${cores.join(',')})`);
+    o.style.setProperty('--car-c1', cores[0]);
+  });
+  const n = itens.length;
+  const alvo = Math.max(0, n - 2); // anda sozinho ate a penultima; a ultima fecha quando o trabalho termina
+  let at = 0;
+  let pronto = false;
+  let acabou = false;
+  const inicio = Date.now();
+  const desenhar = () => {
+    itens.forEach((li, j) => { if (li.className !== 'er') li.className = j < at ? 'ok' : j === at ? 'at' : ''; });
+    const pct = o.classList.contains('ok') ? 100 : Math.min(95, Math.round((at / n) * 100));
+    elBarra.style.width = `${o.classList.contains('erro') ? Math.max(pct, 8) : pct}%`;
+    elPct.textContent = `${pct}%`;
+  };
+  o.classList.remove('ok', 'saindo', 'erro', 'pronto');
+  void o.offsetWidth;
+  o.classList.add('on');
+  desenhar();
+  const tPronto = setTimeout(() => { pronto = true; o.classList.add('pronto'); desenhar(); }, 700);
+  const passo = setInterval(() => { if (pronto && at < alvo) { at += 1; desenhar(); } }, 380);
+  const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
+  return {
+    async fim(ok = true, texto = '') {
+      if (acabou) return;
+      acabou = true;
+      // deixa a animacao chegar na penultima etapa antes de concluir
+      while (ok && (at < alvo || Date.now() - inicio < 1500)) await esperar(120);
+      clearTimeout(tPronto);
+      clearInterval(passo);
+      o.classList.add('pronto');
+      if (ok) {
+        at = n;
+        o.classList.add('ok');
+        desenhar();
+        await esperar(550);
+      } else {
+        if (itens[at]) itens[at].className = 'er';
+        o.classList.add('erro');
+        elTit.textContent = texto || 'Não foi possível concluir';
+        desenhar();
+        await esperar(1400);
+      }
+      o.classList.add('saindo');
+      await esperar(340);
+      o.classList.remove('on', 'saindo', 'ok', 'erro', 'pronto');
+    },
+  };
 }
 
 /* Inicio (v1.73): tela de entrada por perfis; a nuvem KZ pede login so quando usada */
