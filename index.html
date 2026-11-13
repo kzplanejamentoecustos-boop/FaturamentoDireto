@@ -1327,6 +1327,113 @@ img { max-width: 100%; display: block; }
 .fd-arv__total .fd-arv__avanco span { color: #fff; }
 .fd-arv__total .fd-arv__trilho { background: rgba(255,255,255,.2); }
 
+/* =============================================================================
+   v1.89: ASSISTENTE DO CONTROLE e PASSO A PASSO NA TELA (mesmo modelo do Controle de Custos)
+   ========================================================================== */
+#assist-btn { position: fixed; left: 18px; bottom: 18px; z-index: 900; display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px 10px 12px; border-radius: 999px; cursor: pointer; border: 1px solid rgba(255,255,255,.8); color: #0f172a;
+  font: 600 13px "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  background: rgba(255,255,255,.55); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 24px rgba(15,23,42,.22); transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .2s; }
+#assist-btn[hidden] { display: none; }
+#assist-btn span { font-size: 18px; line-height: 1; }
+#assist-btn:hover { transform: translateY(-2px) scale(1.03); box-shadow: inset 0 1px 0 #fff, 0 12px 28px rgba(15,23,42,.28); }
+#assist-btn.aberto { background: rgba(0,122,255,.92); color: #fff; border-color: rgba(255,255,255,.45); }
+#assist-painel { position: fixed; left: 18px; bottom: 72px; z-index: 900; width: min(410px, calc(100vw - 36px)); height: min(580px, calc(100vh - 110px));
+  display: none; flex-direction: column; overflow: hidden; border-radius: 20px; border: 1px solid rgba(255,255,255,.85);
+  background: rgba(248,250,252,.84); -webkit-backdrop-filter: blur(26px) saturate(180%); backdrop-filter: blur(26px) saturate(180%);
+  box-shadow: inset 0 1px 0 #fff, 0 24px 60px rgba(15,23,42,.30); font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif; transform-origin: bottom left; }
+#assist-painel.on { display: flex; animation: asEntra .28s cubic-bezier(.34,1.4,.64,1); }
+@keyframes asEntra { from { opacity: 0; transform: scale(.92) translateY(10px); } to { opacity: 1; transform: none; } }
+.as-cab { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: linear-gradient(135deg, #1e3a5f, #0f172a); color: #fff; font-weight: 700; font-size: 14px; }
+.as-x { all: unset; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.16); font-size: 12px; }
+.as-x:hover { background: rgba(255,255,255,.28); }
+.as-msgs { flex: 1; overflow: auto; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.as-msg { max-width: 92%; padding: 10px 13px; border-radius: 16px; font-size: 13px; line-height: 1.5; color: #1e293b; animation: asMsg .22s ease-out; }
+@keyframes asMsg { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.as-msg.bot { background: #fff; border: 1px solid #e2e8f0; border-bottom-left-radius: 6px; align-self: flex-start; box-shadow: 0 2px 8px rgba(15,23,42,.06); }
+.as-msg.eu { background: #007aff; color: #fff; border-bottom-right-radius: 6px; align-self: flex-end; }
+.as-tit { font-weight: 800; font-size: 13.5px; color: #0f172a; margin-bottom: 6px; }
+.as-txt { margin: 0 0 6px; } .as-onde { margin: 0 0 6px; font-size: 12px; color: #475569; }
+.as-passos { margin: 4px 0 0 18px; padding: 0; } .as-passos li { margin: 4px 0; }
+.as-bts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.as-bt { all: unset; cursor: pointer; padding: 6px 11px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #0a58ca; background: rgba(0,122,255,.10); border: 1px solid rgba(0,122,255,.25); }
+.as-bt:hover { background: rgba(0,122,255,.18); }
+.as-bt.as-bt-tour { background: #007aff; color: #fff; border-color: #007aff; }
+.as-bt.as-bt-tour:hover { background: #0a84ff; }
+.as-tab { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 4px; }
+.as-tab td { padding: 5px 2px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+.as-tab td.as-v { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: #0f172a; }
+.as-tab small { color: #64748b; }
+.as-imp { margin: 8px 0 4px; padding: 8px 10px; border-radius: 10px; background: #f0f9ff; border: 1px solid #bae6fd; font-size: 12.5px; color: #0c4a6e; }
+.as-aviso { margin: 6px 0; padding: 6px 10px; border-radius: 9px; background: #fffbeb; border: 1px solid #fde68a; font-size: 12px; color: #92400e; }
+.as-onde2 { font-size: 12.5px; color: #334155; margin: 4px 0; }
+.as-outros { margin-top: 8px; font-size: 11.5px; color: #64748b; }
+.as-outros a { color: #0a58ca; cursor: pointer; }
+.as-grupo { margin-top: 8px; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: .4px; }
+.as-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.as-chip { all: unset; cursor: pointer; padding: 6px 11px; border-radius: 999px; font-size: 12px; color: #334155; background: #fff; border: 1px solid #e2e8f0; }
+.as-chip:hover { border-color: #007aff; color: #0a58ca; }
+.as-form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid rgba(15,23,42,.08); background: rgba(255,255,255,.6); }
+.as-form input { flex: 1; border: 1.5px solid #e2e8f0; border-radius: 999px; padding: 9px 14px; font-size: 13px; outline: none; background: #fff; }
+.as-form input:focus { border-color: #007aff; box-shadow: 0 0 0 3px rgba(0,122,255,.15); }
+.as-env { all: unset; cursor: pointer; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #007aff; color: #fff; font-size: 15px; }
+.as-env:hover { background: #0a84ff; }
+.as-dig { display: inline-flex; gap: 4px; } .as-dig i { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; animation: asDig 1s infinite; }
+.as-dig i:nth-child(2) { animation-delay: .15s; } .as-dig i:nth-child(3) { animation-delay: .3s; }
+@keyframes asDig { 0%, 60%, 100% { transform: none; opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }
+/* passo a passo na tela: destaca o botao real com um balao */
+#tour-veu { position: fixed; inset: 0; z-index: 10070; cursor: default; }
+#tour-veu .tour-dim { position: fixed; background: rgba(15,23,42,.55); }
+#tour-foco { position: fixed; display: none; border-radius: 12px; pointer-events: none; box-shadow: 0 0 0 3px #fff, 0 0 0 6px #007aff; }
+#tour-foco::after { content: ""; position: absolute; inset: -6px; border-radius: 15px; border: 3px solid #007aff; animation: tourPulso 1.4s ease-out infinite; }
+#tour-foco.chama { animation: tourChama .45s ease; }
+@keyframes tourPulso { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(1.18); } }
+@keyframes tourChama { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+#tour-balao { position: fixed; width: 380px; max-width: calc(100vw - 24px); background: #fff; border-radius: 16px; padding: 14px 16px 12px;
+  box-shadow: 0 20px 50px rgba(15,23,42,.35); font: 13.5px/1.5 "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif; color: #1e293b;
+  transition: opacity .15s; --ax: 50%; --ay: 50%; }
+#tour-balao.trocando { opacity: .4; }
+#tour-balao::before { content: ""; position: absolute; width: 16px; height: 16px; background: #fff; transform: rotate(45deg); border-radius: 3px; }
+#tour-balao[data-lado=baixo]::before { top: -7px; left: calc(var(--ax) - 8px); }
+#tour-balao[data-lado=cima]::before { bottom: -7px; left: calc(var(--ax) - 8px); }
+#tour-balao[data-lado=esq]::before { left: -7px; top: calc(var(--ay) - 8px); }
+#tour-balao[data-lado=dir]::before { right: -7px; top: calc(var(--ay) - 8px); }
+#tour-balao[data-lado=centro]::before { display: none; }
+.tb-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.tb-cont { font-size: 11px; color: #64748b; font-weight: 600; letter-spacing: .2px; }
+.tb-x { all: unset; cursor: pointer; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 12px; }
+.tb-x:hover { background: #f1f5f9; color: #0f172a; }
+.tb-tit { font-size: 15.5px; font-weight: 700; color: #0f172a; margin-bottom: 4px; line-height: 1.3; }
+.tb-txt { color: #334155; }
+.tb-campo { margin-top: 10px; padding: 9px 11px; border-radius: 10px; background: #eff6ff; border: 1px solid #bfdbfe; font-size: 13px; color: #1e3a5f; }
+.tb-campo-t { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; color: #1d4ed8; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.tb-obrig { font-size: 10px; text-transform: none; letter-spacing: 0; background: #fee2e2; color: #b91c1c; border-radius: 999px; padding: 1px 7px; font-weight: 700; }
+.tb-ex { margin-top: 4px; color: #475569; } .tb-ex b { color: #0f172a; font-family: ui-monospace, Consolas, monospace; font-weight: 600; }
+.tb-nao { margin-top: 8px; font-size: 12px; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 6px 9px; }
+.tb-barra { display: flex; gap: 4px; margin: 12px 0 10px; } .tb-barra i { flex: 1; height: 4px; border-radius: 2px; background: #e2e8f0; }
+.tb-barra i.ok { background: #34c759; } .tb-barra i.at { background: #007aff; }
+.tb-bts { display: flex; justify-content: space-between; gap: 8px; }
+.tb-bts button { all: unset; cursor: pointer; padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+.tb-bts .tb-ant { color: #334155; background: #f1f5f9; } .tb-bts .tb-ant:disabled { opacity: .4; cursor: default; }
+.tb-bts .tb-prox { color: #fff; background: #007aff; }
+.tb-prox:focus-visible, .tb-ant:focus-visible { outline: 2px solid #93c5fd; outline-offset: 2px; }
+/* apresentacao de um botao */
+.ap-caixas { display: flex; gap: 12px; flex-wrap: wrap; }
+.ap-caixa { flex: 1; min-width: 220px; border-radius: 12px; padding: 14px 16px; }
+.ap-caixa h4 { margin: 0 0 6px; font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; }
+.ap-caixa div { font-size: 13.5px; color: #1e293b; line-height: 1.55; }
+.ap-caixa.is-funcao { background: #1e40af10; border: 1.5px solid #1e40af55; } .ap-caixa.is-funcao h4 { color: #1e40af; }
+.ap-caixa.is-onde { background: #15803d10; border: 1.5px solid #15803d55; } .ap-caixa.is-onde h4 { color: #15803d; }
+.ap-sec { margin-top: 14px; }
+.ap-sec h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 14px; color: #0f172a; }
+.ap-sec h4 span { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #1e3a5f; color: #fff; font-size: 12px; }
+.ap-sec ol { margin: 0 0 0 20px; padding: 0; font-size: 13px; color: #334155; line-height: 1.55; }
+.ap-sec ol li { margin: 3px 0; }
+.ap-aviso { margin-top: 8px; padding: 8px 12px; border-radius: 10px; background: #fffbeb; border: 1px solid #fde68a; font-size: 12.5px; color: #92400e; }
+@media print { #assist-btn, #assist-painel, #tour-veu { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { #tour-foco::after { animation: none; } }
+
 /* v1.75: Abrir Versao (Nuvem) em cartoes */
 .fd-versoes .ctc-modal__dialog { max-width: 560px; overflow: hidden; }
 .fd-versoes .ctc-modal__header { background: #1e293b; color: #fff; border-bottom: 0; }
@@ -7240,7 +7347,10 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.88.0
+   Versao: 1.89.0
+   1.89.0: Assistente do Controle (como no Controle de Custos): perguntas e respostas, o que faz
+           cada botão (com apresentação), "Mostrar na tela" com passo a passo destacando o botão real
+           e os números da obra aberta.
    1.88.0: menu com a mesma transparência e aparência do Controle de Custos (vidro claro,
            borda branca, cantos 16px, fonte, emoji, seta ▸ e sem rodapé).
    1.87.0: menu com "Visão gerencial" em cascata (Dashboard e Tendência).
@@ -17469,7 +17579,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.88 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.89 · KZ App Standard v1.7',
     },
     paginas: {
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
@@ -17700,6 +17810,958 @@ function mostrarCarregamentoFD(tipo, sub = '') {
       o.classList.remove('on', 'saindo', 'ok', 'erro', 'pronto');
     },
   };
+}
+
+/* =============================================================================
+   v1.89: ASSISTENTE DO CONTROLE (mesmo modelo do Controle de Custos)
+   - perguntas e respostas (busca por palavras, sinonimos e erros de digitacao);
+   - "Mostrar na tela": leva ate a tela e destaca o botao/campo real, passo a passo;
+   - "Ver apresentacao": explica o que cada botao faz;
+   - numeros da obra aberta (total, consumido, saldo, pedidos, boletos...).
+   Durante o passo a passo os cliques no controle ficam bloqueados: so o balao avanca,
+   entao nada e alterado. O que o passo a passo abre (menu, janelas) ele mesmo fecha.
+   ========================================================================== */
+
+/* ---------- localizar elementos na tela ---------- */
+const fdNormA = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const fdTxtA = (el) => String((el && el.textContent) || '').replace(/\s+/g, ' ').trim();
+function fdVisivelA(el) {
+  if (!el || !el.isConnected) return false;
+  const r = el.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2) return false;
+  const cs = getComputedStyle(el);
+  return cs.visibility !== 'hidden' && cs.display !== 'none' && parseFloat(cs.opacity || '1') > 0.05;
+}
+/** escopo: o que estiver mais "em cima" (janela aberta) ou a pagina */
+function fdEscopoA(escopo) {
+  if (escopo === 'modal') { const m = [...document.querySelectorAll('.ctc-modal.is-open .ctc-modal__dialog')]; return m.length ? [m[m.length - 1]] : []; }
+  if (escopo) return [...document.querySelectorAll(escopo)];
+  return [document];
+}
+/** Botao (ou aba) pelo texto: igual ou comecando com o texto. */
+const BT = (texto, escopo) => () => {
+  const alvo = fdNormA(texto);
+  for (const raiz of fdEscopoA(escopo)) {
+    const lista = [...raiz.querySelectorAll('button, [role=tab], a, summary')].filter(fdVisivelA);
+    const el = lista.find((b) => fdNormA(fdTxtA(b)) === alvo) || lista.find((b) => fdNormA(fdTxtA(b)).startsWith(alvo));
+    if (el) return el;
+  }
+  return null;
+};
+/** Botao pelo title (icones sem texto). */
+const TITULO = (texto, escopo) => () => {
+  const alvo = fdNormA(texto);
+  for (const raiz of fdEscopoA(escopo)) {
+    const el = [...raiz.querySelectorAll('[title]')].find((b) => fdVisivelA(b) && fdNormA(b.getAttribute('title')).startsWith(alvo));
+    if (el) return el;
+  }
+  return null;
+};
+/** Campo de formulario pelo rotulo (na janela aberta). */
+const CAMPO = (rotulo) => () => {
+  const alvo = fdNormA(rotulo);
+  for (const raiz of fdEscopoA('modal').concat([document])) {
+    const el = [...raiz.querySelectorAll('.ctc-field')].find((c) => fdVisivelA(c) && fdNormA(fdTxtA(c.querySelector('.ctc-field__label, label') || c)).startsWith(alvo));
+    if (el) return el;
+  }
+  return null;
+};
+/** Seletor CSS (o primeiro visivel). */
+const SEL = (sel) => () => [...document.querySelectorAll(sel)].find(fdVisivelA) || null;
+/** Janela aberta (a de cima). */
+const JANELA = () => () => { const m = [...document.querySelectorAll('.ctc-modal.is-open .ctc-modal__dialog')]; return m[m.length - 1] || null; };
+
+/* ---------- acoes usadas pelos passos (so abrem/mostram; nunca gravam) ---------- */
+const AC = {
+  menu: () => { if (appAtual && !document.querySelector('.ctc-app--menu-aberto')) appAtual.alternarMenu(true); },
+  semMenu: () => { if (appAtual && document.querySelector('.ctc-app--menu-aberto')) appAtual.alternarMenu(false); },
+  submenu: (texto) => () => {
+    AC.menu();
+    const g = [...document.querySelectorAll('.ctc-sidebar__group')].find((d) => fdNormA(fdTxtA(d.querySelector('summary'))) === fdNormA(texto));
+    if (g && !g.open) g.open = true;
+  },
+  aba: (texto, escopo) => () => { const b = BT(texto, escopo)(); if (b && b.getAttribute('aria-selected') !== 'true') b.click(); },
+  clicar: (achar) => () => { const el = achar(); if (el) el.click(); },
+  /** abre uma janela so se ainda nao houver uma com esse titulo */
+  janela: (titulo, abrir) => () => {
+    const alvo = fdNormA(titulo);
+    const ja = [...document.querySelectorAll('.ctc-modal.is-open .ctc-modal__title')].some((t) => fdNormA(fdTxtA(t)).startsWith(alvo));
+    if (!ja) { try { abrir(); } catch (e) { console.warn('[assistente]', e); } }
+  },
+  semJanelas: () => fecharJanelasTour(),
+  arvore: (nivel) => () => { const b = BT(nivel === 2 ? 'Abrir tudo' : 'Até fornecedores')(); if (b) b.click(); },
+  emSequencia: (...fns) => () => fns.forEach((f) => { try { f(); } catch (e) { console.warn('[assistente]', e); } }),
+};
+
+/* ---------- passo a passo na tela ---------- */
+let _tourFD = null;
+const TOURS_FD = {};
+
+function fecharJanelasTour() {
+  if (!_tourFD) return;
+  [...document.querySelectorAll('.ctc-modal.is-open')].reverse().forEach((m) => {
+    if (_tourFD.janelasIni.has(m)) return;
+    const x = m.querySelector('.ctc-modal__close');
+    if (x) x.click();
+  });
+}
+
+function tourFDIniciar(chave) {
+  const t = typeof chave === 'string' ? TOURS_FD[chave] : chave;
+  if (!t || !t.passos || !t.passos.length || !appAtual) return;
+  tourFDSair(true);
+  assistFechar();
+  _tourFD = { t, i: 0, paginaIni: appAtual.paginaAtual(), y: window.scrollY, janelasIni: new Set(document.querySelectorAll('.ctc-modal.is-open')) };
+  const veu = document.createElement('div');
+  veu.id = 'tour-veu';
+  veu.innerHTML = "<div class='tour-dim'></div><div class='tour-dim'></div><div class='tour-dim'></div><div class='tour-dim'></div><div id='tour-foco'></div><div id='tour-balao' role='dialog' aria-live='polite'></div>";
+  document.body.append(veu);
+  veu.addEventListener('click', (e) => {
+    if (e.target.closest('#tour-balao')) return;
+    e.preventDefault(); e.stopPropagation();
+    const f = document.getElementById('tour-foco');
+    if (f) { f.classList.remove('chama'); void f.offsetWidth; f.classList.add('chama'); }
+  }, true);
+  document.addEventListener('keydown', tourFDTecla, true);
+  window.addEventListener('resize', tourFDPosicionar);
+  window.addEventListener('scroll', tourFDPosicionar, true);
+  _tourFD.seg = setInterval(tourFDPosicionar, 200);
+  tourFDPasso(0);
+}
+function tourFDTecla(e) {
+  if (!_tourFD) return;
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); tourFDSair(); }
+  else if (e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); tourFDIr(1); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); e.stopPropagation(); tourFDIr(-1); }
+  else if (!e.target.closest || !e.target.closest('#tour-balao')) { e.preventDefault(); e.stopPropagation(); }
+}
+function tourFDIr(d) {
+  if (!_tourFD) return;
+  const n = _tourFD.i + d;
+  if (n < 0) return;
+  if (n >= _tourFD.t.passos.length) { tourFDSair(); return; }
+  tourFDPasso(n);
+}
+function tourFDPasso(n) {
+  const p = _tourFD.t.passos[n];
+  _tourFD.i = n; _tourFD.el = null;
+  const b = document.getElementById('tour-balao');
+  if (b) b.classList.add('trocando');
+  if (p.pagina && appAtual.paginaAtual() !== p.pagina) { fecharJanelasTour(); AC.semMenu(); appAtual.navegar(p.pagina); }
+  if (!p.menu) AC.semMenu();
+  if (!p.janela) fecharJanelasTour();
+  [].concat(p.antes || []).forEach((f) => { try { f(); } catch (e) { console.warn('[assistente]', e); } });
+  let tentativas = 0;
+  (function procurar() {
+    if (!_tourFD || _tourFD.i !== n) return;
+    let el = null;
+    try { el = typeof p.sel === 'function' ? p.sel() : p.sel ? SEL(p.sel)() : null; } catch (e) { el = null; }
+    if (!el && p.sel && tentativas++ < 10) { setTimeout(procurar, 90); return; }
+    _tourFD.el = el;
+    if (el) { const r = el.getBoundingClientRect(); if (r.top < 70 || r.bottom > window.innerHeight - 40) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+    tourFDBalao(p, n);
+    setTimeout(tourFDPosicionar, 30); setTimeout(tourFDPosicionar, 380);
+  })();
+}
+function tourFDBalao(p, n) {
+  const b = document.getElementById('tour-balao');
+  if (!b) return;
+  const tot = _tourFD.t.passos.length; const ult = n === tot - 1;
+  const campo = (p.info || p.ex)
+    ? `<div class='tb-campo'><div class='tb-campo-t'>✎ O que informar${p.obrig ? " <span class='tb-obrig'>obrigatório</span>" : ''}</div>${p.info ? `<div>${p.info}</div>` : ''}${p.ex ? "<div class='tb-ex'>Exemplo: <b></b></div>" : ''}</div>` : '';
+  const nao = !_tourFD.el && p.sel
+    ? `<div class='tb-nao'>${p.edicao && !podeEditar() ? 'Este botão só aparece para quem entra como <b>Controlador</b> (o Visualizador apenas consulta).' : 'Este item não está visível agora (ele aparece quando a situação descrita acontece).'}</div>` : '';
+  b.innerHTML = `<div class='tb-top'><span class='tb-cont'></span><button type='button' class='tb-x' title='Sair (Esc)'>✕</button></div>`
+    + `<div class='tb-tit'></div><div class='tb-txt'>${p.txt || ''}</div>${campo}${nao}`
+    + `<div class='tb-barra'>${_tourFD.t.passos.map((_, i) => `<i class='${i < n ? 'ok' : i === n ? 'at' : ''}'></i>`).join('')}</div>`
+    + `<div class='tb-bts'><button type='button' class='tb-ant'${n === 0 ? ' disabled' : ''}>← Anterior</button><button type='button' class='tb-prox'>${ult ? 'Concluir ✓' : 'Próximo →'}</button></div>`;
+  b.querySelector('.tb-cont').textContent = `${_tourFD.t.t} · passo ${n + 1} de ${tot}`;
+  b.querySelector('.tb-tit').innerHTML = p.tit || '';
+  if (p.ex) { const ex = b.querySelector('.tb-ex b'); if (ex) ex.textContent = p.ex; }
+  /* stopPropagation: o clique no balao nao pode fechar o menu aberto pelo passo */
+  b.querySelector('.tb-x').onclick = (e) => { e.stopPropagation(); tourFDSair(); };
+  b.querySelector('.tb-ant').onclick = (e) => { e.stopPropagation(); tourFDIr(-1); };
+  b.querySelector('.tb-prox').onclick = (e) => { e.stopPropagation(); tourFDIr(1); };
+  b.classList.remove('trocando');
+  setTimeout(() => { const bt = b.querySelector('.tb-prox'); if (bt) bt.focus({ preventScroll: true }); }, 40);
+}
+function tourFDPosicionar() {
+  if (!_tourFD) return;
+  const f = document.getElementById('tour-foco'); const b = document.getElementById('tour-balao');
+  if (!f || !b) return;
+  const el = _tourFD.el; const vw = window.innerWidth; const vh = window.innerHeight; const m = 8;
+  const dims = document.querySelectorAll('#tour-veu .tour-dim');
+  const dim = (i, l, t, w, hh) => { const d = dims[i]; if (!d) return; Object.assign(d.style, { left: `${l}px`, top: `${t}px`, width: `${Math.max(0, w)}px`, height: `${Math.max(0, hh)}px` }); };
+  if (el && fdVisivelA(el)) {
+    const r = el.getBoundingClientRect();
+    const L = r.left - m; const T = r.top - m; const R = r.right + m; const B = r.bottom + m;
+    dim(0, 0, 0, vw, T); dim(1, 0, B, vw, vh - B); dim(2, 0, T, L, B - T); dim(3, R, T, vw - R, B - T);
+    Object.assign(f.style, { display: 'block', left: `${r.left - m}px`, top: `${r.top - m}px`, width: `${r.width + 2 * m}px`, height: `${r.height + 2 * m}px` });
+    const bw = Math.min(380, vw - 24); const bh = b.offsetHeight || 180;
+    let lado = 'baixo'; let top = r.bottom + m + 14; let left = r.left + r.width / 2 - bw / 2;
+    if (top + bh > vh - 10) {
+      if (r.top - m - 14 - bh > 10) { top = r.top - m - 14 - bh; lado = 'cima'; } else {
+        top = Math.max(10, Math.min(vh - bh - 10, r.top + r.height / 2 - bh / 2));
+        if (r.right + m + 14 + bw < vw - 10) { left = r.right + m + 14; lado = 'esq'; } else if (r.left - m - 14 - bw > 10) { left = r.left - m - 14 - bw; lado = 'dir'; }
+      }
+    }
+    left = Math.max(12, Math.min(vw - bw - 12, left));
+    Object.assign(b.style, { width: `${bw}px`, left: `${left}px`, top: `${top}px` });
+    b.setAttribute('data-lado', lado);
+    b.style.setProperty('--ax', `${Math.max(18, Math.min(bw - 18, r.left + r.width / 2 - left))}px`);
+    b.style.setProperty('--ay', `${Math.max(18, Math.min(bh - 18, r.top + r.height / 2 - top))}px`);
+  } else {
+    dim(0, 0, 0, vw, vh); dim(1, 0, 0, 0, 0); dim(2, 0, 0, 0, 0); dim(3, 0, 0, 0, 0);
+    f.style.display = 'none';
+    const w = Math.min(420, vw - 24);
+    Object.assign(b.style, { width: `${w}px`, left: `${(vw - w) / 2}px`, top: `${Math.max(20, (vh - (b.offsetHeight || 200)) / 2)}px` });
+    b.setAttribute('data-lado', 'centro');
+  }
+}
+function tourFDSair(silencioso) {
+  if (!_tourFD) { const v0 = document.getElementById('tour-veu'); if (v0) v0.remove(); return; }
+  const t = _tourFD;
+  clearInterval(t.seg);
+  document.removeEventListener('keydown', tourFDTecla, true);
+  window.removeEventListener('resize', tourFDPosicionar);
+  window.removeEventListener('scroll', tourFDPosicionar, true);
+  const v = document.getElementById('tour-veu');
+  if (v) v.remove();
+  fecharJanelasTour();
+  _tourFD = null;
+  AC.semMenu();
+  try { if (t.t.fim) t.t.fim(); } catch (e) { console.warn('[assistente]', e); }
+  if (appAtual && t.paginaIni && appAtual.paginaAtual() !== t.paginaIni) appAtual.navegar(t.paginaIni);
+  if (!silencioso) window.scrollTo({ top: t.y || 0 });
+}
+
+/* ---------- busca ---------- */
+const ASSIST_SIN_FD = [
+  ['incluir', 'adicionar', 'cadastrar', 'criar', 'inserir', 'novo', 'nova', 'colocar', 'acrescentar', 'registrar', 'lancar'],
+  ['excluir', 'apagar', 'remover', 'deletar', 'tirar', 'eliminar'],
+  ['editar', 'alterar', 'mudar', 'modificar', 'corrigir', 'atualizar', 'ajustar', 'trocar'],
+  ['salvar', 'gravar', 'guardar', 'backup', 'armazenar'],
+  ['nuvem', 'firebase', 'online', 'internet'],
+  ['importar', 'carregar', 'subir', 'upload', 'preencher'],
+  ['exportar', 'baixar', 'download', 'extrair'],
+  ['planilha', 'excel', 'xlsx', 'csv'],
+  ['nf', 'nota', 'notas', 'fiscal', 'fiscais', 'nfe', 'danfe'],
+  ['boleto', 'boletos', 'cobranca', 'titulo', 'duplicata'],
+  ['terceiro', 'fornecedor', 'fornecedores', 'terceiros', 'empresa', 'vendedor'],
+  ['pedido', 'pedidos', 'oc', 'compra', 'contrato'],
+  ['insumo', 'insumos', 'material', 'materiais', 'atividade'],
+  ['produto', 'produtos', 'item', 'itens'],
+  ['consumido', 'faturado', 'gasto', 'utilizado', 'abatido', 'realizado'],
+  ['saldo', 'restante', 'sobra', 'falta', 'disponivel'],
+  ['valor', 'preco', 'custo', 'total'],
+  ['senha', 'login', 'acesso', 'usuario', 'conta'],
+  ['grafico', 'pizza', 'rosca', 'dashboard', 'painel', 'resumo'],
+  ['tendencia', 'projecao', 'previsao', 'curva', 'evolucao'],
+  ['bm', 'boletim', 'medicao'],
+  ['aditivo', 'aditivos', 'prorrogacao', 'supressao', 'acrescimo'],
+  ['obra', 'projeto', 'empreendimento'],
+  ['relatorio', 'apresentacao', 'pdf', 'powerpoint', 'ppt'],
+  ['filtro', 'filtrar', 'pesquisar', 'buscar', 'procurar', 'localizar'],
+  ['vencido', 'atrasado', 'vencer', 'vencimento'],
+  ['eclic', 'clic', 'grd'],
+  ['composicao', 'detalhe', 'detalhamento', 'abrir'],
+  ['ver', 'vejo', 'visualizar', 'consultar', 'enxergar', 'acompanhar', 'olhar'],
+];
+const ASSIST_STOP_FD = new Set('como eu faco fazer faz posso consigo para pra um uma o a os as de do da dos das no na nos nas e em que qual quais onde quero preciso gostaria devo se meu minha ao por com tem ter isso esse essa este esta aqui la ja mais sobre vou vai pode saber significa significado definicao conceito quer dizer seria the botao botoes clicar clico clique serve servir acontece funciona funcionar funcionamento'.split(' '));
+let _assistIdxFD = null; let _assistMapaFD = null;
+function assistNormFD(s) { return String(s || '').replace(/<[^>]+>/g, ' ').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); }
+function assistRaizFD(w) {
+  if (w.length > 4 && /oes$/.test(w)) w = `${w.slice(0, -3)}ao`; else if (w.length > 4 && /aes$/.test(w)) w = `${w.slice(0, -3)}ao`;
+  else if (w.length > 4 && /ais$/.test(w)) w = `${w.slice(0, -3)}al`; else if (w.length > 4 && /eis$/.test(w)) w = `${w.slice(0, -3)}el`;
+  else if (w.length > 3 && /s$/.test(w)) w = w.slice(0, -1);
+  const m = w.match(/^(.{4,}?)(ando|endo|indo|ado|ido|ar|er|ir|ei|ou|o|a|e)$/);
+  return m && !/(cao|sao|dor|tor)$/.test(w) ? m[1] : w;
+}
+function assistCanonFD(w) {
+  if (!_assistMapaFD) { _assistMapaFD = {}; ASSIST_SIN_FD.forEach((g) => g.forEach((x) => { _assistMapaFD[assistRaizFD(x)] = g[0]; })); }
+  const r = assistRaizFD(w);
+  return _assistMapaFD[r] || r;
+}
+function assistTokensFD(s) { return assistNormFD(s).split(' ').filter((w) => w && !ASSIST_STOP_FD.has(w)).map(assistCanonFD); }
+function assistLevFD(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return 9;
+  const d = []; for (let i = 0; i <= a.length; i += 1) d[i] = [i]; for (let j = 0; j <= b.length; j += 1) d[0][j] = j;
+  for (let i = 1; i <= a.length; i += 1) for (let j = 1; j <= b.length; j += 1) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function assistIndiceFD() {
+  if (_assistIdxFD) return _assistIdxFD;
+  const docs = [];
+  ASSIST_TAREFAS_FD.forEach((x, i) => docs.push({ tipo: 'tarefa', i, t: x.t, pesos: [[assistTokensFD(x.t), 3], [assistTokensFD(x.p), 3], [assistTokensFD(`${(x.passos || []).join(' ')} ${x.texto || ''}`), 1]], bonus: 1.35 }));
+  Object.keys(AJUDA_FD).forEach((k) => {
+    const d = AJUDA_FD[k];
+    docs.push({ tipo: 'ajuda', k, t: `Botão “${d.t}”`, pesos: [[assistTokensFD(d.t), 3], [assistTokensFD(d.p || ''), 2], [assistTokensFD(d.f), 1.2], [assistTokensFD(`${d.o || ''} ${(d.passos || []).join(' ')}`), 0.6]], bonus: 1 });
+  });
+  docs.forEach((d) => { d.mapa = {}; d.pesos.forEach(([ws, peso]) => ws.forEach((w) => { d.mapa[w] = Math.max(d.mapa[w] || 0, peso); })); d.palavras = Object.keys(d.mapa); });
+  _assistIdxFD = docs;
+  return docs;
+}
+const ASSIST_GATILHO_BOTAO = /\b(botao|botoes|o que faz|o que ele faz|para que serve|pra que serve|serve para|serve pra|o que acontece (se|quando)|se eu clicar|quando eu clico|ao clicar|funcao do|funcao da)\b/;
+function assistBuscarFD(perg, soBotoes) {
+  const q = assistTokensFD(perg);
+  if (!q.length) return [];
+  const nq = assistNormFD(perg);
+  const querConceito = /\b(o que e|o que sao|o que seria|significa|significado|definicao|conceito|diferenca|quer dizer|explica|explique)\b/.test(nq);
+  const uq = q.filter((w, i) => q.indexOf(w) === i);
+  return assistIndiceFD().filter((d) => !soBotoes || d.tipo === 'ajuda').map((d) => {
+    let sc = 0; let achou = 0;
+    uq.forEach((w) => {
+      let p = d.mapa[w];
+      if (!p && w.length >= 5) { const x = d.palavras.find((y) => y.length >= 5 && assistLevFD(w, y) <= 1); if (x) p = d.mapa[x] * 0.7; }
+      if (!p && w.length >= 4) { const y = d.palavras.find((z) => z.length >= 6 && z.indexOf(w) === 0); if (y) p = d.mapa[y] * 0.6; }
+      if (p) { sc += p; achou += 1; }
+    });
+    const ehConceito = /^O que/.test(d.t);
+    let fator = querConceito ? (ehConceito ? 1.9 : 0.8) : 1;
+    const nomeExato = assistNormFD(d.tipo === 'ajuda' ? AJUDA_FD[d.k].t : d.t);
+    if (nomeExato.length >= 4 && (` ${nq} `).includes(` ${nomeExato} `)) fator *= 2;
+    return { d, sc: sc * d.bonus * fator * (achou / uq.length), cob: achou / uq.length };
+  }).filter((r) => r.sc > 0).sort((a, b) => b.sc - a.sc);
+}
+
+/* ---------- respostas ---------- */
+function assistEscFD(t) { return String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function assistMsgFD(html, quem) {
+  const box = document.getElementById('assist-msgs');
+  const m = document.createElement('div');
+  m.className = `as-msg ${quem || 'bot'}`;
+  m.innerHTML = html;
+  box.append(m);
+  box.scrollTop = box.scrollHeight;
+  return m;
+}
+const NOME_TELA_FD = { visao: 'Dashboard', tendencia: 'Tendência', insumos: 'Insumos', pedidos: 'Pedidos e produtos', base: 'Base de faturamento', importar: 'Importar / Exportar', obra: 'Obra e aditivos', aliquotas: 'Tabela ICMS / DIFAL' };
+/** ha passo a passo pronto, ou o botao tem como ser localizado na tela */
+function temMostrarNaTela(tour) {
+  if (!tour) return false;
+  if (TOURS_FD[tour]) return true;
+  const a = AJUDA_FD[String(tour).replace(/^bt:/, '')];
+  return Boolean(a && a.sel);
+}
+function assistBotoesFD({ tour, pagina, aj, abrir }) {
+  const b = [];
+  if (temMostrarNaTela(tour)) b.push(`<button type='button' class='as-bt as-bt-tour' data-tour='${tour}'>▶ Mostrar na tela</button>`);
+  if (pagina) b.push(`<button type='button' class='as-bt' data-pagina='${pagina}'>📍 Ir para ${NOME_TELA_FD[pagina] ? `“${NOME_TELA_FD[pagina]}”` : 'a tela'}</button>`);
+  if (abrir) b.push(`<button type='button' class='as-bt' data-abrir='${abrir}'>${ABRIR_FD[abrir].texto}</button>`);
+  if (aj && AJUDA_FD[aj]) b.push(`<button type='button' class='as-bt' data-aj='${aj}'>❓ Ver apresentação</button>`);
+  return b.length ? `<div class='as-bts'>${b.join('')}</div>` : '';
+}
+/** atalhos que abrem algo do proprio controle (nao gravam nada) */
+const ABRIR_FD = {
+  controlador: { texto: '⚙️ Abrir o Controlador', fn: () => { const b = BT('Controlador', '.ctc-header')(); if (b) b.click(); } },
+  menu: { texto: '☰ Abrir o Menu', fn: () => AC.menu() },
+  ajuda: { texto: 'ℹ️ Abrir a Ajuda', fn: () => abrirAjuda() },
+};
+function assistRespostaFD(r) {
+  const d = r.d;
+  if (d.tipo === 'tarefa') {
+    const x = ASSIST_TAREFAS_FD[d.i];
+    return `<div class='as-tit'>${x.t}</div>${x.texto ? `<p class='as-txt'>${x.texto}</p>` : ''}${x.passos && x.passos.length ? `<ol class='as-passos'>${x.passos.map((p) => `<li>${p}</li>`).join('')}</ol>` : ''}`
+      + (x.aviso ? `<div class='as-aviso'>⚠️ ${x.aviso}</div>` : '')
+      + assistBotoesFD({ tour: x.tour, pagina: x.pagina, aj: x.aj, abrir: x.abrir });
+  }
+  return assistRespostaBotaoFD(d.k);
+}
+function assistRespostaBotaoFD(k) {
+  const a = AJUDA_FD[k];
+  return `<div class='as-tit'>🔘 Botão “${a.t}”</div><p class='as-txt'><b>O que faz:</b> ${a.f}</p>`
+    + (a.onde ? `<p class='as-onde2'><b>📍 Onde fica:</b> ${a.onde}</p>` : '')
+    + (a.o ? `<div class='as-imp'><b>🔗 O que isso muda:</b> ${a.o}</div>` : '')
+    + (a.edicao ? "<div class='as-aviso'>⚠️ Só aparece para quem entra como <b>Controlador</b>.</div>" : '')
+    + (a.passos && a.passos.length ? `<ol class='as-passos'>${a.passos.slice(0, 6).map((p) => `<li>${p}</li>`).join('')}</ol>` : '')
+    + assistBotoesFD({ tour: a.sel ? `bt:${k}` : a.tour, pagina: a.pagina, aj: k })
+    + (a.tour && a.sel ? `<div class='as-outros'>Passo a passo completo: <a data-tour='${a.tour}'>${assistEscFD(assistTituloLimpoFD(TOURS_FD[a.tour] ? TOURS_FD[a.tour].t : ''))}</a></div>` : '');
+}
+function assistTituloLimpoFD(t) { const x = document.createElement('div'); x.innerHTML = t; return x.textContent; }
+function assistEnviarFD(texto) {
+  const inp = document.getElementById('assist-inp');
+  const perg = String(texto != null ? texto : inp.value).trim();
+  if (!perg) return;
+  inp.value = '';
+  assistMsgFD(assistEscFD(perg), 'eu');
+  const sug = document.getElementById('assist-sug');
+  if (sug) sug.style.display = 'none';
+  const m = assistMsgFD("<span class='as-dig'><i></i><i></i><i></i></span>", 'bot');
+  setTimeout(() => {
+    const nn = assistNormFD(perg);
+    const cv = assistConversaFD(nn);
+    if (cv) { m.innerHTML = cv; return; }
+    const dd = assistDadosFD(perg);
+    if (dd) { m.innerHTML = dd; document.getElementById('assist-msgs').scrollTop = 1e9; return; }
+    if (/\b(cada botao|todos os botoes|lista de botoes|quais botoes|botoes da tela|botoes existem)\b/.test(nn)) { m.innerHTML = assistListaBotoesFD(); document.getElementById('assist-msgs').scrollTop = 1e9; return; }
+    let res = [];
+    if (ASSIST_GATILHO_BOTAO.test(nn)) {
+      const rb = assistBuscarFD(perg, true);
+      if (rb.length && rb[0].cob >= 0.5 && rb[0].sc >= 2) res = rb;
+    }
+    if (!res.length) res = assistBuscarFD(perg);
+    if (res.length && res[0].cob >= 0.5 && res[0].sc >= 2.4) {
+      const outros = res.slice(1).filter((r) => r.sc >= res[0].sc * 0.55).slice(0, 2);
+      m.innerHTML = assistRespostaFD(res[0]) + (outros.length
+        ? `<div class='as-outros'>Talvez você queira: ${outros.map((r) => `<a data-perg='${assistEscFD(assistTituloLimpoFD(r.d.t)).replace(/'/g, '&#39;')}'>${assistEscFD(assistTituloLimpoFD(r.d.t))}</a>`).join(' · ')}</div>` : '');
+    } else if (res.length) {
+      m.innerHTML = `Não encontrei uma resposta exata. Algum destes assuntos ajuda?<div class='as-chips'>${res.slice(0, 5).map((r) => `<button type='button' class='as-chip' data-perg='${assistEscFD(assistTituloLimpoFD(r.d.t)).replace(/'/g, '&#39;')}'>${assistEscFD(assistTituloLimpoFD(r.d.t))}</button>`).join('')}</div>`;
+    } else {
+      m.innerHTML = `Não encontrei uma resposta para isso. Eu sei ajudar com:<div class='as-chips'>${SUGESTOES_FD.map((s) => `<button type='button' class='as-chip' data-perg='${s}'>${s}</button>`).join('')}</div>`;
+    }
+    document.getElementById('assist-msgs').scrollTop = 1e9;
+  }, 380);
+}
+function assistListaBotoesFD() {
+  const grupos = {};
+  Object.keys(AJUDA_FD).forEach((k) => { const g = AJUDA_FD[k].grupo || 'Outros'; (grupos[g] = grupos[g] || []).push(k); });
+  return `<div class='as-tit'>🔘 O que cada botão faz</div><p class='as-txt'>Clique num botão para ver o que ele faz, onde fica e o passo a passo na tela.</p>`
+    + Object.keys(grupos).map((g) => `<div class='as-grupo'>${g}</div><div class='as-chips'>${grupos[g].map((k) => `<button type='button' class='as-chip' data-botao='${k}'>${AJUDA_FD[k].t}</button>`).join('')}</div>`).join('');
+}
+function assistConversaFD(n) {
+  if (/^(oi|ola|bom dia|boa tarde|boa noite|e ai|opa|hello|hey)\b/.test(n) && n.split(' ').length <= 4) return 'Olá! 😊 Posso explicar como o controle funciona, o que faz cada botão, mostrar o <b>passo a passo na tela</b> ou os <b>números da obra</b> aberta (total, consumido, saldo, pedidos, boletos).';
+  if (/\b(obrigad|valeu|vlw|brigad|thanks)/.test(n)) return 'Por nada! Se precisar de mais alguma coisa, é só perguntar. 👍';
+  return null;
+}
+
+/* ---------- painel ---------- */
+const SUGESTOES_FD = ['Como funciona o controle?', 'Qual o saldo do faturamento direto?', 'Como lançar uma NF?', 'Como cadastrar um pedido?', 'O que faz cada botão?', 'Quais boletos estão vencidos?', 'Como salvar na nuvem?', 'O que é REIDI?'];
+function assistAbrir() {
+  let p = document.getElementById('assist-painel');
+  if (!p) {
+    p = document.createElement('div');
+    p.id = 'assist-painel';
+    p.innerHTML = "<div class='as-cab'><span>💬 Assistente do Controle</span><button type='button' class='as-x' title='Fechar'>✕</button></div>"
+      + "<div class='as-msgs' id='assist-msgs'><div class='as-msg bot'>Olá! Posso explicar <b>como o controle funciona</b>, <b>o que faz cada botão</b>, mostrar o <b>passo a passo na tela</b> de uma tarefa ou os <b>números da obra</b> aberta.</div>"
+      + `<div class='as-chips' id='assist-sug'>${SUGESTOES_FD.map((s) => `<button type='button' class='as-chip' data-perg='${s}'>${s}</button>`).join('')}</div></div>`
+      + "<form class='as-form'><input id='assist-inp' type='text' autocomplete='off' placeholder='Digite sua pergunta…' aria-label='Pergunta para o assistente'><button type='submit' class='as-env' title='Enviar'>➤</button></form>";
+    document.body.append(p);
+    p.querySelector('.as-x').addEventListener('click', assistFechar);
+    p.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); assistEnviarFD(); });
+    /* um ouvinte para todos os botoes das respostas */
+    p.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-tour],[data-pagina],[data-aj],[data-perg],[data-botao],[data-abrir]');
+      if (!el) return;
+      e.preventDefault();
+      if (el.dataset.tour) assistMostrarNaTela(el.dataset.tour);
+      else if (el.dataset.pagina) { assistFechar(); if (appAtual) { AC.semMenu(); appAtual.navegar(el.dataset.pagina); window.scrollTo(0, 0); } }
+      else if (el.dataset.aj) abrirApresentacaoBotao(el.dataset.aj);
+      else if (el.dataset.botao) { assistMsgFD(assistEscFD(`O que faz o botão ${AJUDA_FD[el.dataset.botao].t}?`), 'eu'); assistMsgFD(assistRespostaBotaoFD(el.dataset.botao), 'bot'); }
+      else if (el.dataset.abrir) { assistFechar(); ABRIR_FD[el.dataset.abrir].fn(); }
+      else if (el.dataset.perg) assistEnviarFD(el.dataset.perg);
+    });
+  }
+  p.classList.add('on');
+  document.getElementById('assist-btn').classList.add('aberto');
+  setTimeout(() => document.getElementById('assist-inp').focus(), 60);
+}
+function assistFechar() {
+  const p = document.getElementById('assist-painel');
+  if (p) p.classList.remove('on');
+  const b = document.getElementById('assist-btn');
+  if (b) b.classList.remove('aberto');
+}
+function assistAlternar() {
+  const p = document.getElementById('assist-painel');
+  if (p && p.classList.contains('on')) assistFechar(); else assistAbrir();
+}
+/** "Mostrar na tela": tour pronto ou, para um botao, um passo que leva ate ele. */
+function assistMostrarNaTela(chave) {
+  if (TOURS_FD[chave]) { tourFDIniciar(chave); return; }
+  const k = String(chave).replace(/^bt:/, '');
+  const a = AJUDA_FD[k];
+  if (!a) return;
+  tourFDIniciar({
+    t: a.t,
+    passos: [{ pagina: a.pagina, antes: a.antes, menu: a.menu, janela: a.janela, sel: a.sel, edicao: a.edicao, tit: `🔘 ${a.t}`, txt: `${a.f}${a.onde ? `<br><span style='color:#64748b;font-size:12.5px'>📍 ${a.onde}</span>` : ''}` }],
+  });
+}
+/** "Ver apresentacao": o que o botao faz, onde aparece e o passo a passo. */
+function abrirApresentacaoBotao(k) {
+  const a = AJUDA_FD[k];
+  if (!a) return;
+  const caixa = (classe, titulo, html) => { const el = h('div', { class: `ap-caixa ${classe}` }, h('h4', {}, titulo)); const c = h('div'); c.innerHTML = html; el.append(c); return el; };
+  const secoes = (a.telas || (a.passos ? [{ h: 'Como usar', passos: a.passos }] : [])).map((tl, i) => {
+    const s = h('div', { class: 'ap-sec' }, h('h4', {}, h('span', {}, String(i + 1)), tl.h));
+    const ol = h('ol'); ol.innerHTML = (tl.passos || []).map((x) => `<li>${x}</li>`).join('');
+    s.append(ol);
+    if (tl.aviso) { const av = h('div', { class: 'ap-aviso' }); av.innerHTML = `⚠️ ${tl.aviso}`; s.append(av); }
+    return s;
+  });
+  const modal = criarModal({
+    titulo: `Apresentação — ${a.t}`,
+    tamanho: 'lg',
+    destruirAoFechar: true,
+    conteudo: [
+      h('div', { class: 'ap-caixas' }, caixa('is-funcao', 'Função', a.f), caixa('is-onde', 'Onde fica e o que muda', `${a.onde || ''}${a.onde && a.o ? '<br>' : ''}${a.o || ''}` || '—')),
+      a.edicao ? h('div', { class: 'ap-aviso' }, 'Disponível só para quem entra como Controlador; o Visualizador apenas consulta.') : null,
+      ...secoes,
+    ],
+    acoes: [
+      temMostrarNaTela(a.tour || `bt:${k}`) ? { texto: '▶ Mostrar na tela', variante: 'primary', onClick: () => { setTimeout(() => assistMostrarNaTela(a.tour || `bt:${k}`), 60); } } : null,
+      { texto: 'Fechar', variante: 'outline' },
+    ].filter(Boolean),
+  });
+  modal.abrir();
+}
+
+/* ---------- botao flutuante: so aparece dentro do controle ---------- */
+(function iniciarAssistenteFD() {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.id = 'assist-btn';
+  b.title = 'Assistente: pergunte como fazer algo no controle';
+  b.innerHTML = '<span>💬</span><b>Assistente</b>';
+  b.hidden = true;
+  b.addEventListener('click', assistAlternar);
+  document.body.append(b);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !_tourFD) { const p = document.getElementById('assist-painel'); if (p && p.classList.contains('on')) assistFechar(); } });
+  const sync = () => {
+    const dentro = Boolean(document.querySelector('body > .ctc-app'));
+    b.hidden = !dentro;
+    if (!dentro) { assistFechar(); tourFDSair(true); }
+  };
+  new MutationObserver(sync).observe(document.body, { childList: true });
+  sync();
+}());
+
+
+/* ---------- conteudo do assistente: atalhos para os passos ---------- */
+const pedidoExemploFD = () => [...pedidos].sort((a, b) => notasDoPedido(b.id).length - notasDoPedido(a.id).length)[0] || null;
+/** abre uma janela so se o passo a passo ainda nao abriu janelas suficientes (nivel = quantas devem estar abertas) */
+AC.janela = (abrir, nivel = 1) => () => {
+  if (!_tourFD) return;
+  const abertas = [...document.querySelectorAll('.ctc-modal.is-open')].filter((m) => !_tourFD.janelasIni.has(m)).length;
+  if (abertas < nivel) { try { abrir(); } catch (e) { console.warn('[assistente]', e); } }
+};
+const J_INSUMO = AC.janela(() => abrirModalInsumo());
+const J_TERCEIRO = AC.janela(() => abrirModalTerceiro());
+const J_PEDIDO = AC.janela(() => abrirModalPedido());
+const J_NOTA = AC.janela(() => abrirModalNota());
+const J_BOLETO = AC.janela(() => abrirModalBoleto());
+const J_ADITIVO = AC.janela(() => abrirModalAditivo());
+const J_PED_DETALHE = AC.janela(() => { const p = pedidoExemploFD(); if (p) abrirPedido(p); });
+const J_PRODUTO = AC.janela(() => { const p = pedidoExemploFD(); if (p) abrirModalProduto(null, p); });
+const J_CONTROLADOR = AC.janela(() => ABRIR_FD.controlador.fn());
+const J_COMPOSICAO = AC.janela(() => { const p = pedidoExemploFD(); if (p) abrirComposicaoPedido(p); });
+const MENU_TXT = (texto) => () => [...document.querySelectorAll('.ctc-sidebar__item')].find((e) => fdVisivelA(e) && fdNormA(fdTxtA(e.querySelector('.ctc-sidebar__text') || e)) === fdNormA(texto)) || null;
+const ACOES_PAG = '.ctc-main .ctc-page-header__actions';
+const BARRA_PAG = '.ctc-main .ctc-toolbar';
+const ABAS_PAG = '.ctc-main [role=tablist]';
+const PAINEL_ABA = '.ctc-main [role=tabpanel]';
+
+/* =============================================================================
+   PASSO A PASSO NA TELA ("Mostrar na tela")
+   ========================================================================== */
+Object.assign(TOURS_FD, {
+  navegar: { t: 'Como navegar no controle', passos: [
+    { sel: BT('Menu', '.ctc-header'), tit: '☰ Menu', txt: 'Abre o menu com todas as telas do controle. Ele fica embaixo da logo.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Visão gerencial'), tit: '📊 Visão gerencial', txt: 'Passe o mouse para abrir em cascata o <b>Dashboard</b> (tela principal) e a <b>Tendência</b>.' },
+    { menu: true, antes: AC.submenu('Visão gerencial'), sel: MENU_TXT('Dashboard'), tit: 'Dashboard', txt: 'Tela principal: os gráficos do total dos insumos e dos pedidos e a árvore insumo › fornecedor › pedido.' },
+    { menu: true, antes: AC.submenu('Visão gerencial'), sel: MENU_TXT('Tendência'), tit: 'Tendência', txt: 'Previsto x real x tendência de cada insumo, mês a mês, em gráfico.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Insumos'), tit: '💰 Insumos', txt: 'Cadastro dos insumos (valor total) e a <b>Projeção por BM</b>.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Pedidos e produtos'), tit: '🧾 Pedidos e produtos', txt: 'Os pedidos de cada terceiro com os produtos, quantidades, valores, o que já foi faturado e o saldo.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Base de faturamento'), tit: '🗂️ Base de faturamento', txt: 'Notas fiscais e boletos em colunas, com filtro estilo Excel em cada coluna.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Importar / Exportar'), tit: '📤 Importar / Exportar', txt: 'Importa planilhas (insumos, pedidos, NFs, boletos...) e exporta tudo para o Excel ou em arquivo JSON.' },
+    { menu: true, antes: AC.submenu('Configurações'), sel: MENU_TXT('Obra e aditivos'), tit: '⚙️ Configurações › Obra e aditivos', txt: 'Dados da obra, prazo, BMs e os aditivos de prazo e valor.' },
+    { menu: true, antes: AC.submenu('Configurações'), sel: MENU_TXT('Tabela ICMS / DIFAL'), tit: '⚙️ Configurações › Tabela ICMS / DIFAL', txt: 'Alíquotas internas de cada UF usadas no cálculo do DIFAL.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Sair/Trocar'), tit: '↶ Sair/Trocar', txt: 'Volta à tela inicial para trocar de perfil ou de base. Se houver alterações não salvas, o controle pergunta antes.' },
+  ] },
+  cabecalho: { t: 'O cabeçalho do controle', passos: [
+    { sel: SEL('.ctc-header__logo'), tit: 'Logo da obra', txt: 'A logo e o título vêm da base. Para trocar: <b>Controlador › Ferramentas › Editar cabeçalho e logo</b>.' },
+    { sel: SEL('.fd-hdr-pagina'), tit: 'Tela aberta', txt: 'Mostra o nome da tela em que você está.' },
+    { sel: BT('Menu', '.ctc-header'), tit: '☰ Menu', txt: 'Abre o menu com todas as telas.' },
+    { sel: BT('Ajuda', '.ctc-header'), tit: 'ⓘ Ajuda', txt: 'Resumo do fluxo do faturamento direto, REIDI, DIFAL, perfis e como salvar.' },
+    { sel: BT('Controlador', '.ctc-header'), tit: '👤 Controlador', txt: 'Abre o painel com <b>Ferramentas</b> (salvar na nuvem, exportar JSON, cabeçalho), <b>Sessão</b> e <b>Gerar relatórios</b>.' },
+    { sel: SEL('#assist-btn'), tit: '💬 Assistente', txt: 'Este assistente: pergunte como fazer algo, o que faz um botão ou os números da obra.' },
+  ] },
+  dashboard: { t: 'Dashboard', passos: [
+    { pagina: 'visao', sel: SEL('.fd-resumo__bloco'), tit: 'Faturamento direto — total dos insumos', txt: 'Pizza do <b>total dos insumos</b> (aba Insumos, com aditivos): quanto já foi <b>consumido</b> pelas NFs e o <b>saldo</b>. No centro, o % consumido. Embaixo, quanto já está em pedidos.' },
+    { pagina: 'visao', sel: SEL('.fd-resumo .fd-resumo__bloco:nth-child(2)'), tit: 'Pedidos de compra', txt: 'Pizza do <b>total dos pedidos</b>: consumido pelas NFs e saldo a faturar.' },
+    { pagina: 'visao', antes: AC.clicar(BT('Fechar tudo')), sel: SEL('.fd-arv'), tit: 'Árvore por insumo', txt: 'Começa fechada no insumo. Cada linha mostra <b>Total</b>, <b>Consumido (NFs)</b>, <b>Saldo</b> e a barra de <b>Avanço</b>.' },
+    { pagina: 'visao', sel: SEL('.fd-arv__lin--n1'), tit: 'Linha do insumo', txt: 'Clique na linha para abrir os <b>fornecedores</b> do insumo. Clique no <b>nome</b> para abrir o cadastro do insumo.' },
+    { pagina: 'visao', antes: AC.arvore(1), sel: SEL('.fd-arv__lin--n2'), tit: 'Fornecedor (terceiro)', txt: 'Faixa verde. Total = soma dos pedidos do fornecedor. Clique para ver os pedidos dele.' },
+    { pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__lin--n3'), tit: 'Pedido', txt: 'Linha branca com o número do pedido, a emissão e a situação (Normal, Crítico ou Esgotado).' },
+    { pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__comp'), tit: '📄 Composição', txt: 'Abre a composição do pedido: <b>itens</b> (quantidade e valor total, consumido e saldo) e <b>notas fiscais</b>.' },
+    { pagina: 'visao', sel: BT('Fechar tudo'), tit: 'Fechar tudo / Até fornecedores / Abrir tudo', txt: '<b>Fechar tudo</b>: só os insumos. <b>Até fornecedores</b>: abre os insumos. <b>Abrir tudo</b>: abre até os pedidos.' },
+    { pagina: 'visao', sel: BT('Exportar tudo'), tit: '⬇ Exportar tudo', txt: 'Gera a planilha completa (obra, insumos, terceiros, pedidos, NFs e boletos) no Excel.' },
+  ] },
+  composicao: { t: 'Composição do pedido', passos: [
+    { pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__comp'), tit: '📄 Composição', txt: 'Fica na linha de cada pedido, no Dashboard (abra o insumo e o fornecedor).' },
+    { pagina: 'visao', janela: true, antes: J_COMPOSICAO, sel: SEL('.fd-comp__caminho'), tit: 'Caminho do pedido', txt: 'Insumo › fornecedor › pedido.' },
+    { pagina: 'visao', janela: true, antes: J_COMPOSICAO, sel: SEL('.fd-comp__infos'), tit: 'Resumo do pedido', txt: 'Valor do pedido, consumido pelas NFs, saldo e avanço.' },
+    { pagina: 'visao', janela: true, antes: [J_COMPOSICAO, AC.aba('Itens do pedido', 'modal')], sel: BT('Itens do pedido', 'modal'), tit: 'Aba Itens do pedido', txt: 'Cada item (ex.: aço 10 mm, 12,5 mm, 16 mm) com <b>quantidade</b> total, consumida e saldo e <b>valor</b> total, consumido e saldo. Clique num item para abrir o produto.' },
+    { pagina: 'visao', janela: true, antes: [J_COMPOSICAO, AC.aba('Notas fiscais', 'modal')], sel: BT('Notas fiscais', 'modal'), tit: 'Aba Notas fiscais', txt: 'As NFs do pedido com data, BM, valor, REIDI, acumulado, saldo após a NF, % do pedido, boleto e vencimento.' },
+    { pagina: 'visao', janela: true, antes: J_COMPOSICAO, sel: BT('Abrir pedido', 'modal'), tit: 'Abrir pedido', txt: 'Abre o cadastro completo do pedido (produtos, NFs, REIDI, distrato).' },
+  ] },
+  tendencia: { t: 'Tendência', passos: [
+    { pagina: 'tendencia', sel: SEL('.ctc-main select'), tit: 'Escolha o insumo', txt: 'Mostra a tendência de um insumo ou de todos.' },
+    { pagina: 'tendencia', sel: SEL('.ctc-main svg'), tit: 'Gráfico', txt: '<b>Previsto acumulado</b> (projeção por BM), <b>acumulado real</b> (NFs no mês do BM) e a <b>tendência</b>: real até o mês atual e, depois, o saldo distribuído na proporção do previsto.' },
+    { pagina: 'tendencia', sel: BT('Editar projeção'), edicao: true, tit: '✎ Editar projeção', txt: 'Aparece quando um insumo está escolhido. Leva para a <b>Projeção por BM</b> (aba Insumos) para ajustar o previsto de cada BM.' },
+  ] },
+  insumo_novo: { t: 'Cadastrar um insumo', passos: [
+    { pagina: 'insumos', sel: BT('Novo insumo'), edicao: true, tit: '➕ Novo insumo', txt: 'Fica no topo da tela <b>Insumos</b>.' },
+    { pagina: 'insumos', janela: true, antes: J_INSUMO, sel: CAMPO('Insumo'), tit: 'Nome do insumo', txt: 'Aparece no Dashboard, na tendência e na lista de cada terceiro.', info: 'O nome do insumo / atividade.', ex: 'Aço CA-50', obrig: true },
+    { pagina: 'insumos', janela: true, antes: J_INSUMO, sel: CAMPO('Valor total do insumo'), tit: 'Valor total', txt: 'É o total previsto para o faturamento direto desse insumo. Aditivos de valor somam a este valor (valor vigente).', info: 'Valor em R$.', ex: '28.696.788,44', obrig: true },
+    { pagina: 'insumos', janela: true, antes: J_INSUMO, sel: BT('Salvar', 'modal'), edicao: true, tit: 'Salvar', txt: 'Grava o insumo. Ele passa a aparecer no Dashboard e pode receber terceiros e pedidos.' },
+  ] },
+  insumos: { t: 'Tela Insumos', passos: [
+    { pagina: 'insumos', antes: AC.aba('Insumos'), sel: SEL('.ctc-main .ctc-table-wrap'), tit: 'Lista de insumos', txt: 'Cada insumo com valor total/vigente, pedidos, faturado e saldos. Clique na linha para editar.' },
+    { pagina: 'insumos', sel: BT('Novo insumo'), edicao: true, tit: '➕ Novo insumo', txt: 'Cadastra um insumo (nome e valor total).' },
+    { pagina: 'insumos', sel: BT('Importar', ACOES_PAG), edicao: true, tit: '⬆ Importar', txt: 'Importa os insumos de uma planilha Excel/CSV.' },
+    { pagina: 'insumos', sel: BT('Exportar', ACOES_PAG), tit: '⬇ Exportar', txt: 'Baixa a lista de insumos em Excel.' },
+    { pagina: 'insumos', sel: BT('Projeção por BM', ABAS_PAG), tit: 'Projeção por BM', txt: 'A grade do previsto de cada insumo por BM (base da Tendência).' },
+  ] },
+  projecao: { t: 'Projeção por BM', passos: [
+    { pagina: 'insumos', antes: AC.aba('Projeção por BM'), sel: BT('Projeção por BM', ABAS_PAG), tit: 'Aba Projeção por BM', txt: 'Na tela <b>Insumos</b>.' },
+    { pagina: 'insumos', antes: AC.aba('Projeção por BM'), sel: SEL(`${PAINEL_ABA} .ctc-table-wrap`), tit: 'Grade de previsto', txt: 'Uma linha por insumo e uma coluna por BM. Digite o previsto de cada BM; o total deve fechar com o valor do insumo.' },
+    { pagina: 'insumos', antes: AC.aba('Projeção por BM'), sel: BT('Redistribuir diferenças', PAINEL_ABA), edicao: true, tit: 'Redistribuir diferenças', txt: 'Nos BMs já fechados o previsto passa a ser o real; a diferença é espalhada nos BMs seguintes (você escolhe como e vê a prévia antes de aplicar).' },
+    { pagina: 'insumos', antes: AC.aba('Projeção por BM'), sel: BT('Importar', PAINEL_ABA), edicao: true, tit: 'Importar grade', txt: 'Importa a projeção de uma planilha Excel/CSV.' },
+    { pagina: 'insumos', antes: AC.aba('Projeção por BM'), sel: BT('Exportar', PAINEL_ABA), tit: 'Exportar grade', txt: 'Baixa a grade em Excel.' },
+  ] },
+  terceiro_novo: { t: 'Cadastrar um terceiro (fornecedor)', passos: [
+    { pagina: 'base', sel: BT('Novo terceiro'), edicao: true, tit: '➕ Novo terceiro', txt: 'Fica na <b>Base de faturamento</b> (Notas e boletos).' },
+    { pagina: 'base', janela: true, antes: J_TERCEIRO, sel: BT('Preencher de arquivo', 'modal'), edicao: true, tit: 'Preencher de arquivo', txt: 'Lê um PDF ou Excel (ex.: cartão CNPJ) e preenche os campos para você conferir.' },
+    { pagina: 'base', janela: true, antes: J_TERCEIRO, sel: CAMPO('Insumo'), tit: 'Insumo', txt: 'O insumo que esse terceiro fornece.', obrig: true, info: 'Escolha na lista (cadastre antes em Insumos).' },
+    { pagina: 'base', janela: true, antes: J_TERCEIRO, sel: CAMPO('Terceiro'), tit: 'Terceiro (fornecedor)', txt: 'Nome da empresa.', info: 'Razão social ou nome usado nas NFs.', ex: 'GERDAU AÇOS LONGOS S.A.', obrig: true },
+    { pagina: 'base', janela: true, antes: J_TERCEIRO, sel: CAMPO('CNPJ'), tit: 'CNPJ', txt: 'Opcional.', ex: '07.358.761/0345-78' },
+    { pagina: 'base', janela: true, antes: J_TERCEIRO, sel: CAMPO('UF do emissor'), tit: 'UF do emissor (origem)', txt: 'De onde saem as NFs. Usada para sugerir o DIFAL dos pedidos.', ex: 'CE' },
+    { pagina: 'base', janela: true, antes: J_TERCEIRO, sel: BT('Salvar', 'modal'), edicao: true, tit: 'Salvar', txt: 'Grava o terceiro. Ele aparece no Dashboard dentro do insumo.' },
+  ] },
+  pedido_novo: { t: 'Cadastrar um pedido de compra', passos: [
+    { pagina: 'base', sel: BT('Novo pedido'), edicao: true, tit: '➕ Novo pedido', txt: 'Na <b>Base de faturamento</b>. Também dá pelo <b>+ Pedido</b> na faixa de cada terceiro em Pedidos e produtos.' },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: BT('Preencher de arquivo', 'modal'), edicao: true, tit: 'Preencher de arquivo', txt: 'Lê o PDF ou Excel do pedido de compra e preenche os dados para conferência.' },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: CAMPO('Terceiro'), tit: 'Terceiro · insumo', txt: 'O fornecedor do pedido (e com ele o insumo).', obrig: true },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: CAMPO('Nº do pedido'), tit: 'Nº do pedido de compra', txt: 'O número real do pedido.', ex: '3200332349', obrig: true },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: CAMPO('Data de emissão'), tit: 'Data de emissão', txt: 'Data do pedido.', obrig: true },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: CAMPO('REIDI do pedido'), tit: 'REIDI do pedido', txt: '<b>Sem REIDI</b> (um valor por produto), <b>Por pedido</b> (% único: COM = SEM × (1 − %)) ou <b>Por produto</b> (valor SEM e COM REIDI de cada produto).' },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: CAMPO('UF emissor'), tit: 'UF emissor e receptor', txt: 'Origem e destino da mercadoria. Com elas o DIFAL é sugerido pela Tabela ICMS / DIFAL.' },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: CAMPO('DIFAL'), tit: 'DIFAL (%)', txt: 'Sugerido pelas UFs (e 4% se a mercadoria for importada); pode ajustar. As NFs do pedido herdam esse %.' },
+    { pagina: 'base', janela: true, antes: J_PEDIDO, sel: BT('Cadastrar e lançar produtos', 'modal'), edicao: true, tit: 'Cadastrar e lançar produtos', txt: 'Grava o pedido e já abre para incluir os <b>produtos</b> (o valor do pedido é a soma deles).' },
+  ] },
+  produto_novo: { t: 'Incluir produtos no pedido', passos: [
+    { pagina: 'pedidos', sel: TITULO('Novo produto no pedido'), edicao: true, tit: '+ (novo produto)', txt: 'Na linha do pedido, em <b>Pedidos e produtos</b>. Também pelo botão <b>Novo produto</b> dentro do pedido.' },
+    { pagina: 'pedidos', janela: true, antes: J_PRODUTO, sel: CAMPO('Produto'), tit: 'Produto (nome)', txt: 'Nome curto do produto.', ex: 'VERG CA50 10mm RT 12m', obrig: true },
+    { pagina: 'pedidos', janela: true, antes: J_PRODUTO, sel: CAMPO('Como vem na NF'), tit: 'Como vem na NF', txt: 'Se a NF escreve diferente, informe aqui: ajuda a ligar os itens da NF ao produto na importação.' },
+    { pagina: 'pedidos', janela: true, antes: J_PRODUTO, sel: CAMPO('Unidade'), tit: 'Unidade', txt: 'Unidade de medida.', ex: 't' },
+    { pagina: 'pedidos', janela: true, antes: J_PRODUTO, sel: CAMPO('Quantidade contratada'), tit: 'Quantidade contratada', txt: 'Quantidade do pedido. As NFs abatem dela.', ex: '115', obrig: true },
+    { pagina: 'pedidos', janela: true, antes: J_PRODUTO, sel: CAMPO('Valor unitário'), tit: 'Valor unitário', txt: 'Conforme o REIDI do pedido: um valor, ou SEM e COM REIDI.', obrig: true },
+    { pagina: 'pedidos', janela: true, antes: J_PRODUTO, sel: BT('Incluir produto', 'modal'), edicao: true, tit: 'Incluir produto', txt: 'O valor do pedido passa a somar este produto.' },
+  ] },
+  pedidos_tela: { t: 'Tela Pedidos e produtos', passos: [
+    { pagina: 'pedidos', sel: SEL('.ctc-main .ctc-filterbar'), tit: 'Pesquisa e filtros', txt: 'Pesquise por pedido, terceiro, produto ou NF e filtre por insumo e terceiro.' },
+    { pagina: 'pedidos', sel: SEL(`${BARRA_PAG} select`), tit: 'Situação', txt: 'Filtra os pedidos: OK, Sem saldo, Excedido, Distrato solicitado, Distratado ou Sem produtos.' },
+    { pagina: 'pedidos', sel: SEL('.ctc-main tr.ctc-row--level-1'), tit: 'Faixa do terceiro', txt: 'Agrupa os pedidos do terceiro com o total, o faturado e o saldo. O <b>+ Pedido</b> cria um pedido para ele.' },
+    { pagina: 'pedidos', sel: SEL('.ctc-main tr.ctc-row--subtotal, .ctc-main tbody tr[title="Abrir pedido"]'), tit: 'Linha do pedido', txt: 'Qtd contratada, abatida pelas NFs, saldo, valores, faturado, saldo R$, % faturado e situação. A seta mostra os produtos; clicar na linha abre o pedido.' },
+    { pagina: 'pedidos', sel: TITULO('Lançar NF do pedido'), edicao: true, tit: '📄 Lançar NF', txt: 'Abre uma NF nova já ligada a este pedido.' },
+    { pagina: 'pedidos', sel: BT('Mostrar produtos'), tit: 'Mostrar produtos / Só pedidos', txt: 'Abre ou recolhe os produtos de todos os pedidos.' },
+    { pagina: 'pedidos', sel: BT('Importar', BARRA_PAG), edicao: true, tit: '⬆ Importar', txt: 'Importa pedidos com produtos (Excel, CSV ou PDF).' },
+    { pagina: 'pedidos', sel: BT('Exportar', BARRA_PAG), tit: '⬇ Exportar', txt: 'Baixa os pedidos e produtos filtrados em Excel.' },
+  ] },
+  pedido_detalhe: { t: 'Dentro do pedido', passos: [
+    { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: JANELA(), tit: 'Janela do pedido', txt: 'Abre ao clicar na linha do pedido. Mostra valor, produtos, REIDI, faturado e saldo.' },
+    { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Produtos', 'modal')], sel: BT('Produtos', 'modal'), tit: 'Aba Produtos', txt: 'Os produtos do pedido com quantidade, valores e o que as NFs já abateram.' },
+    { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Produtos', 'modal')], sel: BT('Novo produto', 'modal'), edicao: true, tit: 'Novo produto', txt: 'Inclui um produto no pedido.' },
+    { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Produtos', 'modal')], sel: BT('Importar produtos', 'modal'), edicao: true, tit: 'Importar produtos', txt: 'Importa os produtos do pedido de uma planilha ou PDF.' },
+    { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Notas fiscais', 'modal')], sel: BT('Notas fiscais', 'modal'), tit: 'Aba Notas fiscais', txt: 'As NFs lançadas neste pedido.' },
+    { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Notas fiscais', 'modal')], sel: BT('Nova NF deste pedido', 'modal'), edicao: true, tit: 'Nova NF deste pedido', txt: 'Lança uma NF já ligada a este pedido.' },
+    { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Alterar REIDI', 'modal'), edicao: true, tit: 'Alterar REIDI', txt: 'Troca o modo de REIDI do pedido (Sem, Por pedido ou Por produto) e escolhe qual valor fica fixo ao recalcular.' },
+    { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Distrato de saldo', 'modal'), edicao: true, tit: 'Distrato de saldo', txt: 'Registra a solicitação de distrato do saldo do pedido (gera PDF).' },
+    { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Editar dados do pedido', 'modal'), edicao: true, tit: 'Editar dados do pedido', txt: 'Abre o cadastro (número, data, UFs, DIFAL, observações).' },
+    { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Excluir pedido', 'modal'), edicao: true, tit: 'Excluir pedido', txt: 'Remove o pedido (pede confirmação). Pedidos com NFs ficam bloqueados.' },
+  ] },
+  nf_nova: { t: 'Lançar uma nota fiscal', passos: [
+    { pagina: 'base', sel: BT('Nova NF'), edicao: true, tit: '➕ Nova NF', txt: 'Na <b>Base de faturamento</b>. Também pelo 📄 na linha do pedido ou por <b>Nova NF deste pedido</b>.' },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: BT('Preencher de arquivo', 'modal'), edicao: true, tit: 'Preencher de arquivo (XML, PDF ou Excel)', txt: 'Lê o XML/PDF da NF e preenche número, data, valor e itens para você conferir.' },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('Pedido de compra'), tit: 'Pedido de compra', txt: 'Escolha o pedido: os produtos dele aparecem para informar as quantidades.', obrig: true },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('Nº NF'), tit: 'Nº NF', txt: 'Número da nota.', ex: '52124', obrig: true },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('Data NF'), tit: 'Data NF', txt: 'Data de emissão.', obrig: true },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('Boletim de medição'), tit: 'Boletim de medição (BM)', txt: 'BM em que a NF entra no real (sugerido pela data).' },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('Valor NF'), tit: 'Valor NF (R$)', txt: 'Valor total da nota. Se for diferente da soma dos itens, a NF fica <b>Divergente</b> (use <b>Usar soma dos itens no valor NF</b>).', obrig: true },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('REIDI da NF'), tit: 'REIDI da NF', txt: 'Calculado pelos produtos: qtd × (unit. SEM do pedido − unit. na NF). Pode ajustar.' },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('DIFAL'), tit: 'DIFAL', txt: 'Herdado do pedido; o valor = Valor NF × DIFAL %. Pode ajustar.' },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: CAMPO('Nº GRD'), tit: 'Nº GRD (e-clic)', txt: 'Número do lançamento no e-clic (várias: separe por ;). Ao informar, a NF é marcada como lançada.' },
+    { pagina: 'base', janela: true, antes: J_NOTA, sel: BT('Lançar NF', 'modal'), edicao: true, tit: 'Lançar NF', txt: 'Grava a NF: ela abate as quantidades e o saldo do pedido e entra no consumido do insumo.' },
+  ] },
+  boleto_novo: { t: 'Lançar um boleto', passos: [
+    { pagina: 'base', sel: BT('Novo boleto'), edicao: true, tit: '➕ Novo boleto', txt: 'Na <b>Base de faturamento</b> (ou dentro da NF). É preciso lançar a NF antes.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: BT('Preencher de arquivo', 'modal'), edicao: true, tit: 'Preencher de arquivo', txt: 'Lê o PDF/Excel do boleto e preenche os dados.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: CAMPO('Nota fiscal'), tit: 'Nota fiscal', txt: 'A NF que o boleto paga.', obrig: true },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: CAMPO('Nº doc'), tit: 'Nº doc. boleto', txt: 'Número do documento.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: CAMPO('Valor do boleto'), tit: 'Valor do boleto', txt: 'Opcional; usado nos totais em aberto.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: CAMPO('Vencimento'), tit: 'Vencimento', txt: 'Em aberto e com vencimento passado vira <b>Vencido</b> sozinho.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: CAMPO('Pagamento'), tit: 'Pagamento', txt: 'Com a data de pagamento, o status passa a <b>Pago</b>.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: CAMPO('Status'), tit: 'Status', txt: 'Em aberto, Pago, Cancelado ou Em contestação.' },
+    { pagina: 'base', janela: true, antes: J_BOLETO, sel: BT('Lançar boleto', 'modal'), edicao: true, tit: 'Lançar boleto', txt: 'Grava o boleto ligado à NF.' },
+  ] },
+  base_tela: { t: 'Base de faturamento (Notas e boletos)', passos: [
+    { pagina: 'base', sel: SEL('.ctc-main .ctc-table-wrap'), tit: 'Tabela de notas e boletos', txt: 'Tudo em colunas: pedido, terceiro, insumo, NF, produtos, valores, REIDI, DIFAL, e-clic, boleto, vencimento e status.' },
+    { pagina: 'base', sel: SEL('.fd-filtro-btn'), tit: '▼ Filtro estilo Excel', txt: 'Cada coluna tem o ▼: ordenar A–Z/Z–A, pesquisar e marcar os valores que quer ver. Coluna filtrada fica laranja.' },
+    { pagina: 'base', sel: BT('Limpar filtros'), tit: 'Limpar filtros', txt: 'Tira todos os filtros e a ordenação das colunas.' },
+    { pagina: 'base', sel: BT('Exportar esta base'), tit: 'Exportar esta base', txt: 'Exporta para o Excel do jeito que está na tela (com filtros e ordem).' },
+    { pagina: 'base', sel: BT('Importar NF'), edicao: true, tit: 'Importar NF', txt: 'Importa NFs por arquivo (XML/PDF) ou várias por planilha.' },
+    { pagina: 'base', sel: BT('Importar boletos'), edicao: true, tit: 'Importar boletos', txt: 'Importa boletos de uma planilha.' },
+    { pagina: 'base', sel: BT('Novo terceiro'), edicao: true, tit: 'Novo terceiro / Novo pedido / Novo boleto / Nova NF', txt: 'Atalhos para cadastrar cada item da base.' },
+  ] },
+  obra: { t: 'Obra e aditivos', passos: [
+    { pagina: 'obra', sel: CAMPO('Nome da obra'), tit: 'Nome da obra', txt: 'Aparece no cabeçalho, nos relatórios e na tela de boas-vindas.' },
+    { pagina: 'obra', sel: CAMPO('UF da obra'), tit: 'UF da obra', txt: 'Destino das NFs: usada no DIFAL.' },
+    { pagina: 'obra', sel: CAMPO('Início da obra'), tit: 'Início e fim', txt: 'Definem os meses e os BMs da projeção e da tendência.' },
+    { pagina: 'obra', sel: CAMPO('Modo do prazo'), tit: 'Modo do prazo', txt: 'Como o prazo é contado (datas ou duração em dias).' },
+    { pagina: 'obra', sel: CAMPO('BM inicial'), tit: 'BM inicial / final', txt: 'Numeração dos BMs (sugerido: um BM por mês).' },
+    { pagina: 'obra', sel: BT('Salvar informações da obra'), edicao: true, tit: 'Salvar informações da obra', txt: 'Grava os dados da obra; os meses e BMs se ajustam.' },
+    { pagina: 'obra', sel: BT('Novo aditivo'), edicao: true, tit: '➕ Novo aditivo', txt: 'Registra aditivo de <b>prazo</b> (novo fim e BM final) ou de <b>valor</b> (soma ao valor do insumo).' },
+    { pagina: 'obra', sel: BT('Importar', '.ctc-main'), edicao: true, tit: 'Importar / Exportar', txt: 'Importa ou exporta as informações da obra e os aditivos (Excel/CSV).' },
+  ] },
+  aditivo_novo: { t: 'Registrar um aditivo', passos: [
+    { pagina: 'obra', sel: BT('Novo aditivo'), edicao: true, tit: '➕ Novo aditivo', txt: 'Em <b>Configurações › Obra e aditivos</b>.' },
+    { pagina: 'obra', janela: true, antes: J_ADITIVO, sel: CAMPO('Nº do aditivo'), tit: 'Nº e data', txt: 'Identificação do aditivo.', obrig: true },
+    { pagina: 'obra', janela: true, antes: J_ADITIVO, sel: CAMPO('Tipo'), tit: 'Tipo', txt: '<b>Prazo</b>, <b>valor</b> ou os dois.' },
+    { pagina: 'obra', janela: true, antes: J_ADITIVO, sel: CAMPO('Novo fim da obra'), tit: 'Novo fim / novo BM final', txt: 'Para aditivo de prazo.' },
+    { pagina: 'obra', janela: true, antes: J_ADITIVO, sel: CAMPO('Insumo'), tit: 'Insumo e valor acrescido', txt: 'Para aditivo de valor: o valor soma ao valor total do insumo (negativo = supressão).' },
+    { pagina: 'obra', janela: true, antes: J_ADITIVO, sel: BT('Registrar aditivo', 'modal'), edicao: true, tit: 'Registrar aditivo', txt: 'O prazo e os valores vigentes são recalculados.' },
+  ] },
+  aliquotas: { t: 'Tabela ICMS / DIFAL', passos: [
+    { pagina: 'aliquotas', sel: SEL('.ctc-main .ctc-table-wrap'), tit: 'Alíquotas internas por UF', txt: 'Editáveis. DIFAL % = alíquota interna do destino − interestadual (7%, 12% ou 4% para importados).' },
+    { pagina: 'aliquotas', sel: BT('Restaurar referência'), edicao: true, tit: 'Restaurar referência', txt: 'Volta às alíquotas de referência. NFs já lançadas não mudam.' },
+  ] },
+  importar: { t: 'Importar e exportar', passos: [
+    { pagina: 'importar', sel: BT('Exportar tudo'), tit: 'Exportar tudo', txt: 'Baixa uma planilha com todas as abas, no mesmo formato aceito pela importação (exporte, edite e importe de volta).' },
+    { pagina: 'importar', sel: BT('Insumos', '.ctc-main'), edicao: true, tit: 'Importar por tipo', txt: 'Insumos, Projeção por BM, Terceiros, Pedidos e produtos, Notas fiscais, Boletos e Informações da obra. Nada é gravado antes da sua confirmação.' },
+    { pagina: 'importar', sel: BT('Salvar .json'), tit: 'Salvar .json', txt: 'Baixa a base completa em um arquivo JSON (cópia de segurança).' },
+    { pagina: 'importar', sel: BT('Carregar .json'), edicao: true, tit: 'Carregar .json', txt: 'Substitui a base aberta por um arquivo JSON.' },
+  ] },
+  salvar: { t: 'Salvar o trabalho', passos: [
+    { sel: BT('Controlador', '.ctc-header'), tit: '👤 Controlador', txt: 'Clique aqui para abrir o painel do controlador.' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Ferramentas', 'modal'), tit: 'Aba Ferramentas', txt: 'Onde ficam os salvamentos.' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Salvar na nuvem', 'modal'), edicao: true, tit: '☁ Salvar na nuvem', txt: 'Grava na nuvem da obra. Se a base veio da nuvem, atualiza a mesma base (não cria outra).' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Salvar na base existente', 'modal'), edicao: true, tit: 'Salvar na base existente', txt: 'Escolhe uma base da nuvem para substituir pelos dados atuais.' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Exportar', 'modal'), tit: 'Exportar JSON', txt: 'Baixa a base em arquivo no computador.' },
+  ] },
+  relatorios: { t: 'Gerar relatórios', passos: [
+    { sel: BT('Controlador', '.ctc-header'), tit: '👤 Controlador', txt: 'Os relatórios ficam no painel do controlador.' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Gerar relatórios', 'modal')], sel: BT('Gerar relatórios', 'modal'), tit: 'Aba Gerar relatórios', txt: 'Relatórios para o cliente e apresentações.' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Gerar relatórios', 'modal')], sel: BT('Gerar relatório para o cliente', 'modal'), tit: 'Relatório para o cliente (PDF)', txt: 'PDF com o resumo do faturamento direto.' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Gerar relatórios', 'modal')], sel: BT('Gerar apresentação em PDF', 'modal'), tit: 'Apresentação em PDF', txt: 'Apresentação FD por terceiro (escolha os terceiros).' },
+    { janela: true, antes: [J_CONTROLADOR, AC.aba('Gerar relatórios', 'modal')], sel: BT('Salvar apresentação em PowerPoint', 'modal'), tit: 'PowerPoint', txt: 'A mesma apresentação, em PowerPoint.' },
+  ] },
+  sair: { t: 'Sair ou trocar de perfil', passos: [
+    { sel: BT('Menu', '.ctc-header'), tit: '☰ Menu', txt: 'Abra o menu.' },
+    { menu: true, antes: AC.menu, sel: MENU_TXT('Sair/Trocar'), tit: '↶ Sair/Trocar', txt: 'Volta à tela inicial mantendo a base carregada. Com alterações não salvas, o controle pergunta antes.' },
+  ] },
+});
+
+/* =============================================================================
+   O QUE CADA BOTAO FAZ (respostas e "Ver apresentacao")
+   pagina/sel/antes: usados pelo "Mostrar na tela" do botao
+   ========================================================================== */
+const AJUDA_FD = {
+  /* Cabecalho e menu */
+  menu: { grupo: 'Cabeçalho e menu', t: 'Menu', p: 'menu navegar telas abrir menu', f: 'Abre o menu com todas as telas do controle: Visão gerencial (Dashboard e Tendência), Insumos, Pedidos e produtos, Base de faturamento, Importar / Exportar, Configurações e Sair/Trocar.', onde: 'Embaixo da logo, no cabeçalho.', sel: BT('Menu', '.ctc-header'), tour: 'navegar' },
+  ajuda: { grupo: 'Cabeçalho e menu', t: 'Ajuda', p: 'ajuda sobre explicacao fluxo', f: 'Abre um resumo do fluxo do faturamento direto (obra → insumos → terceiros → pedidos → produtos → NFs → boletos), REIDI, DIFAL, perfis de acesso e como salvar.', onde: 'Cabeçalho, à direita.', sel: BT('Ajuda', '.ctc-header') },
+  controlador: { grupo: 'Cabeçalho e menu', t: 'Controlador', p: 'controlador painel ferramentas sessao salvar', f: 'Abre o painel do controlador: <b>Ferramentas</b> (salvar na nuvem, salvar na base existente, exportar JSON, editar cabeçalho e logo), <b>Sessão</b> (quem está logado, trocar perfil/sair) e <b>Gerar relatórios</b>.', onde: 'Cabeçalho, à direita.', sel: BT('Controlador', '.ctc-header'), tour: 'salvar' },
+  assistente: { grupo: 'Cabeçalho e menu', t: 'Assistente', p: 'assistente chat perguntas ajuda', f: 'Abre este assistente: responde como fazer algo, o que faz cada botão, mostra o passo a passo na tela e os números da obra.', onde: 'Canto inferior esquerdo, em todas as telas.', sel: SEL('#assist-btn') },
+  sair: { grupo: 'Cabeçalho e menu', t: 'Sair/Trocar', p: 'sair trocar perfil logout tela inicial', f: 'Volta à tela inicial para trocar de perfil ou de base, sem recarregar a página. Com alterações não salvas, pergunta antes de sair.', onde: '☰ Menu, no final.', menu: true, antes: AC.menu, sel: MENU_TXT('Sair/Trocar'), tour: 'sair' },
+  /* Dashboard */
+  pizza_insumos: { grupo: 'Dashboard', t: 'Gráfico Faturamento direto — total dos insumos', p: 'grafico pizza total insumos faturamento direto consumido saldo', f: 'Mostra o total dos insumos (valor da aba Insumos, com aditivos), quanto já foi <b>consumido</b> pelas NFs e o <b>saldo</b>, com % e valor. No centro, o % consumido; embaixo, quanto já está em pedidos.', onde: 'Dashboard, em cima à esquerda.', pagina: 'visao', sel: SEL('.fd-resumo__bloco'), tour: 'dashboard' },
+  pizza_pedidos: { grupo: 'Dashboard', t: 'Gráfico Pedidos de compra', p: 'grafico pizza pedidos compra consumido saldo', f: 'Mostra o total dos pedidos, quanto as NFs já consumiram e o saldo a faturar, com % e valor.', onde: 'Dashboard, em cima à direita.', pagina: 'visao', sel: SEL('.fd-resumo .fd-resumo__bloco:nth-child(2)'), tour: 'dashboard' },
+  arvore: { grupo: 'Dashboard', t: 'Árvore insumo › fornecedor › pedido', p: 'arvore visao geral insumo fornecedor pedido abrir fechar', f: 'Começa fechada no insumo. Clicando na linha abre os fornecedores (faixa verde) e depois os pedidos. Cada nível mostra total, consumido (NFs), saldo e a barra de avanço.', onde: 'Dashboard, embaixo dos gráficos.', pagina: 'visao', sel: SEL('.fd-arv'), tour: 'dashboard' },
+  composicao: { grupo: 'Dashboard', t: 'Composição', p: 'composicao pedido itens notas fiscais nfs detalhe', f: 'Abre a janela do pedido com duas abas: <b>Itens do pedido</b> (quantidade e valor total, consumido e saldo de cada item) e <b>Notas fiscais</b> (as NFs com data, BM, valor, REIDI, saldo após a NF, boleto e vencimento).', onde: 'Na linha de cada pedido, no Dashboard.', pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__comp'), tour: 'composicao' },
+  fechar_tudo: { grupo: 'Dashboard', t: 'Fechar tudo', p: 'fechar tudo recolher arvore', f: 'Fecha a árvore: mostra só os insumos.', onde: 'Dashboard, acima da árvore.', pagina: 'visao', sel: BT('Fechar tudo') },
+  ate_fornecedores: { grupo: 'Dashboard', t: 'Até fornecedores', p: 'ate fornecedores abrir insumos', f: 'Abre todos os insumos, mostrando os fornecedores (sem os pedidos).', onde: 'Dashboard, acima da árvore.', pagina: 'visao', sel: BT('Até fornecedores') },
+  abrir_tudo: { grupo: 'Dashboard', t: 'Abrir tudo', p: 'abrir tudo expandir arvore pedidos', f: 'Abre a árvore até os pedidos.', onde: 'Dashboard, acima da árvore.', pagina: 'visao', sel: BT('Abrir tudo') },
+  exportar_tudo: { grupo: 'Dashboard', t: 'Exportar tudo', p: 'exportar tudo planilha completa excel', f: 'Gera a planilha completa do recorte: obra, insumos, terceiros, pedidos, NFs e boletos.', onde: 'Dashboard e Importar / Exportar.', pagina: 'visao', sel: BT('Exportar tudo') },
+  /* Tendencia */
+  tendencia_insumo: { grupo: 'Tendência', t: 'Insumo (Tendência)', p: 'tendencia escolher insumo grafico', f: 'Escolhe o insumo do gráfico de tendência (ou todos).', onde: 'Tendência, no topo.', pagina: 'tendencia', sel: SEL('.ctc-main select'), tour: 'tendencia' },
+  editar_projecao: { grupo: 'Tendência', t: 'Editar projeção', p: 'editar projecao previsto bm tendencia', f: 'Leva para a Projeção por BM (tela Insumos), onde se ajusta o previsto de cada BM.', onde: 'Tendência, quando um insumo está escolhido.', edicao: true, pagina: 'tendencia', sel: BT('Editar projeção') },
+  /* Insumos */
+  novo_insumo: { grupo: 'Insumos', t: 'Novo insumo', p: 'novo insumo cadastrar incluir', f: 'Cadastra um insumo com nome e valor total. Ele passa a aparecer no Dashboard e pode receber terceiros e pedidos.', onde: 'Insumos, no topo.', edicao: true, pagina: 'insumos', sel: BT('Novo insumo'), tour: 'insumo_novo' },
+  importar_insumos: { grupo: 'Insumos', t: 'Importar (Insumos)', p: 'importar insumos planilha excel csv', f: 'Importa os insumos de uma planilha Excel/CSV (nada é gravado antes da confirmação).', onde: 'Insumos, no topo.', edicao: true, pagina: 'insumos', sel: BT('Importar', ACOES_PAG) },
+  exportar_insumos: { grupo: 'Insumos', t: 'Exportar (Insumos)', p: 'exportar insumos excel', f: 'Baixa a lista de insumos em Excel.', onde: 'Insumos, no topo.', pagina: 'insumos', sel: BT('Exportar', ACOES_PAG) },
+  projecao_bm: { grupo: 'Insumos', t: 'Projeção por BM', p: 'projecao bm previsto grade boletim medicao', f: 'Grade com o previsto de cada insumo por BM. É a base do previsto na Tendência.', onde: 'Insumos, segunda aba.', pagina: 'insumos', sel: BT('Projeção por BM', ABAS_PAG), tour: 'projecao' },
+  redistribuir: { grupo: 'Insumos', t: 'Redistribuir diferenças', p: 'redistribuir diferencas bm fechado previsto real', f: 'Nos BMs fechados o previsto passa a ser igual ao real e a diferença é espalhada nos BMs seguintes. Você escolhe como redistribuir e vê a prévia antes de aplicar.', onde: 'Insumos › Projeção por BM.', edicao: true, pagina: 'insumos', antes: AC.aba('Projeção por BM'), sel: BT('Redistribuir diferenças', PAINEL_ABA) },
+  /* Pedidos e produtos */
+  mostrar_produtos: { grupo: 'Pedidos e produtos', t: 'Mostrar produtos', p: 'mostrar produtos abrir todos', f: 'Abre os produtos de todos os pedidos.', onde: 'Pedidos e produtos, barra de cima.', pagina: 'pedidos', sel: BT('Mostrar produtos') },
+  so_pedidos: { grupo: 'Pedidos e produtos', t: 'Só pedidos', p: 'so pedidos recolher produtos', f: 'Recolhe os produtos, mostrando só os pedidos.', onde: 'Pedidos e produtos, barra de cima.', pagina: 'pedidos', sel: BT('Só pedidos') },
+  importar_pedidos: { grupo: 'Pedidos e produtos', t: 'Importar (Pedidos)', p: 'importar pedidos produtos planilha pdf', f: 'Importa pedidos com os produtos (Excel, CSV ou PDF do pedido).', onde: 'Pedidos e produtos, barra de cima.', edicao: true, pagina: 'pedidos', sel: BT('Importar', BARRA_PAG) },
+  exportar_pedidos: { grupo: 'Pedidos e produtos', t: 'Exportar (Pedidos)', p: 'exportar pedidos produtos excel', f: 'Baixa os pedidos e produtos filtrados em Excel.', onde: 'Pedidos e produtos, barra de cima.', pagina: 'pedidos', sel: BT('Exportar', BARRA_PAG) },
+  mais_pedido: { grupo: 'Pedidos e produtos', t: '+ Pedido', p: 'mais pedido novo pedido terceiro faixa', f: 'Cria um pedido já ligado ao terceiro da faixa.', onde: 'Faixa escura de cada terceiro, em Pedidos e produtos.', edicao: true, pagina: 'pedidos', sel: BT('Pedido', '.ctc-main table'), tour: 'pedido_novo' },
+  mais_produto: { grupo: 'Pedidos e produtos', t: '+ (Novo produto no pedido)', p: 'mais produto novo produto pedido', f: 'Inclui um produto no pedido (nome, unidade, quantidade e valor unitário).', onde: 'Na linha do pedido (ícone +).', edicao: true, pagina: 'pedidos', sel: TITULO('Novo produto no pedido'), tour: 'produto_novo' },
+  lancar_nf_linha: { grupo: 'Pedidos e produtos', t: '📄 Lançar NF do pedido', p: 'lancar nf pedido documento icone', f: 'Abre uma NF nova já ligada ao pedido.', onde: 'Na linha do pedido (ícone de documento).', edicao: true, pagina: 'pedidos', sel: TITULO('Lançar NF do pedido'), tour: 'nf_nova' },
+  excluir_pedido: { grupo: 'Pedidos e produtos', t: '🗑 Excluir pedido', p: 'excluir pedido lixeira apagar', f: 'Exclui o pedido (pede confirmação). Se houver NFs lançadas, a exclusão é bloqueada.', onde: 'Na linha do pedido (lixeira) e dentro do pedido.', edicao: true, pagina: 'pedidos', sel: TITULO('Excluir pedido') },
+  alterar_reidi: { grupo: 'Pedidos e produtos', t: 'Alterar REIDI', p: 'alterar reidi modo pedido produto percentual', f: 'Troca o modo de REIDI do pedido (Sem REIDI, Por pedido com % único ou Por produto) e escolhe se ao recalcular fica fixo o valor SEM ou o COM REIDI.', onde: 'Dentro do pedido.', edicao: true, pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Alterar REIDI', 'modal') },
+  distrato: { grupo: 'Pedidos e produtos', t: 'Distrato de saldo', p: 'distrato saldo pedido cancelar encerrar', f: 'Registra a solicitação de distrato do saldo do pedido (status SOLICITADO) e gera o PDF. O saldo só sai do pedido e volta para o insumo quando o distrato é <b>APROVADO</b>.', onde: 'Dentro do pedido.', edicao: true, pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Distrato de saldo', 'modal'),
+    telas: [{ h: 'Como registrar', passos: ['Abra o pedido e clique em <b>Distrato de saldo</b>.', 'Informe nº do distrato, data e motivo.', 'Escreva a descrição ou use <b>Gerar descrição automática</b> / <b>Melhorar meu texto</b>.', 'Salve e gere o <b>PDF do distrato</b>.', 'Depois, na faixa do distrato no pedido: <b>Aprovar</b>, <b>Reprovar</b>, <b>Voltar para solicitado</b> ou <b>Excluir solicitação</b>.'], aviso: 'Enquanto estiver SOLICITADO o saldo continua no pedido.' }] },
+  /* Base de faturamento */
+  novo_terceiro: { grupo: 'Base de faturamento', t: 'Novo terceiro', p: 'novo terceiro fornecedor cadastrar', f: 'Cadastra um terceiro (fornecedor) ligado a um insumo: nome, CNPJ e UF do emissor.', onde: 'Base de faturamento, barra de cima.', edicao: true, pagina: 'base', sel: BT('Novo terceiro'), tour: 'terceiro_novo' },
+  novo_pedido: { grupo: 'Base de faturamento', t: 'Novo pedido', p: 'novo pedido compra cadastrar', f: 'Cadastra um pedido de compra (terceiro, número, data, REIDI, UFs e DIFAL). Depois inclua os produtos.', onde: 'Base de faturamento, barra de cima.', edicao: true, pagina: 'base', sel: BT('Novo pedido'), tour: 'pedido_novo' },
+  nova_nf: { grupo: 'Base de faturamento', t: 'Nova NF', p: 'nova nf nota fiscal lancar', f: 'Lança uma nota fiscal ligada a um pedido: número, data, BM, valor, quantidades por produto, REIDI, DIFAL e GRD do e-clic.', onde: 'Base de faturamento, barra de cima.', edicao: true, pagina: 'base', sel: BT('Nova NF'), tour: 'nf_nova' },
+  novo_boleto: { grupo: 'Base de faturamento', t: 'Novo boleto', p: 'novo boleto lancar', f: 'Lança um boleto de uma NF: número, valor, vencimento, pagamento e status.', onde: 'Base de faturamento, barra de cima, e dentro da NF.', edicao: true, pagina: 'base', sel: BT('Novo boleto'), tour: 'boleto_novo' },
+  importar_nf: { grupo: 'Base de faturamento', t: 'Importar NF', p: 'importar nf xml pdf varias planilha', f: 'Importa NFs por arquivo (XML/PDF, uma a uma com conferência) ou várias de uma vez por planilha.', onde: 'Base de faturamento, barra de cima.', edicao: true, pagina: 'base', sel: BT('Importar NF') },
+  importar_boletos: { grupo: 'Base de faturamento', t: 'Importar boletos', p: 'importar boletos planilha', f: 'Importa boletos de uma planilha (informe o Nº NF e, se a NF se repetir, o Nº Pedido).', onde: 'Base de faturamento, barra de cima.', edicao: true, pagina: 'base', sel: BT('Importar boletos') },
+  filtro_excel: { grupo: 'Base de faturamento', t: '▼ Filtro da coluna', p: 'filtro coluna excel ordenar marcar valores seta', f: 'Abre o filtro estilo Excel da coluna: ordenar A–Z/Z–A (ou menor/maior), pesquisar e marcar os valores que quer ver. A coluna filtrada fica laranja.', onde: 'No título de cada coluna da Base de faturamento.', pagina: 'base', sel: SEL('.fd-filtro-btn') },
+  limpar_filtros: { grupo: 'Base de faturamento', t: 'Limpar filtros', p: 'limpar filtros ordenacao', f: 'Tira todos os filtros e a ordenação das colunas.', onde: 'Base de faturamento.', pagina: 'base', sel: BT('Limpar filtros') },
+  exportar_base: { grupo: 'Base de faturamento', t: 'Exportar esta base', p: 'exportar base excel filtros', f: 'Exporta para o Excel a base como está na tela (com os filtros e a ordem).', onde: 'Base de faturamento.', pagina: 'base', sel: BT('Exportar esta base') },
+  /* Janelas de cadastro */
+  preencher_arquivo: { grupo: 'Janelas de cadastro', t: 'Preencher de arquivo', p: 'preencher arquivo pdf xml excel ler automatico', f: 'Lê um arquivo (XML, PDF ou Excel) e preenche os campos da janela para você conferir antes de salvar. Existe no terceiro, no pedido, na NF e no boleto.', onde: 'No topo das janelas de cadastro.', edicao: true, pagina: 'base', janela: true, antes: J_NOTA, sel: BT('Preencher de arquivo', 'modal') },
+  soma_itens: { grupo: 'Janelas de cadastro', t: 'Usar soma dos itens no valor NF', p: 'usar soma itens valor nf divergente', f: 'Coloca no Valor NF a soma dos itens informados, tirando a divergência entre a nota e os produtos.', onde: 'Janela da NF.', edicao: true },
+  pdf_nf: { grupo: 'Janelas de cadastro', t: 'PDF da NF', p: 'pdf nf anexo baixar nota', f: 'Baixa o PDF da NF guardado no cadastro.', onde: 'Janela da NF (quando houver arquivo).' },
+  salvar_cadastro: { grupo: 'Janelas de cadastro', t: 'Salvar / Cancelar / Excluir', p: 'salvar cancelar excluir janela cadastro', f: '<b>Salvar</b> grava o cadastro; <b>Cancelar</b> fecha sem gravar; <b>Excluir</b> remove (com confirmação). As alterações só ficam na base depois de salvar a base (nuvem ou JSON).', onde: 'Rodapé de cada janela de cadastro.', edicao: true },
+  /* Configuracoes */
+  novo_aditivo: { grupo: 'Configurações', t: 'Novo aditivo', p: 'novo aditivo prazo valor supressao', f: 'Registra um aditivo de prazo (novo fim e BM final) ou de valor (soma ao valor do insumo; negativo = supressão). O prazo e os valores vigentes são recalculados.', onde: 'Configurações › Obra e aditivos.', edicao: true, pagina: 'obra', sel: BT('Novo aditivo'), tour: 'aditivo_novo' },
+  importar_obra: { grupo: 'Configurações', t: 'Importar / Exportar (Obra)', p: 'importar exportar obra informacoes aditivos', f: 'Importa ou exporta as informações da obra e os aditivos (Excel/CSV).', onde: 'Configurações › Obra e aditivos, no topo.', pagina: 'obra', sel: BT('Importar', '.ctc-main') },
+  salvar_obra: { grupo: 'Configurações', t: 'Salvar informações da obra', p: 'salvar informacoes obra dados prazo', f: 'Grava os dados da obra (nome, cliente, UF, início, fim, prazo e BMs). Os meses e BMs da projeção e da tendência se ajustam.', onde: 'Configurações › Obra e aditivos.', edicao: true, pagina: 'obra', sel: BT('Salvar informações da obra') },
+  restaurar_aliquotas: { grupo: 'Configurações', t: 'Restaurar referência', p: 'restaurar referencia aliquotas icms difal', f: 'Volta as alíquotas internas para a referência. NFs já lançadas não mudam.', onde: 'Configurações › Tabela ICMS / DIFAL.', edicao: true, pagina: 'aliquotas', sel: BT('Restaurar referência') },
+  /* Importar / Exportar */
+  salvar_json: { grupo: 'Importar / Exportar', t: 'Salvar .json', p: 'salvar json arquivo backup copia', f: 'Baixa a base completa em um arquivo JSON (cópia de segurança, pode ser aberta depois na tela inicial).', onde: 'Importar / Exportar.', pagina: 'importar', sel: BT('Salvar .json') },
+  carregar_json: { grupo: 'Importar / Exportar', t: 'Carregar .json', p: 'carregar json abrir arquivo base', f: 'Substitui a base aberta pela de um arquivo JSON.', onde: 'Importar / Exportar.', edicao: true, pagina: 'importar', sel: BT('Carregar .json') },
+  importar_tipo: { grupo: 'Importar / Exportar', t: 'Importar (Insumos, Terceiros, Pedidos, NFs, Boletos...)', p: 'importar planilha tipo insumos terceiros pedidos notas boletos obra', f: 'Cada botão importa um tipo de cadastro de uma planilha. Use o modelo do <b>Exportar tudo</b>: em Terceiros, o nome exato do insumo; nas NFs, o Nº Pedido e o nome exato do terceiro. Nada é gravado antes da confirmação.', onde: 'Importar / Exportar.', edicao: true, pagina: 'importar', sel: BT('Insumos', '.ctc-main'), tour: 'importar' },
+  /* Controlador */
+  salvar_nuvem: { grupo: 'Controlador', t: 'Salvar na nuvem', p: 'salvar nuvem firebase gravar', f: 'Grava a base na nuvem da obra. Se a base veio da nuvem, atualiza a mesma base em vez de criar outra.', onde: 'Controlador › Ferramentas.', edicao: true, janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Salvar na nuvem', 'modal'), tour: 'salvar' },
+  salvar_existente: { grupo: 'Controlador', t: 'Salvar na base existente', p: 'salvar base existente substituir nuvem', f: 'Abre a lista das bases da nuvem para escolher qual substituir pelos dados atuais (pede confirmação).', onde: 'Controlador › Ferramentas.', edicao: true, janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Salvar na base existente', 'modal') },
+  editar_cabecalho: { grupo: 'Controlador', t: 'Editar cabeçalho e logo', p: 'editar cabecalho logo titulo subtitulo imagem', f: 'Troca a logo (imagem), o título e o subtítulo do cabeçalho. Salve a base para gravar.', onde: 'Controlador › Ferramentas.', edicao: true, janela: true, antes: [J_CONTROLADOR, AC.aba('Ferramentas', 'modal')], sel: BT('Editar cabeçalho', 'modal') },
+  gerar_relatorio: { grupo: 'Controlador', t: 'Gerar relatório para o cliente (PDF)', p: 'gerar relatorio cliente pdf', f: 'Gera o PDF do faturamento direto para o cliente.', onde: 'Controlador › Gerar relatórios.', janela: true, antes: [J_CONTROLADOR, AC.aba('Gerar relatórios', 'modal')], sel: BT('Gerar relatório para o cliente', 'modal'), tour: 'relatorios' },
+  apresentacao: { grupo: 'Controlador', t: 'Apresentação em PDF / PowerPoint', p: 'apresentacao pdf powerpoint ppt terceiro slides', f: 'Gera a apresentação FD por terceiro (capa, resumo, atividades e pedidos) em PDF ou PowerPoint. Escolha os terceiros e as logos antes.', onde: 'Controlador › Gerar relatórios.', janela: true, antes: [J_CONTROLADOR, AC.aba('Gerar relatórios', 'modal')], sel: BT('Gerar apresentação em PDF', 'modal'), tour: 'relatorios' },
+  /* Tela inicial */
+  importar_entrada: { grupo: 'Tela inicial', t: 'Importar (tela inicial)', p: 'importar tela inicial versao nuvem arquivo json abrir base', f: 'Mostra as duas formas de carregar a base: <b>Versão na nuvem</b> (lista em cartões, com o lápis para renomear e o botão Carregar) e <b>Arquivo JSON</b>.', onde: 'Tela inicial (antes de entrar).' },
+  projeto_novo: { grupo: 'Tela inicial', t: 'Projeto novo', p: 'projeto novo obra em branco criar', f: 'Cria uma base em branco para uma obra nova. Quem tem acesso de Editor no Portal KZ entra sem senha extra.', onde: 'Tela inicial.' },
+  perfis: { grupo: 'Tela inicial', t: 'Visualizador / Controlador / Administrador', p: 'perfis visualizador controlador administrador acesso entrar', f: '<b>Visualizador</b>: só consulta. <b>Controlador</b>: edita e salva. <b>Administrador</b>: libera acessos. Com o login do Portal KZ, o acesso segue o papel na obra (Leitor, Editor, Administrador).', onde: 'Tela inicial.' },
+};
+
+/* =============================================================================
+   PERGUNTAS E RESPOSTAS (tarefas e conceitos)
+   ========================================================================== */
+const ASSIST_TAREFAS_FD = [
+  { t: 'Como funciona o controle (visão geral)', p: 'como funciona controle sistema explicacao resumo visao geral funcionamento comecar inicio primeiros passos para que serve',
+    texto: 'O controle acompanha o <b>faturamento direto</b> da obra: quanto de cada insumo pode ser faturado direto ao cliente, quanto já foi pedido aos fornecedores e quanto as notas fiscais já consumiram.',
+    passos: ['<b>Obra e aditivos:</b> dados, prazo, BMs e aditivos de prazo e valor.', '<b>Insumos:</b> cada insumo com o valor total (vigente = valor + aditivos) e a projeção por BM.', '<b>Terceiros:</b> os fornecedores de cada insumo.', '<b>Pedidos e produtos:</b> os pedidos de compra com os produtos (quantidade e valor).', '<b>Notas fiscais:</b> cada NF abate as quantidades e o saldo do pedido e entra no consumido do insumo.', '<b>Boletos:</b> pagamento das NFs (vencidos e em aberto).', '<b>Dashboard:</b> pizzas do total dos insumos e dos pedidos e a árvore insumo › fornecedor › pedido.', '<b>Salvar:</b> Controlador › Ferramentas (nuvem ou JSON).'],
+    tour: 'navegar' },
+  { t: 'Para que serve cada tela', p: 'para que serve cada tela aba menu lista explicar onde fica',
+    passos: ['<b>📊 Visão gerencial › Dashboard:</b> gráficos e árvore por insumo (tela principal).', '<b>📊 Visão gerencial › Tendência:</b> previsto x real x tendência por insumo.', '<b>💰 Insumos:</b> cadastro dos insumos e Projeção por BM.', '<b>🧾 Pedidos e produtos:</b> pedidos por terceiro com produtos e saldos.', '<b>🗂️ Base de faturamento:</b> notas e boletos com filtro estilo Excel.', '<b>📤 Importar / Exportar:</b> planilhas e arquivo JSON.', '<b>⚙️ Configurações:</b> Obra e aditivos, Tabela ICMS / DIFAL.'],
+    tour: 'navegar' },
+  { t: 'Como navegar pelo menu', p: 'navegar menu abrir tela ir para trocar de tela cascata', passos: ['Clique em <b>☰ Menu</b> (embaixo da logo).', 'Passe o mouse em <b>📊 Visão gerencial</b> ou <b>⚙️ Configurações</b> para abrir os submenus.', 'Clique na tela desejada.'], tour: 'navegar' },
+  { t: 'O que tem no cabeçalho', p: 'cabecalho topo logo ajuda controlador botoes de cima', passos: ['<b>Logo e título</b> da obra (editáveis no Controlador).', '<b>☰ Menu</b> embaixo da logo.', '<b>Nome da tela</b> aberta.', '<b>ⓘ Ajuda</b> e <b>👤 Controlador</b> à direita.'], tour: 'cabecalho' },
+  { t: 'Como ler o Dashboard', p: 'dashboard ler entender graficos pizza arvore tela principal', passos: ['A pizza da esquerda mostra o <b>total dos insumos</b>: consumido (NFs) e saldo.', 'A da direita mostra os <b>pedidos</b>: consumido e saldo a faturar.', 'Embaixo, a <b>árvore</b> começa fechada no insumo: clique para ver os fornecedores e depois os pedidos.', 'Cada nível mostra total, consumido, saldo e a barra de avanço.'], pagina: 'visao', tour: 'dashboard', aj: 'arvore' },
+  { t: 'Ver os itens e as NFs de um pedido (Composição)', p: 'ver itens nfs pedido composicao detalhe aco bitola quantidade', passos: ['No <b>Dashboard</b>, abra o insumo e o fornecedor.', 'Na linha do pedido, clique em <b>📄 Composição</b>.', 'Aba <b>Itens do pedido</b>: quantidade e valor total, consumido e saldo de cada item.', 'Aba <b>Notas fiscais</b>: as NFs do pedido.'], pagina: 'visao', tour: 'composicao', aj: 'composicao' },
+  { t: 'Cadastrar um insumo', p: 'cadastrar incluir novo insumo atividade valor total', passos: ['Abra <b>☰ Menu › Insumos</b>.', 'Clique em <b>➕ Novo insumo</b>.', 'Informe o <b>nome</b> e o <b>valor total</b>.', 'Clique em <b>Salvar</b>.'], pagina: 'insumos', tour: 'insumo_novo', aj: 'novo_insumo' },
+  { t: 'Editar ou excluir um insumo', p: 'editar alterar excluir insumo valor nome', passos: ['Abra <b>Insumos</b> e clique na linha do insumo (ou no nome dele no Dashboard).', 'Altere e clique em <b>Salvar</b>, ou use <b>Excluir</b>.', 'Um insumo com terceiros ligados não pode ser excluído.'], pagina: 'insumos', tour: 'insumos' },
+  { t: 'Montar ou ajustar a Projeção por BM', p: 'projecao bm previsto grade boletim medicao ajustar distribuir', passos: ['Abra <b>Insumos › Projeção por BM</b>.', 'Digite o previsto de cada BM em cada insumo (o total deve fechar com o valor do insumo).', 'Nos BMs já fechados, use <b>Redistribuir diferenças</b> para igualar ao real e espalhar a diferença.', 'Também dá para <b>Importar</b> e <b>Exportar</b> a grade.'], pagina: 'insumos', tour: 'projecao', aj: 'projecao_bm' },
+  { t: 'Cadastrar um terceiro (fornecedor)', p: 'cadastrar incluir novo terceiro fornecedor empresa cnpj', passos: ['Abra a <b>Base de faturamento</b> e clique em <b>➕ Novo terceiro</b>.', 'Escolha o <b>insumo</b> e informe o <b>nome</b>, o <b>CNPJ</b> e a <b>UF do emissor</b> (ou use <b>Preencher de arquivo</b>).', 'Clique em <b>Salvar</b>.'], pagina: 'base', tour: 'terceiro_novo', aj: 'novo_terceiro' },
+  { t: 'Editar um terceiro', p: 'editar alterar terceiro fornecedor cnpj uf', passos: ['No <b>Dashboard</b>, abra o insumo e clique no <b>nome do fornecedor</b>.', 'Altere os dados e clique em <b>Salvar</b>.'], pagina: 'visao' },
+  { t: 'Cadastrar um pedido de compra', p: 'cadastrar incluir novo pedido compra oc numero', passos: ['Na <b>Base de faturamento</b>, clique em <b>➕ Novo pedido</b> (ou no <b>+ Pedido</b> do terceiro em Pedidos e produtos).', 'Escolha o <b>terceiro</b>, informe o <b>número</b> e a <b>data</b>.', 'Escolha o <b>REIDI</b> e confira as <b>UFs</b> e o <b>DIFAL</b>.', 'Clique em <b>Cadastrar e lançar produtos</b> e inclua os <b>produtos</b>.'], pagina: 'base', tour: 'pedido_novo', aj: 'novo_pedido' },
+  { t: 'Incluir produtos no pedido', p: 'incluir produto item pedido quantidade unidade valor unitario', passos: ['Em <b>Pedidos e produtos</b>, clique no <b>+</b> da linha do pedido (ou abra o pedido e use <b>Novo produto</b>).', 'Informe nome, unidade, <b>quantidade contratada</b> e <b>valor unitário</b> (SEM/COM REIDI conforme o pedido).', 'Clique em <b>Incluir produto</b>. O valor do pedido é a soma dos produtos.', 'Para vários produtos, use <b>Importar produtos</b> dentro do pedido.'], pagina: 'pedidos', tour: 'produto_novo', aj: 'mais_produto' },
+  { t: 'Abrir um pedido e ver tudo dele', p: 'abrir pedido detalhe ver produtos nfs reidi saldo', passos: ['Em <b>Pedidos e produtos</b>, clique na linha do pedido.', 'A janela mostra valor, produtos, REIDI, faturado e saldo, com as ações do pedido.'], pagina: 'pedidos', tour: 'pedido_detalhe' },
+  { t: 'Ver os pedidos e o saldo de cada um', p: 'ver pedidos saldo pedido faturado situacao tela pedidos', passos: ['Abra <b>☰ Menu › Pedidos e produtos</b>.', 'Cada terceiro aparece numa faixa com o total dos pedidos.', 'Na linha de cada pedido: qtd contratada, abatida, saldo, valor, faturado, saldo R$, % faturado e situação.', 'Use a pesquisa, os filtros e a <b>Situação</b> para achar o que precisa.'], pagina: 'pedidos', tour: 'pedidos_tela' },
+  { t: 'Alterar o REIDI de um pedido', p: 'alterar mudar reidi pedido percentual produto', passos: ['Abra o pedido e clique em <b>Alterar REIDI</b>.', 'Escolha o modo (Sem REIDI, Por pedido ou Por produto) e o % se for por pedido.', 'Escolha o que fica fixo ao recalcular (SEM ou COM REIDI) e clique em <b>Aplicar</b>.'], pagina: 'pedidos', aj: 'alterar_reidi', tour: 'pedido_detalhe' },
+  { t: 'Fazer o distrato do saldo de um pedido', p: 'distrato saldo pedido encerrar cancelar sobra', passos: ['Abra o pedido e clique em <b>Distrato de saldo</b>.', 'Informe número, data, motivo e a descrição (ou <b>Gerar descrição automática</b>).', 'Salve e gere o <b>PDF do distrato</b>.', 'Quando for aprovado, clique em <b>Aprovar</b> na faixa do distrato: o saldo sai do pedido e volta para o insumo.'], pagina: 'pedidos', aj: 'distrato' },
+  { t: 'Excluir um pedido', p: 'excluir apagar remover pedido', passos: ['Em <b>Pedidos e produtos</b>, clique na 🗑 da linha do pedido (ou <b>Excluir pedido</b> dentro dele).', 'Confirme. Pedidos com NFs lançadas não podem ser excluídos.'], pagina: 'pedidos', aj: 'excluir_pedido' },
+  { t: 'Lançar uma nota fiscal', p: 'lancar cadastrar incluir nova nota fiscal nf danfe xml', passos: ['Na <b>Base de faturamento</b>, clique em <b>➕ Nova NF</b> (ou no 📄 da linha do pedido).', 'Use <b>Preencher de arquivo</b> (XML/PDF) ou preencha: <b>pedido</b>, número, data, BM e valor.', 'Informe a <b>quantidade de cada produto</b> nesta NF.', 'Confira REIDI, DIFAL e o <b>Nº GRD</b> do e-clic.', 'Clique em <b>Lançar NF</b>.'], pagina: 'base', tour: 'nf_nova', aj: 'nova_nf' },
+  { t: 'Importar notas fiscais (XML, PDF ou planilha)', p: 'importar notas fiscais nf xml pdf planilha varias', passos: ['Na <b>Base de faturamento</b>, clique em <b>Importar NF</b>.', 'Escolha o arquivo da NF (XML/PDF) para conferir e salvar, ou <b>Importar várias NFs por planilha</b>.', 'Confira e confirme: nada é gravado antes.'], pagina: 'base', aj: 'importar_nf' },
+  { t: 'NF divergente: o que fazer', p: 'nf divergente diferenca valor itens soma conferencia', texto: 'A NF fica <b>Divergente</b> quando o <b>Valor NF</b> é diferente da soma dos itens informados.', passos: ['Abra a NF.', 'Confira as quantidades e os valores unitários dos itens.', 'Se os itens estiverem certos, clique em <b>Usar soma dos itens no valor NF</b>.', 'Salve: a NF deixa de aparecer como divergente.'], pagina: 'base', aj: 'soma_itens' },
+  { t: 'Marcar a NF como lançada no e-clic', p: 'eclic e clic grd lancada via assinada', passos: ['Abra a NF.', 'Informe o <b>Nº GRD</b> (o lançamento no e-clic; várias: separe por ;).', 'A NF é marcada como <b>lançada no e-clic</b> e a data pode ser informada.', 'Salve.'], pagina: 'base', tour: 'nf_nova' },
+  { t: 'Lançar um boleto', p: 'lancar cadastrar incluir novo boleto pagamento vencimento', passos: ['Lance a NF antes.', 'Na <b>Base de faturamento</b>, clique em <b>➕ Novo boleto</b> (ou em <b>Novo boleto</b> dentro da NF).', 'Escolha a NF e informe número, valor e <b>vencimento</b>.', 'Quando pagar, informe a <b>data de pagamento</b> (o status vira Pago).', 'Clique em <b>Lançar boleto</b>.'], pagina: 'base', tour: 'boleto_novo', aj: 'novo_boleto' },
+  { t: 'Dar baixa (pagar) um boleto', p: 'baixa pagar pago boleto pagamento quitar', passos: ['Na <b>Base de faturamento</b>, clique no boleto (ou abra a NF).', 'Informe a <b>Data de pagamento</b>.', 'Grave: o status passa a <b>Pago</b>.'], pagina: 'base' },
+  { t: 'Importar boletos', p: 'importar boletos planilha', passos: ['Na <b>Base de faturamento</b>, clique em <b>Importar boletos</b>.', 'Use a planilha com o Nº NF (e o Nº Pedido se a NF se repetir).', 'Confira e confirme.'], pagina: 'base', aj: 'importar_boletos' },
+  { t: 'Filtrar a Base de faturamento (filtro estilo Excel)', p: 'filtrar filtro coluna excel ordenar pesquisar base notas', passos: ['Na <b>Base de faturamento</b>, clique no <b>▼</b> do título da coluna.', 'Ordene, pesquise ou marque os valores que quer ver e clique em <b>OK</b>.', 'Coluna filtrada fica laranja. <b>Limpar filtros</b> tira tudo.'], pagina: 'base', tour: 'base_tela', aj: 'filtro_excel' },
+  { t: 'Exportar para o Excel', p: 'exportar excel planilha baixar xlsx relatorio', passos: ['<b>Exportar tudo</b> (Dashboard ou Importar / Exportar): todas as abas.', '<b>Exportar esta base</b> (Base de faturamento): como está na tela, com filtros.', '<b>Exportar</b> em Insumos, Pedidos e produtos e Obra: só aquela lista.'], pagina: 'importar', aj: 'exportar_tudo' },
+  { t: 'Importar planilhas (insumos, terceiros, pedidos, NFs, boletos)', p: 'importar planilha excel csv insumos terceiros pedidos notas boletos obra', passos: ['Abra <b>☰ Menu › Importar / Exportar</b>.', 'Clique em <b>Exportar tudo</b> para baixar o modelo.', 'Preencha (em Terceiros use o nome exato do insumo; nas NFs o Nº Pedido e o nome exato do terceiro).', 'Clique no botão do tipo que quer importar, escolha o modo e o arquivo, confira e confirme.'], pagina: 'importar', tour: 'importar', aj: 'importar_tipo' },
+  { t: 'Salvar o trabalho (nuvem ou arquivo JSON)', p: 'salvar gravar guardar nuvem firebase json backup versao', passos: ['Clique em <b>👤 Controlador</b> no cabeçalho.', 'Na aba <b>Ferramentas</b>: <b>Salvar na nuvem</b> (atualiza a base vinculada), <b>Salvar na base existente</b> ou <b>Exportar JSON</b>.', 'Ao salvar aparece a tela de carregamento “Salvando na nuvem”.'], aviso: 'As alterações ficam só na tela até você salvar.', tour: 'salvar', abrir: 'controlador', aj: 'salvar_nuvem' },
+  { t: 'Abrir uma base da nuvem ou um arquivo JSON', p: 'abrir carregar importar base nuvem versao json arquivo', passos: ['Na <b>tela inicial</b>, clique em <b>Importar</b>.', 'Escolha <b>Versão na nuvem</b> (lista em cartões; clique em <b>Carregar</b>) ou <b>Arquivo JSON</b>.', 'Aguarde a tela de carregamento e escolha como entrar (Visualizador ou Controlador).'], aj: 'importar_entrada' },
+  { t: 'Renomear uma versão da nuvem', p: 'renomear versao nuvem nome lapis', passos: ['Na tela inicial: <b>Importar › Versão na nuvem</b>.', 'Clique no <b>✏️ lápis</b> da versão.', 'Digite o novo nome e confirme.'] },
+  { t: 'Começar um projeto novo', p: 'projeto novo obra nova comecar zero em branco', passos: ['Na <b>tela inicial</b>, clique em <b>Projeto novo</b>.', 'O controle abre em branco: comece por <b>Configurações › Obra e aditivos</b> e depois os <b>Insumos</b>.', 'Salve na nuvem pelo Controlador.'], aj: 'projeto_novo' },
+  { t: 'Alterar os dados e o prazo da obra', p: 'dados obra prazo inicio fim nome cliente consorcio uf bm', passos: ['Abra <b>☰ Menu › Configurações › Obra e aditivos</b>.', 'Altere nome, cliente, UF, início, fim, modo do prazo e BMs.', 'Clique em <b>Salvar informações da obra</b>: os meses e BMs da projeção e da tendência se ajustam.'], pagina: 'obra', tour: 'obra' },
+  { t: 'Registrar um aditivo (prazo ou valor)', p: 'aditivo prazo valor prorrogacao supressao acrescimo', passos: ['Abra <b>Configurações › Obra e aditivos</b> e clique em <b>➕ Novo aditivo</b>.', 'Escolha o tipo: <b>prazo</b> (novo fim e BM final) e/ou <b>valor</b> (insumo e valor acrescido).', 'Clique em <b>Registrar aditivo</b>: o prazo e os valores vigentes são recalculados.'], pagina: 'obra', tour: 'aditivo_novo', aj: 'novo_aditivo' },
+  { t: 'Ajustar a Tabela ICMS / DIFAL', p: 'tabela icms difal aliquota uf ajustar editar', passos: ['Abra <b>Configurações › Tabela ICMS / DIFAL</b>.', 'Edite a alíquota interna da UF.', '<b>Restaurar referência</b> volta aos valores padrão (NFs já lançadas não mudam).'], pagina: 'aliquotas', tour: 'aliquotas' },
+  { t: 'Ver a tendência de um insumo', p: 'tendencia grafico previsto real projecao insumo curva', passos: ['Abra <b>☰ Menu › Visão gerencial › Tendência</b>.', 'Escolha o <b>insumo</b>.', 'Compare o previsto acumulado, o real (NFs) e a tendência.'], pagina: 'tendencia', tour: 'tendencia' },
+  { t: 'Gerar o relatório ou a apresentação para o cliente', p: 'gerar relatorio apresentacao cliente pdf powerpoint slides', passos: ['Clique em <b>👤 Controlador</b> e vá na aba <b>Gerar relatórios</b>.', 'Escolha <b>Gerar relatório para o cliente (PDF)</b> ou monte a apresentação por terceiro (PDF ou PowerPoint).'], tour: 'relatorios', abrir: 'controlador', aj: 'apresentacao' },
+  { t: 'Trocar a logo e o título do cabeçalho', p: 'trocar logo logotipo titulo subtitulo cabecalho imagem', passos: ['Clique em <b>👤 Controlador › Ferramentas</b>.', 'Clique em <b>Editar cabeçalho e logo</b>.', 'Escolha a imagem e o texto e salve a base.'], abrir: 'controlador', aj: 'editar_cabecalho' },
+  { t: 'Sair ou trocar de perfil', p: 'sair trocar perfil usuario logout voltar tela inicial', passos: ['Abra <b>☰ Menu › ↶ Sair/Trocar</b>.', 'Se houver alterações não salvas, confirme <b>Sair sem salvar</b> ou cancele e salve antes.'], tour: 'sair', aj: 'sair' },
+  { t: 'Perfis de acesso e login do Portal KZ', p: 'perfil acesso login senha portal kz visualizador controlador administrador permissao', texto: '<b>Visualizador</b> só consulta. <b>Controlador</b> edita e salva. <b>Administrador</b> libera os acessos. Quem abre pelo Portal KZ já logado não digita senha de novo: o acesso segue o papel na obra (Leitor = consulta, Editor = edita, Administrador = acessos).', aj: 'perfis' },
+  { t: 'O que faz cada botão', p: 'o que faz cada botao todos botoes lista funcao botoes', texto: 'Pergunte <i>“o que faz o botão Nova NF?”</i> ou escolha na lista abaixo.' },
+  /* conceitos */
+  { t: 'O que é faturamento direto', p: 'o que e faturamento direto fd conceito', texto: '<b>Faturamento direto (FD)</b> é quando o fornecedor fatura direto para o cliente da obra. O controle acompanha, por insumo, o valor previsto, os pedidos, o que as NFs já consumiram e o saldo.' },
+  { t: 'O que é insumo e valor vigente', p: 'o que e insumo valor vigente total aditivo', texto: '<b>Insumo</b> é o item que será faturado direto (ex.: aço, concreto). O <b>valor total</b> é o previsto; o <b>valor vigente</b> é o valor total mais os aditivos de valor do insumo.' },
+  { t: 'O que é consumido e saldo', p: 'o que e consumido saldo avanco percentual', texto: '<b>Consumido</b> é a soma das NFs lançadas. <b>Saldo</b> = total − consumido. <b>Avanço</b> = consumido ÷ total. No insumo o total é o valor da aba Insumos; no fornecedor e no pedido, o valor dos pedidos.' },
+  { t: 'O que é REIDI', p: 'o que e reidi sem com desconto regime especial', texto: '<b>REIDI</b> é o regime especial que reduz o valor do material. No pedido ele pode ser <b>Sem REIDI</b>, <b>Por pedido</b> (% único: COM = SEM × (1 − %)) ou <b>Por produto</b> (valor SEM e COM REIDI de cada produto). O REIDI da NF = qtd × (unit. SEM do pedido − unit. na NF).', aj: 'alterar_reidi' },
+  { t: 'O que é DIFAL', p: 'o que e difal diferencial aliquota icms uf interestadual', texto: '<b>DIFAL</b> é o diferencial de alíquota do ICMS: alíquota interna da UF de destino − alíquota interestadual (7% quando a origem é Sul/Sudeste, exceto ES, e o destino é N, NE, CO ou ES; 12% nas demais; 4% para importados). Mesma UF: sem DIFAL. O pedido sugere o % e a NF herda.', pagina: 'aliquotas' },
+  { t: 'O que é BM (boletim de medição)', p: 'o que e bm boletim medicao', texto: '<b>BM</b> é o boletim de medição do período. A projeção do insumo é feita por BM e cada NF entra no real do BM informado (sugerido pela data).' },
+  { t: 'O que é a situação do pedido (Normal, Crítico, Esgotado)', p: 'o que e situacao pedido normal critico esgotado cor', texto: 'Pela % consumida do valor do pedido: <b>Normal</b> até 79,9%, <b>Crítico</b> de 80% a 99,9% e <b>Esgotado</b> com 100% ou mais. Em Pedidos e produtos também aparecem OK, Sem saldo, Excedido, Distrato solicitado, Distratado e Sem produtos.' },
+  { t: 'O que é distrato', p: 'o que e distrato saldo', texto: '<b>Distrato de saldo</b> encerra a parte não faturada de um pedido. Fica <b>SOLICITADO</b> até ser <b>APROVADO</b>; aprovado, o saldo sai do pedido e volta para o insumo.', aj: 'distrato' },
+  { t: 'O que é GRD e e-clic', p: 'o que e grd eclic e clic via assinada', texto: '<b>GRD</b> é o número do lançamento da NF no <b>e-clic</b>. Com a GRD informada a NF fica marcada como lançada (via assinada).' },
+  { t: 'O que é a Tendência', p: 'o que e tendencia projecao previsto real', texto: '<b>Previsto</b> = projeção por BM de cada insumo. <b>Real</b> = NFs lançadas, no mês do BM. <b>Tendência</b> = real até o mês atual e, depois, o saldo do valor vigente na proporção do previsto dos meses restantes.', pagina: 'tendencia' },
+];
+
+/* =============================================================================
+   NUMEROS DA OBRA ABERTA
+   ========================================================================== */
+function assistLinhaFD(r, v, forte) { return `<tr><td>${r}</td><td class='as-v'${forte ? " style='font-weight:800'" : ''}>${v}</td></tr>`; }
+function assistDadosFD(pergunta) {
+  const n = assistNormFD(pergunta);
+  if (!n || /\b(o que e|o que sao|significa|quer dizer|definicao|conceito|como funciona)\b/.test(n)) return null;
+  if (/^como (?!esta|estao|anda|andam|ficou|vai)/.test(n) || /\bcomo (faco|fazer|lanco|lancar|cadastro|cadastrar|incluo|incluir|importo|importar|exporto|exportar|mudo|mudar|altero|alterar|edito|editar|troco|trocar|registro|registrar|dou|dar|vejo|ver|salvo|salvar|abro|abrir)\b/.test(n)) return null;
+  if (!appAtual) return null;
+  const pct = (a, b) => formatarPercentual(b ? (a / b) * 100 : 0, { casas: 2 });
+  const quer = (rx) => rx.test(n);
+  const pergNum = /\b(quanto|quantos|quantas|qual|quais|valor|total|mostre|mostrar|ver|lista|listar)\b/.test(n);
+  try {
+    /* pedido pelo numero */
+    const numPed = (n.match(/\b\d{4,}\b/) || [])[0];
+    const ped = pedidos.find((p) => { const num = assistNormFD(p.numero); return num.length >= 4 && (` ${n} `).includes(` ${num} `); })
+      || (numPed ? pedidos.find((p) => String(p.numero).replace(/\D/g, '') === numPed) : null);
+    if (ped) {
+      const r = resumoPedido(ped); const ter = terceiroDoPedido(ped); const ins = insumoDoPedido(ped);
+      return `<div class='as-tit'>🧾 Pedido ${assistEscFD(ped.numero)}</div><table class='as-tab'>${assistLinhaFD('Fornecedor', assistEscFD(ter ? ter.nome : '—'))}${assistLinhaFD('Insumo', assistEscFD(ins ? ins.nome : '—'))}${assistLinhaFD('Valor do pedido', formatarMoeda(vn(ped.valor)))}${assistLinhaFD(`Consumido (${r.nfs.length} NF)`, `${formatarMoeda(r.faturado)} <small>(${pct(r.faturado, vn(ped.valor))})</small>`)}${assistLinhaFD('Saldo', formatarMoeda(r.saldo), true)}</table>`
+        + `<div class='as-bts'><button type='button' class='as-bt' data-pagina='pedidos'>📍 Ir para “Pedidos e produtos”</button></div>`;
+    }
+    /* insumo pelo nome */
+    const GENERICAS = new Set(['demo', 'ficticio', 'ficticia', 'para', 'com', 'dos', 'das', 'tipo', 'fornecimento', 'execucao', 'material', 'servico']);
+    const palavrasPerg = n.split(' ');
+    const casaNome = (nome) => { const nn = assistNormFD(nome); return nn.length >= 3 && ((` ${n} `).includes(` ${nn} `) || nn.split(' ').filter((w) => w.length >= 3 && !GENERICAS.has(w) && !/^\d+$/.test(w)).some((w) => palavrasPerg.includes(w))); };
+    const ins = insumos.find((i) => casaNome(i.nome));
+    if (ins && (pergNum || quer(/\b(saldo|consumido|faturado|pedido|situacao|como esta|tendencia|avanco)\b/))) {
+      const r = resumoInsumo(ins);
+      return `<div class='as-tit'>💰 ${assistEscFD(ins.nome)}</div><table class='as-tab'>${assistLinhaFD(rotuloValorInsumo(), formatarMoeda(r.vigente))}${assistLinhaFD(`Em pedidos (${r.peds.length})`, `${formatarMoeda(r.comprometido)} <small>(${pct(r.comprometido, r.vigente)})</small>`)}${assistLinhaFD(`Consumido (${r.nfs.length} NF)`, `${formatarMoeda(r.faturado)} <small>(${pct(r.faturado, r.vigente)})</small>`)}${assistLinhaFD('Saldo a faturar', formatarMoeda(r.saldoFaturar), true)}${assistLinhaFD('Saldo a contratar', formatarMoeda(r.saldoContratar))}${assistLinhaFD('Fornecedores', String(r.ters.length))}</table>`
+        + "<div class='as-bts'><button type='button' class='as-bt' data-pagina='visao'>📍 Ir para o “Dashboard”</button><button type='button' class='as-bt' data-pagina='tendencia'>📈 Ver a Tendência</button></div>";
+    }
+    /* fornecedor pelo nome */
+    const ter = terceiros.find((t) => { const nome = assistNormFD(t.nome); const chave = nome.split(' ').find((w) => w.length >= 5 && !GENERICAS.has(w)); return chave && palavrasPerg.includes(chave); });
+    if (ter && (pergNum || quer(/\b(saldo|consumido|faturado|pedido)\b/))) {
+      const peds = pedidos.filter((p) => p.terceiroId === ter.id); const ids = new Set(peds.map((p) => p.id));
+      const tot = somar(peds, 'valor'); const cons = somar(notas.filter((x) => ids.has(x.pedidoId)), 'valor');
+      return `<div class='as-tit'>🏭 ${assistEscFD(ter.nome)}</div><table class='as-tab'>${assistLinhaFD(`Pedidos (${peds.length})`, formatarMoeda(tot))}${assistLinhaFD('Consumido (NFs)', `${formatarMoeda(cons)} <small>(${pct(cons, tot)})</small>`)}${assistLinhaFD('Saldo', formatarMoeda(tot - cons), true)}</table>`;
+    }
+    if (quer(/\b(vencid|atrasad)/) || (quer(/\bboleto/) && (pergNum || quer(/\b(aberto|pagar|vencer)\b/)))) {
+      const lista = boletos.map((b) => ({ b, st: statusBoleto(b) }));
+      const venc = lista.filter((x) => x.st === 'Vencido'); const aberto = lista.filter((x) => ['Em aberto', 'Vencido', 'Em contestação'].includes(x.st));
+      const nfDe = (b) => notas.find((x) => x.id === b.notaId);
+      return `<div class='as-tit'>💳 Boletos</div><table class='as-tab'>${assistLinhaFD(`Em aberto (${aberto.length})`, formatarMoeda(somar(aberto.map((x) => x.b), 'valor')))}${assistLinhaFD(`Vencidos (${venc.length})`, formatarMoeda(somar(venc.map((x) => x.b), 'valor')), true)}${assistLinhaFD(`Pagos (${lista.filter((x) => x.st === 'Pago').length})`, formatarMoeda(somar(lista.filter((x) => x.st === 'Pago').map((x) => x.b), 'valor')))}</table>`
+        + (venc.length ? `<div class='as-outros'>Vencidos: ${venc.slice(0, 8).map((x) => `NF ${assistEscFD((nfDe(x.b) || {}).numero || '?')} (${formatarData(x.b.vencimento)})`).join(' · ')}${venc.length > 8 ? '…' : ''}</div>` : '')
+        + "<div class='as-bts'><button type='button' class='as-bt' data-pagina='base'>📍 Ir para a “Base de faturamento”</button></div>";
+    }
+    if (quer(/\b(sem boleto|nf sem|notas sem|eclic|e clic|grd)/) || (quer(/divergent/) && pergNum)) {
+      const semBol = notas.filter((x) => !boletosDaNota(x.id).length); const semEclic = notas.filter((x) => !x.eclic);
+      const diverg = notas.filter((x) => analisarNota(x).situacao === 'Divergente');
+      return `<div class='as-tit'>📄 Pendências das NFs</div><table class='as-tab'>${assistLinhaFD('NFs lançadas', String(notas.length))}${assistLinhaFD('Sem boleto', String(semBol.length), true)}${assistLinhaFD('Sem lançamento no e-clic', String(semEclic.length), true)}${assistLinhaFD('Divergentes (valor ≠ itens)', String(diverg.length))}</table>`
+        + "<div class='as-bts'><button type='button' class='as-bt' data-pagina='base'>📍 Ir para a “Base de faturamento”</button></div>";
+    }
+    if (quer(/\b(maior|maiores|ranking|top|principais)\b/)) {
+      const lista = insumos.map((i) => ({ i, r: resumoInsumo(i) })).sort((a, b) => b.r.faturado - a.r.faturado).slice(0, 6);
+      return `<div class='as-tit'>🏆 Insumos com maior consumo</div><table class='as-tab'>${lista.map((x, k) => assistLinhaFD(`${k + 1}. ${assistEscFD(x.i.nome)}`, `${formatarMoeda(x.r.faturado)} <small>(${pct(x.r.faturado, x.r.vigente)})</small>`)).join('')}</table>`;
+    }
+    if (quer(/\b(prazo|inicio da obra|fim da obra|termino|quando termina|bm atual|qual bm)\b/)) {
+      return `<div class='as-tit'>📅 Prazo da obra</div><table class='as-tab'>${assistLinhaFD('Obra', assistEscFD(obra.nome || '—'))}${assistLinhaFD('Início', obra.inicio ? formatarData(obra.inicio) : '—')}${assistLinhaFD('Fim contratual', obra.fim ? formatarData(obra.fim) : '—')}${assistLinhaFD('Fim vigente (com aditivos)', fimVigente() ? formatarData(fimVigente()) : '—', true)}${assistLinhaFD('Aditivos', String(aditivos.length))}</table>`
+        + "<div class='as-bts'><button type='button' class='as-bt' data-pagina='obra'>📍 Ir para “Obra e aditivos”</button></div>";
+    }
+    if (quer(/\b(quantos|quantas|numero de)\b/) && quer(/\b(pedido|nota|nf|terceiro|fornecedor|insumo|boleto)/)) {
+      return `<div class='as-tit'>🔢 Cadastros da obra</div><table class='as-tab'>${assistLinhaFD('Insumos', String(insumos.length))}${assistLinhaFD('Terceiros (fornecedores)', String(terceiros.length))}${assistLinhaFD('Pedidos', String(pedidos.length))}${assistLinhaFD('Notas fiscais', String(notas.length))}${assistLinhaFD('Boletos', String(boletos.length))}</table>`;
+    }
+    if (quer(/\b(saldo|consumido|faturado|total|resumo|situacao|como esta|quanto falta)\b/) && (pergNum || quer(/\b(geral|obra|faturamento|direto|fd)\b/))) {
+      const tot = insumos.reduce((a, i) => a + valorVigente(i), 0); const emPed = somar(pedidos, 'valor'); const cons = somar(notas, 'valor');
+      return `<div class='as-tit'>📊 Faturamento direto — ${assistEscFD(obra.nome || 'obra')}</div><table class='as-tab'>${assistLinhaFD('Total dos insumos', formatarMoeda(tot))}${assistLinhaFD(`Em pedidos (${pedidos.length})`, `${formatarMoeda(emPed)} <small>(${pct(emPed, tot)})</small>`)}${assistLinhaFD(`Consumido (${notas.length} NFs)`, `${formatarMoeda(cons)} <small>(${pct(cons, tot)})</small>`)}${assistLinhaFD('Saldo do faturamento direto', formatarMoeda(tot - cons), true)}${assistLinhaFD('Saldo dos pedidos', formatarMoeda(emPed - cons))}</table>`
+        + "<div class='as-bts'><button type='button' class='as-bt' data-pagina='visao'>📍 Ir para o “Dashboard”</button></div>";
+    }
+  } catch (e) { console.warn('[assistente]', e); return null; }
+  return null;
 }
 
 /* Inicio (v1.73): tela de entrada por perfis; a nuvem KZ pede login so quando usada */
