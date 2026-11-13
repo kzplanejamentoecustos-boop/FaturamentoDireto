@@ -7066,7 +7066,7 @@ function pedirLoginKZ() {
       },
     });
     const modal = criarModal({
-      titulo: 'Nuvem — login KZ',
+      titulo: 'Entrar — login KZ',
       tamanho: 'sm',
       destruirAoFechar: true,
       conteudo: [h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'As bases ficam na nuvem da KZ, separadas por obra. Entre com o seu e-mail e senha de acesso.'), formulario.elemento],
@@ -7128,6 +7128,8 @@ function garantirNuvemKZ() {
         if (!acesso.obra) throw new Error(`A obra "${obraNuvem}" não existe. Confira o link recebido.`);
         if (!acesso.papel) throw new Error(`Sem acesso ao Faturamento Direto na ${acesso.obra.sigla || obraNuvem}. Fale com o gestor da obra.`);
         usuarioKZ = { email: user.email, nome: acesso.nome, papel: acesso.papel, sigla: acesso.obra.sigla || obraNuvem };
+        // login feito pela nuvem: os perfis da tela de entrada passam a valer sem senha da base
+        if (telaEntradaPronta) telaEntrada.definirAcessoPortal({ ...usuarioKZ });
       }
     })().finally(() => { garantindoNuvem = null; });
   }
@@ -16616,6 +16618,8 @@ const telaEntrada = criarTelaEntrada({
   onEntrar: abrirAplicativo,
 });
 
+let telaEntradaPronta = true;
+
 function mostrarEntrada() {
   telaEntrada.mostrar();
 }
@@ -16631,10 +16635,14 @@ async function detectarAcessoPortal() {
   if (!obraNuvem) return;
   try {
     await KZ.iniciarFirebase(FIREBASE_KZ);
-    const user = await KZ.usuarioAtual();
+    let user = await KZ.usuarioAtual();
+    // aberto pelo link da obra e ainda sem login: pede o login KZ logo na entrada
+    // (Cancelar mantem a tela como antes, com as senhas da base)
+    if (!user) user = await pedirLoginKZ();
     if (!user) return;
     const acesso = await KZ.papelNaObra(obraNuvem, CONTROLE_KZ);
-    if (!acesso.obra || !acesso.papel) return;
+    if (!acesso.obra) { toast.aviso('Obra não encontrada', `A obra "${obraNuvem}" não existe. Confira o link recebido.`); return; }
+    if (!acesso.papel) { toast.aviso('Sem acesso', `Seu usuário não tem acesso ao Faturamento Direto na ${acesso.obra.sigla || obraNuvem}. Fale com o gestor da obra.`); return; }
     usuarioKZ = { email: user.email, nome: acesso.nome, papel: acesso.papel, sigla: acesso.obra.sigla || obraNuvem };
     telaEntrada.definirAcessoPortal({ ...usuarioKZ });
   } catch (erro) {
