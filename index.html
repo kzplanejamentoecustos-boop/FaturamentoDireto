@@ -7236,7 +7236,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.85.0
+   Versao: 1.86.0
+   1.86.0: botão "Composição" do pedido sem a quantidade de NFs.
    1.85.0: Composição do pedido com 2 abas: Itens do pedido (qtd e valor total, consumido e
            saldo por item, da aba Pedidos e produtos) e Notas fiscais (como antes).
    1.84.0: sai o Dashboard FD; a Visão geral passa a se chamar Dashboard e é a tela principal.
@@ -12795,7 +12796,7 @@ function secaoGeralArvore() {
               const botaoComp = h('button', {
                 type: 'button', class: 'fd-arv__comp', title: 'Ver as notas fiscais deste pedido',
                 onClick: (e) => { e.stopPropagation(); abrirComposicaoPedido(pd.ped); },
-              }, criarIcone('documento', 14), `Composição (${pd.qtdNfs} NF${pd.qtdNfs === 1 ? '' : 's'})`);
+              }, criarIcone('documento', 14), 'Composição');
               f2.append(h('div', { class: 'fd-arv__bloco fd-arv__bloco--n3' }, linha({
                 nivel: 3, filhos: false, codigo: cod(pd.ped.id), nome: `Pedido ${pd.ped.numero}`, onAbrir: () => abrirPedido(pd.ped),
                 junto: botaoComp,
@@ -17455,7 +17456,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.85 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.86 · KZ App Standard v1.7',
     },
     paginas: {
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
