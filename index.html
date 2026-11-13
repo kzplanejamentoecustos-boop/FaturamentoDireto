@@ -967,6 +967,10 @@ img { max-width: 100%; display: block; }
 .fd-entrada__opcao-sub { display: block; font-size: var(--ctc-fs-xs); color: var(--ctc-color-text-muted); }
 .fd-entrada__opcao-fim { flex: none; color: var(--ctc-color-text-muted); font-size: 12px; }
 .fd-entrada__opcao-fim svg { width: 20px; height: 20px; }
+.fd-entrada__portal { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px;
+  background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; font-size: var(--ctc-fs-xs); }
+.fd-entrada__portal[hidden] { display: none; }
+.fd-entrada__portal svg { flex: none; }
 .fd-entrada__fontes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 12px; }
 .fd-entrada__fontes[hidden] { display: none; }
 .fd-entrada__tile--celeste { background: #e0f2fe; color: #0369a1; }
@@ -5204,8 +5208,19 @@ function criarTelaEntrada({
   logo, titulo = 'Aplicativo', subtitulo = 'Escolha como deseja acessar', formato,
   prefixoArquivo, administrador = {}, baseInicial = null,
   textoBaseInicial = 'Nenhuma base importada.', rodape, onEntrar, armazenamento, criarBaseNova, onAjuda,
+  onAcessosPortal,
 } = {}) {
   let base = baseInicial ? validarBase(JSON.parse(JSON.stringify(baseInicial)), { formato }).base : null;
+  /*
+   * v1.74: quem abre pelo Portal KZ ja logado nao digita login/senha de novo.
+   * acessoPortal = { email, nome, papel: 'leitor'|'editor'|'admin', sigla } (null = sem login do Portal)
+   */
+  let acessoPortal = null;
+  const NOME_PAPEL_PORTAL = { leitor: 'Leitor', editor: 'Editor', admin: 'Administrador' };
+  const NIVEL_PAPEL_PORTAL = { leitor: 1, editor: 2, admin: 3 };
+  const portalPermite = (minimo) => Boolean(acessoPortal) && (NIVEL_PAPEL_PORTAL[acessoPortal.papel] || 0) >= NIVEL_PAPEL_PORTAL[minimo];
+  const usuarioPortal = () => ({ login: acessoPortal.email, nome: `${acessoPortal.nome} (${NOME_PAPEL_PORTAL[acessoPortal.papel] || acessoPortal.papel})` });
+  const elPortal = h('div', { class: 'fd-entrada__portal', hidden: true });
   let nomeArquivo = null;
   let importada = false;
   let pendenteExportar = false;
@@ -5242,6 +5257,7 @@ function criarTelaEntrada({
     atualizarMarca();
     let texto;
     if (importada && base) texto = String(nomeArquivo || 'Base carregada').replace(/^Nuvem: /, '').replace(/\.json$/i, '');
+    else if (acessoPortal) texto = 'Nenhum arquivo carregado ainda.';
     else if (base) texto = `${textoBaseInicial} ${base.controladores.length ? `(${base.controladores.length} controlador${base.controladores.length === 1 ? '' : 'es'})` : ''}`.trim();
     else texto = textoBaseInicial;
     if (pendenteExportar) texto += ' — alterações de controladores ainda não exportadas';
@@ -5319,7 +5335,7 @@ function criarTelaEntrada({
   });
 
   function exigirBase() {
-    if (base) return true;
+    if (base && (importada || !acessoPortal)) return true;
     toast.aviso('Importe a base de dados', 'Use o botão "Importar" (versão na nuvem ou arquivo JSON) antes de entrar.');
     return false;
   }
@@ -5333,12 +5349,17 @@ function criarTelaEntrada({
 
   /* ---- Visualizador ---- */
   function entrarVisualizador() {
-    if (exigirBase()) entrar('visualizador');
+    if (exigirBase()) entrar('visualizador', acessoPortal ? usuarioPortal() : null);
   }
 
   /* ---- Controlador ---- */
   function entrarControlador() {
     if (!exigirBase()) return;
+    if (acessoPortal) {
+      if (portalPermite('editor')) { entrar('controlador', usuarioPortal()); return; }
+      toast.aviso('Acesso somente para consulta', `No Portal KZ seu acesso ao Faturamento Direto é ${NOME_PAPEL_PORTAL[acessoPortal.papel] || 'Leitor'}. Entre como Visualizador ou peça ao gestor da obra para liberar a edição.`);
+      return;
+    }
     if (!base.controladores.length) {
       criarModal({
         titulo: 'Nenhum controlador cadastrado',
@@ -5574,6 +5595,19 @@ function criarTelaEntrada({
   }
 
   async function entrarAdministrador() {
+    if (acessoPortal) {
+      if (!portalPermite('admin')) {
+        toast.aviso('Sem acesso de administrador', 'Os acessos são liberados pelo gestor da obra no Portal KZ.');
+        return;
+      }
+      const ok = await confirmar({
+        titulo: 'Acessos pelo Portal KZ',
+        mensagem: 'Quem entra pelo Portal não precisa de login de controlador: o acesso (Leitor, Editor ou Administrador) é liberado em Portal KZ > Equipe da obra. Abrir o Portal agora?',
+        textoConfirmar: 'Abrir o Portal KZ',
+      });
+      if (ok && typeof onAcessosPortal === 'function') onAcessosPortal();
+      return;
+    }
     const senha = await solicitarSenhaAdministrador({ administrador, titulo: 'Acesso do Administrador', textoConfirmar: 'Entrar' });
     if (senha) abrirAdministracao(senha);
   }
@@ -5588,13 +5622,19 @@ function criarTelaEntrada({
       });
       if (!ok) return;
     }
-    const senha = await solicitarSenhaAdministrador({
-      administrador,
-      titulo: 'Iniciar controle',
-      mensagem: 'Informe a senha do administrador para criar uma base em branco.',
-      textoConfirmar: 'Criar base em branco',
-    });
-    if (!senha) return;
+    if (acessoPortal && !portalPermite('editor')) {
+      toast.aviso('Sem permissão', 'Criar um projeto novo exige acesso de Editor no Portal KZ.');
+      return;
+    }
+    if (!acessoPortal) {
+      const senha = await solicitarSenhaAdministrador({
+        administrador,
+        titulo: 'Iniciar controle',
+        mensagem: 'Informe a senha do administrador para criar uma base em branco.',
+        textoConfirmar: 'Criar base em branco',
+      });
+      if (!senha) return;
+    }
     const nova = typeof criarBaseNova === 'function' ? criarBaseNova() : criarBaseVazia(formato);
     base = validarBase({ ...nova, formato }, { formato }).base;
     nomeArquivo = 'Novo controle (ainda não salvo)';
@@ -5602,7 +5642,8 @@ function criarTelaEntrada({
     pendenteExportar = false;
     atualizarStatus();
     toast.sucesso('Base em branco criada', 'Comece a atualizar e salve em Controlador > Ferramentas.');
-    entrar('administrador', { login: 'administrador', nome: 'Administrador' });
+    if (acessoPortal) entrar('controlador', usuarioPortal());
+    else entrar('administrador', { login: 'administrador', nome: 'Administrador' });
   }
 
   /* ---- Visual v1.73: cartoes grandes com icone (mesmo estilo do Controle de Custos) ---- */
@@ -5629,11 +5670,27 @@ function criarTelaEntrada({
     },
   });
 
+  const botaoProjetoNovo = opcao({ icone: 'arquivo-novo', cor: 'teal', titulo: 'Projeto novo', sub: 'Obra em branco (senha do administrador)', fim: criarIcone('seta-direita', 20), onClick: iniciarControle });
+
+  function atualizarPortal() {
+    elPortal.hidden = !acessoPortal;
+    if (acessoPortal) {
+      elPortal.replaceChildren(
+        criarIcone('check', 16),
+        h('span', {}, 'Conectado pelo Portal KZ: ', h('b', {}, acessoPortal.nome),
+          ` · ${NOME_PAPEL_PORTAL[acessoPortal.papel] || acessoPortal.papel} · obra ${acessoPortal.sigla}`),
+      );
+    }
+    const sub = botaoProjetoNovo.querySelector('.fd-entrada__opcao-sub');
+    if (sub) sub.textContent = acessoPortal ? 'Obra em branco' : 'Obra em branco (senha do administrador)';
+  }
+
   const elemento = h('div', { class: 'ctc-landing fd-entrada' },
     h('div', { class: 'ctc-landing__card' },
       onAjuda ? h('button', { type: 'button', class: 'fd-entrada__ajuda', onClick: onAjuda }, h('b', {}, '?'), 'Ajuda') : null,
       h('div', { class: 'fd-entrada__logo' }, elLogoEntrada),
       h('div', {}, elTituloEntrada, h('p', { class: 'fd-entrada__subtitulo' }, subtitulo)),
+      elPortal,
       h('section', { class: 'fd-entrada__secao' },
         h('h2', { class: 'fd-entrada__secao-titulo' }, '1. Importar dados da obra'),
         botaoImportar,
@@ -5641,7 +5698,7 @@ function criarTelaEntrada({
         status,
         linkRemover,
         entrada),
-      opcao({ icone: 'arquivo-novo', cor: 'teal', titulo: 'Projeto novo', sub: 'Obra em branco (senha do administrador)', fim: criarIcone('seta-direita', 20), onClick: iniciarControle }),
+      botaoProjetoNovo,
       h('section', { class: 'fd-entrada__secao' },
         h('h2', { class: 'fd-entrada__secao-titulo' }, '2. Como você vai acessar?'),
         h('div', { class: 'fd-entrada__perfis' },
@@ -5657,6 +5714,12 @@ function criarTelaEntrada({
     mostrar: (alvo = document.body) => { atualizarStatus(); alvo.append(elemento); },
     remover: () => elemento.remove(),
     obterBase: () => base,
+    /** Login do Portal KZ detectado: perfis sem senha conforme o papel na obra. */
+    definirAcessoPortal: (acesso) => {
+      acessoPortal = acesso || null;
+      atualizarPortal();
+      atualizarStatus();
+    },
     /** Atualiza a base mantida na tela (ex.: a versao que acabou de ser salva no aplicativo). */
     definirBase: (novaBase, novoNome = nomeArquivo) => {
       const resultado = validarBase(JSON.parse(JSON.stringify(novaBase)), { formato });
@@ -6704,7 +6767,10 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.73.0
+   Versao: 1.74.0
+   1.74.0: aberto pelo Portal KZ ja logado, a tela de entrada mostra "Conectado pelo Portal" e
+           nao pede login/senha: Visualizador livre, Controlador e Projeto novo para Editor/Admin,
+           Administrador leva a Equipe da obra no Portal. Sem login do Portal, tudo como antes.
    1.73.0: (ajuste) Importar abre dois cartoes lado a lado: Versao na nuvem | Arquivo JSON.
    1.73.0: tela de entrada volta a ser por perfis (Importar: versao na nuvem ou JSON | Projeto novo |
            Visualizador, Controlador, Administrador) no visual do Controle de Custos (logo CSD,
@@ -16501,7 +16567,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           ],
         },
       ],
-      rodape: 'Faturamento Direto v1.73 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.74 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
@@ -16547,6 +16613,7 @@ const telaEntrada = criarTelaEntrada({
   textoBaseInicial: 'Nenhuma base importada: será usada a base de demonstração com dados fictícios (controlador fictício: controlador.demo / demo123).',
   rodape: 'Faturamento Direto · os perfis controlam o uso; a nuvem usa o login do Portal KZ.',
   onAjuda: abrirAjuda,
+  onAcessosPortal: () => window.open(PORTAL_KZ, '_blank', 'noopener'),
   onEntrar: abrirAplicativo,
 });
 
@@ -16555,6 +16622,27 @@ function mostrarEntrada() {
 }
 
 mostrarEntrada();
+
+/*
+ * v1.74: aberto pelo Portal KZ (mesmo site, mesmo Firebase) a pessoa ja esta logada.
+ * Le o papel dela no Faturamento Direto desta obra, sem pedir login/senha. Sem login do
+ * Portal (ou aberto do computador), a tela segue como antes, com as senhas da base.
+ */
+async function detectarAcessoPortal() {
+  if (!obraNuvem) return;
+  try {
+    await KZ.iniciarFirebase(FIREBASE_KZ);
+    const user = await KZ.usuarioAtual();
+    if (!user) return;
+    const acesso = await KZ.papelNaObra(obraNuvem, CONTROLE_KZ);
+    if (!acesso.obra || !acesso.papel) return;
+    usuarioKZ = { email: user.email, nome: acesso.nome, papel: acesso.papel, sigla: acesso.obra.sigla || obraNuvem };
+    telaEntrada.definirAcessoPortal({ ...usuarioKZ });
+  } catch (erro) {
+    console.warn('[FD] Login do Portal KZ não detectado:', erro.message);
+  }
+}
+detectarAcessoPortal();
 
 })();
 </script>
