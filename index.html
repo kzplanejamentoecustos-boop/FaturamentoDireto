@@ -6588,7 +6588,9 @@ return { iniciarFirebase, observarLogin, sair, criarTelaLogin, obraDaUrl, papelN
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.71.0
+   Versao: 1.72.0
+   1.72.0: botoes "Novo terceiro" e "Novo pedido" saem das abas Terceiros e Pedidos e produtos
+           e passam para a aba Notas e boletos (ao lado de Novo boleto e Nova NF).
    1.71.0: aba Notas e boletos sem os avisos do topo (explicacao da base, boletos vencidos e NFs
            sem boleto lancado).
    1.70.0: "Visao geral" sai das abas da base e vira item proprio do menu (com a mesma barra de
@@ -9227,7 +9229,6 @@ function secaoTerceiros() {
     acoes: [
       { texto: 'Importar', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar terceiros (Excel/CSV)', onClick: importarTerceiros },
       { texto: 'Exportar', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exportar terceiros filtrados (Excel)', onClick: () => exportarTerceiros(tabela.obterFiltrados().map((l) => l.ter)) },
-      { texto: 'Novo terceiro', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalTerceiro() },
     ],
     rodape: 'Clique num terceiro para ver só os pedidos dele.',
   };
@@ -10224,7 +10225,6 @@ function secaoPedidosProdutos() {
       { texto: 'Só pedidos', variante: 'ghost', tamanho: 'sm', titulo: 'Recolher os produtos de todos os pedidos', onClick: () => { pedidosAbertosLista.clear(); recarregar(); } },
       { texto: 'Importar', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar pedidos com produtos (Excel, CSV ou PDF)', onClick: abrirImportacaoPedidos },
       { texto: 'Exportar', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exportar pedidos e produtos filtrados (Excel)', onClick: () => exportarPedidos(filtrados) },
-      { texto: 'Novo pedido', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalPedido() },
     ],
     rodape: 'Faixa escura: terceiro (com o total dos pedidos dele). Faixa cinza com barra azul: pedido (pedidos sem saldo ficam brancos e apagados). Abaixo, os produtos (seta do pedido). Ações do pedido: + produto, lançar NF, excluir.',
   };
@@ -11176,6 +11176,9 @@ function secaoNotasBoletos() {
       },
       { texto: 'Importar NF', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar NF: XML, PDF ou planilha', onClick: abrirImportacaoNF },
       { texto: 'Importar boletos', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar boletos (Excel, CSV ou PDF)', onClick: importarBoletos },
+      /* Novo terceiro e Novo pedido vieram das abas Terceiros e Pedidos e produtos (v1.72) */
+      { texto: 'Novo terceiro', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalTerceiro() },
+      { texto: 'Novo pedido', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalPedido() },
       { texto: 'Novo boleto', icone: 'mais', variante: 'outline', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalBoleto() },
       { texto: 'Nova NF', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirModalNota() },
     ],
@@ -16278,7 +16281,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           ],
         },
       ],
-      rodape: 'Faturamento Direto v1.71 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.72 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
