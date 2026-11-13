@@ -1163,6 +1163,14 @@ img { max-width: 100%; display: block; }
 /* v1.78: resumo do topo em grafico (Pedidos x faturado + Boletos) */
 .fd-resumo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 @media (max-width: 980px) { .fd-resumo { grid-template-columns: 1fr; } }
+/* v1.81: pizza maior com rotulos ligados por linha */
+.fd-pz { width: 100%; display: flex; justify-content: center; }
+.fd-pz svg { width: 100%; max-width: 820px; height: auto; display: block; overflow: visible; }
+.fd-pz__rot { font-size: 15.5px; fill: #475569; font-weight: 600; }
+.fd-pz__val { font-size: 20px; fill: #0f172a; font-weight: 800; font-variant-numeric: tabular-nums; }
+.fd-pz__centro { font-size: 38px; font-weight: 800; fill: #0f172a; font-variant-numeric: tabular-nums; }
+.fd-pz__centro-sub { font-size: 15px; fill: #64748b; }
+.fd-pz__extra { text-align: center; font-size: 12px; color: #475569; padding-top: 8px; border-top: 1px dashed #e2e8f0; }
 /* v1.80: graficos de pizza do topo */
 .fd-pizza { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
 .fd-pizza__rosca { flex: none; width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center;
@@ -7186,7 +7194,9 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.80.0
+   Versao: 1.81.0
+   1.81.0: pizzas maiores, sem legenda lateral: % consumido no centro e cada parte com
+           rótulo (% e valor) ligado à fatia por uma linha fina.
    1.80.0: topo com 2 gráficos de pizza (total dos insumos x consumido x saldo; pedidos x
            consumido x saldo) e a Visão geral vira árvore fechada no insumo: insumo > fornecedor >
            pedido > NF, com total, consumido, saldo e barra de avanço em cada nível.
@@ -12810,53 +12820,90 @@ function resumoBase() {
  */
 const pctFD = (parte, total) => (total ? (parte / total) * 100 : 0);
 
+/*
+ * v1.81: pizza maior, sem legenda lateral: so o % consumido no centro e cada parte com
+ * rotulo (% e valor) ligado a fatia por uma linha fina.
+ */
+function svgPizzaFD({ fatias, centro, rotuloCentro }) {
+  const L = 800; const A = 320; const cx = L / 2; const cy = A / 2; const R = 128; const r = 84;
+  const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const total = fatias.reduce((a, f) => a + Math.max(0, f.valor), 0);
+  const ponto = (ang, raio) => [cx + raio * Math.cos(ang), cy + raio * Math.sin(ang)];
+  let partes = '';
+  const rotulos = [];
+  if (total <= 0) {
+    partes = `<circle cx="${cx}" cy="${cy}" r="${(R + r) / 2}" fill="none" stroke="#e2e8f0" stroke-width="${R - r}"/>`;
+  } else {
+    let a0 = -Math.PI / 2;
+    fatias.filter((f) => f.valor > 0).forEach((f) => {
+      const frac = f.valor / total;
+      const a1 = a0 + frac * Math.PI * 2;
+      if (frac >= 0.9999) {
+        partes += `<circle cx="${cx}" cy="${cy}" r="${(R + r) / 2}" fill="none" stroke="${f.cor}" stroke-width="${R - r}"/>`;
+      } else {
+        const g = frac > 0.5 ? 1 : 0;
+        const [x0, y0] = ponto(a0, R); const [x1, y1] = ponto(a1, R);
+        const [x2, y2] = ponto(a1, r); const [x3, y3] = ponto(a0, r);
+        partes += `<path d="M${x0} ${y0}A${R} ${R} 0 ${g} 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 ${g} 0 ${x3} ${y3}Z" fill="${f.cor}" stroke="#fff" stroke-width="2"/>`;
+      }
+      const meio = (a0 + a1) / 2;
+      rotulos.push({ ...f, meio, lado: Math.cos(meio) >= 0 ? 1 : -1 });
+      a0 = a1;
+    });
+  }
+  /* rotulos: um de cada lado quando possivel; no mesmo lado, separados para nao encostar */
+  [1, -1].forEach((lado) => {
+    const doLado = rotulos.filter((x) => x.lado === lado);
+    doLado.forEach((x) => { x.ly = cy + (R + 22) * Math.sin(x.meio); });
+    doLado.sort((a, b) => a.ly - b.ly);
+    for (let i = 1; i < doLado.length; i += 1) doLado[i].ly = Math.max(doLado[i].ly, doLado[i - 1].ly + 64);
+    doLado.forEach((x) => { x.ly = Math.min(A - 24, Math.max(24, x.ly)); });
+  });
+  const textos = rotulos.map((x) => {
+    const [ax, ay] = ponto(x.meio, R + 2);
+    const [ex, ey] = ponto(x.meio, R + 16);
+    const fx = cx + x.lado * (R + 40);
+    const ly = x.ly;
+    const tx = fx + x.lado * 8;
+    const anc = x.lado > 0 ? 'start' : 'end';
+    return `<path d="M${ax} ${ay}Q${ex} ${ey} ${ex + x.lado * 6} ${ly}L${fx} ${ly}" fill="none" stroke="#94a3b8" stroke-width="1.2"/>`
+      + `<circle cx="${ax}" cy="${ay}" r="3" fill="${x.cor}" stroke="#fff" stroke-width="1.5"/>`
+      + `<text x="${tx}" y="${ly - 8}" text-anchor="${anc}" class="fd-pz__rot">${esc(x.rotulo)} · <tspan fill="${x.cor}" font-weight="800">${esc(x.pct)}</tspan></text>`
+      + `<text x="${tx}" y="${ly + 17}" text-anchor="${anc}" class="fd-pz__val">${esc(x.texto)}</text>`;
+  }).join('');
+  const centroSvg = `<circle cx="${cx}" cy="${cy}" r="${r - 1}" fill="#fff"/>`
+    + `<text x="${cx}" y="${cy + 6}" text-anchor="middle" class="fd-pz__centro">${esc(centro)}</text>`
+    + `<text x="${cx}" y="${cy + 30}" text-anchor="middle" class="fd-pz__centro-sub">${esc(rotuloCentro)}</text>`;
+  const el = h('div', { class: 'fd-pz' });
+  el.innerHTML = `<svg viewBox="0 0 ${L} ${A}" xmlns="http://www.w3.org/2000/svg">${partes}${centroSvg}${textos}</svg>`;
+  return el;
+}
+
 function graficoResumoBase({ peds, nfs, valor, faturado, totalFD, qtdInsumos }) {
   const COR = { consumido: '#2563eb', saldo: '#16a34a', acima: '#dc2626' };
-  /* pizza (rosca) com o % consumido no centro e a legenda com valor e % de cada parte */
-  const pizza = ({ titulo, total, sub, consumido, rotuloTotal, extra }) => {
+  const pizza = ({ titulo, total, sub, consumido, extra }) => {
     const saldo = total - consumido;
     const acima = saldo < 0;
-    const fatias = acima
-      ? [{ rotulo: 'Consumido (NFs) até o total', valor: total, cor: COR.consumido }, { rotulo: 'Consumido acima do total', valor: -saldo, cor: COR.acima }]
-      : [{ rotulo: `Consumido (${nfs.length} NF${nfs.length === 1 ? '' : 's'})`, valor: consumido, cor: COR.consumido }, { rotulo: 'Saldo', valor: saldo, cor: COR.saldo }];
-    const base = fatias.reduce((a, f) => a + f.valor, 0);
-    let acum = 0;
-    const gradiente = base > 0
-      ? `conic-gradient(${fatias.filter((f) => f.valor > 0).map((f) => { const a = acum; acum += (f.valor / base) * 100; return `${f.cor} ${a}% ${acum}%`; }).join(',')})`
-      : '#e2e8f0';
-    const pctConsumido = pctFD(consumido, total);
+    const fatias = (acima
+      ? [{ rotulo: 'Consumido até o total', valor: total, cor: COR.consumido }, { rotulo: 'Acima do total', valor: -saldo, cor: COR.acima }]
+      : [{ rotulo: `Consumido (${nfs.length} NF${nfs.length === 1 ? '' : 's'})`, valor: consumido, cor: COR.consumido }, { rotulo: 'Saldo', valor: saldo, cor: COR.saldo }])
+      .map((f) => ({ ...f, pct: formatarPercentual(pctFD(f.valor, total), { casas: 1 }), texto: formatarMoeda(f.valor) }));
+    const grafico = svgPizzaFD({ fatias, centro: formatarPercentual(pctFD(consumido, total), { casas: 1 }), rotuloCentro: 'consumido' });
+    grafico.setAttribute('role', 'img');
+    grafico.setAttribute('aria-label', `${titulo}: total ${formatarMoeda(total)}; ${fatias.map((f) => `${f.rotulo} ${f.pct} (${f.texto})`).join('; ')}`);
     return h('div', { class: 'fd-resumo__bloco' },
       h('div', { class: 'fd-resumo__cab' },
         h('span', { class: 'fd-resumo__tit' }, titulo),
         h('span', { class: 'fd-resumo__total' }, formatarMoeda(total), ' ', h('small', {}, sub))),
-      h('div', { class: 'fd-pizza' },
-        h('div', {
-          class: 'fd-pizza__rosca', style: `background:${gradiente}`, role: 'img',
-          'aria-label': `${titulo}: ${fatias.map((f) => `${f.rotulo} ${formatarMoeda(f.valor)}`).join(', ')}`,
-        }, h('div', { class: 'fd-pizza__furo' },
-          h('b', {}, formatarPercentual(pctConsumido, { casas: 1 })),
-          h('span', {}, 'consumido'))),
-        h('div', { class: 'fd-pizza__legenda' },
-          h('div', { class: 'fd-pizza__item is-total' },
-            h('span', { class: 'fd-pizza__ponto is-total' }),
-            h('div', {}, h('div', { class: 'fd-pizza__rot' }, rotuloTotal), h('div', { class: 'fd-pizza__val' }, formatarMoeda(total)))),
-          fatias.map((f) => h('div', { class: 'fd-pizza__item' },
-            h('span', { class: 'fd-pizza__ponto', style: `background:${f.cor}` }),
-            h('div', {},
-              h('div', { class: 'fd-pizza__rot' }, f.rotulo),
-              h('div', { class: 'fd-pizza__val' }, formatarMoeda(f.valor), ' ', h('small', {}, `(${formatarPercentual(pctFD(f.valor, total), { casas: 2 })})`))))),
-          extra ? h('div', { class: 'fd-pizza__extra' }, extra) : null)));
+      grafico,
+      extra ? h('div', { class: 'fd-pz__extra' }, extra) : null);
   };
   return h('div', { class: 'fd-resumo' },
     pizza({
-      titulo: 'Faturamento direto — total dos insumos', total: totalFD, consumido: faturado,
-      sub: `em ${qtdInsumos} insumo(s)`, rotuloTotal: `Total dos insumos (${rotuloValorInsumo().toLowerCase()})`,
+      titulo: 'Faturamento direto — total dos insumos', total: totalFD, consumido: faturado, sub: `em ${qtdInsumos} insumo(s)`,
       extra: `Em pedidos: ${formatarMoeda(valor)} (${formatarPercentual(pctFD(valor, totalFD), { casas: 2 })} do total)`,
     }),
-    pizza({
-      titulo: 'Pedidos de compra', total: valor, consumido: faturado,
-      sub: `em ${peds.length} pedido(s)`, rotuloTotal: `Total dos pedidos (${peds.length})`,
-    }));
+    pizza({ titulo: 'Pedidos de compra', total: valor, consumido: faturado, sub: `em ${peds.length} pedido(s)` }));
 }
 
 /* Base de faturamento (v1.76): so Notas e boletos */
@@ -17258,7 +17305,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.80 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.81 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
