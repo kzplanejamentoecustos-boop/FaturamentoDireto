@@ -1231,7 +1231,7 @@ img { max-width: 100%; display: block; }
 .fd-resumo__item.is-zero { opacity: .45; }
 
 /* v1.80: Visao geral em arvore (insumo > fornecedor > pedido > NF) */
-.fd-arv { --fd-arv-cols: minmax(260px, 2.4fr) repeat(3, minmax(120px, 1fr)) minmax(150px, 1.1fr); font-size: 13px; overflow-x: auto; }
+.fd-arv { --fd-arv-cols: minmax(260px, 1fr) 160px 160px 160px 200px; font-size: 13px; overflow-x: auto; }
 .fd-arv__cab, .fd-arv__lin, .fd-arv__total { display: grid; grid-template-columns: var(--fd-arv-cols); align-items: center; gap: 12px; min-width: 860px; }
 .fd-arv__cab { padding: 8px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: #64748b; }
 .fd-arv__cab span:not(:first-child) { text-align: right; }
@@ -1273,6 +1273,48 @@ img { max-width: 100%; display: block; }
 .fd-arv__trilho i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
 .fd-arv__trilho i.is-cheio { background: linear-gradient(90deg, #22c55e, #15803d); }
 .fd-arv__trilho i.is-acima { background: repeating-linear-gradient(45deg, #dc2626 0 6px, #ef4444 6px 12px); }
+/* v1.82: cada nivel aberto vira um bloco recuado com a cor do nivel */
+.fd-arv__cab--n2, .fd-arv__cab--n3 { padding-left: 14px; }
+.fd-arv__lin--n2, .fd-arv__lin--n3 { padding-left: 14px; }
+.fd-arv__bloco--n1 > .fd-arv__filhos { margin: 0 0 12px 22px; background: #eef3fa; border-left: 5px solid #1e3a5f;
+  border-radius: 0 0 0 10px; box-shadow: inset 0 1px 0 #d5deea; }
+.fd-arv__bloco--n1 > .fd-arv__filhos > .fd-arv__cab--n2 { background: #dfe8f4; color: #1e3a5f; }
+.fd-arv__bloco--n2 > .fd-arv__filhos { margin: 0 0 10px 22px; background: #f0fdf4; border-left: 5px solid #16a34a; border-radius: 0 0 0 10px; }
+.fd-arv__bloco--n2 > .fd-arv__filhos > .fd-arv__cab--n3 { background: #dcfce7; color: #166534; }
+.fd-arv__lin--n1.is-aberto { background: #1e3a5f; border-left-color: #1e3a5f; }
+.fd-arv__lin--n1.is-aberto .fd-arv__link, .fd-arv__lin--n1.is-aberto .fd-arv__num { color: #fff; }
+.fd-arv__lin--n1.is-aberto .fd-arv__sub, .fd-arv__lin--n1.is-aberto .fd-arv__seta { color: #cbd5e1; }
+.fd-arv__lin--n1.is-aberto .fd-arv__cod { background: rgba(255,255,255,.18); color: #fff; }
+.fd-arv__lin--n1.is-aberto .fd-arv__avanco span { color: #fff; }
+.fd-arv__lin--n1.is-aberto .fd-arv__trilho { background: rgba(255,255,255,.25); }
+.fd-arv__lin--n1.is-aberto:hover { background: #24466f; }
+.fd-arv__lin--n2 { border-left: 0; }
+.fd-arv__lin--n2.is-aberto { background: #bbf7d0; }
+.fd-arv__lin--n2.is-aberto:hover { background: #a7f3c4; }
+.fd-arv__lin--n2 .fd-arv__cod { background: #dcfce7; color: #166534; }
+.fd-arv__lin--n3 { border-left: 0; background: #fff; }
+.fd-arv__lin--n3 .fd-arv__link { color: #0f172a; }
+.fd-arv__lin--n3 .fd-arv__cod { background: #f1f5f9; color: #475569; }
+.fd-arv__comp { all: unset; box-sizing: border-box; margin-left: 10px; display: inline-flex; align-items: center; gap: 5px; vertical-align: middle;
+  padding: 2px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 700; color: #1d4ed8; background: #eff6ff;
+  border: 1px solid #bfdbfe; cursor: pointer; transition: background .15s, transform .15s; }
+.fd-arv__comp:hover { background: #dbeafe; transform: translateY(-1px); }
+.fd-arv__comp:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.fd-arv__comp svg { width: 13px; height: 13px; }
+/* janela Composicao do pedido */
+.fd-comp__topo { display: flex; flex-direction: column; gap: 12px; }
+.fd-comp__caminho { font-size: 12.5px; color: #64748b; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.fd-comp__chip { padding: 3px 10px; border-radius: 999px; font-weight: 700; }
+.fd-comp__chip.is-insumo { background: #1e3a5f; color: #fff; }
+.fd-comp__chip.is-fornecedor { background: #dcfce7; color: #166534; }
+.fd-comp__chip.is-pedido { background: #f1f5f9; color: #0f172a; border: 1px solid #e2e8f0; }
+.fd-comp__infos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .fd-comp__infos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.fd-comp__info { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.fd-comp__info span { font-size: 11.5px; color: #64748b; }
+.fd-comp__info b { font-size: 16px; color: #0f172a; font-variant-numeric: tabular-nums; }
+.fd-comp__avanco .fd-arv__avanco { justify-content: flex-start; }
+.fd-comp__avanco .fd-arv__trilho { max-width: none; }
 .fd-arv__vazio { padding: 10px 14px 10px 92px; font-size: 12px; color: #94a3b8; font-style: italic; border-bottom: 1px solid #e2e8f0; }
 .fd-arv__total { padding: 12px 14px; background: #1e293b; color: #fff; font-size: 13.5px; }
 .fd-arv__total .fd-arv__num { color: #fff; }
@@ -7194,7 +7236,11 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.81.0
+   Versao: 1.82.0
+   1.82.0: Visão geral sem o título do topo e sem a barra de pesquisa/Insumo/Terceiro.
+           Visão geral vai até os pedidos; o botão "Composição" do pedido abre as NFs numa
+           janela. Cada nível aberto vira um bloco recuado com a cor dele (insumo azul-marinho,
+           fornecedor verde, pedido branco) e os valores ficam alinhados em todos os níveis.
    1.81.0: pizzas maiores, sem legenda lateral: % consumido no centro e cada parte com
            rótulo (% e valor) ligado à fatia por uma linha fina.
    1.80.0: topo com 2 gráficos de pizza (total dos insumos x consumido x saldo; pedidos x
@@ -12537,6 +12583,73 @@ const abertosGeral = new Set();
 
 function secaoGeral() { return secaoGeralArvore(); }
 
+/** v1.82: composicao do pedido — todas as NFs do pedido numa janela. */
+function abrirComposicaoPedido(ped) {
+  const ter = terceiroDoPedido(ped);
+  const ins = insumoDoPedido(ped);
+  const nfs = notasDoPedido(ped.id).sort((x, y) => String(x.data).localeCompare(String(y.data)) || String(x.numero).localeCompare(String(y.numero)));
+  const total = vn(ped.valor);
+  const consumido = somar(nfs, 'valor');
+  const pct = pctFD(consumido, total);
+  let acumulado = 0;
+  const dados = nfs.map((nf) => {
+    acumulado += vn(nf.valor);
+    const bols = boletosDaNota(nf.id);
+    const venc = bols.map((b) => b.vencimento).filter(Boolean).sort();
+    return {
+      _nf: nf, numero: nf.numero, data: nf.data, bm: nf.bm ? `BM${nf.bm}` : '', valor: vn(nf.valor), reidi: vn(nf.reidi),
+      acumulado, saldo: total - acumulado, perc: pctFD(vn(nf.valor), total),
+      status: bols.length ? [...new Set(bols.map((b) => statusBoleto(b)))] : ['Sem boleto'],
+      vencimento: venc.length ? venc[venc.length - 1] : '',
+    };
+  });
+  const tabela = criarTabela({
+    dados, compacta: true, listrada: true, altura: 'auto',
+    vazio: { titulo: 'Nenhuma NF neste pedido', mensagem: 'As notas fiscais lançadas para este pedido aparecem aqui.' },
+    onLinhaClick: (l) => abrirModalNota(l._nf),
+    colunas: [
+      { campo: 'numero', titulo: 'Nº NF', render: (v) => h('b', {}, v) },
+      { campo: 'data', titulo: 'Data', tipo: 'data' },
+      { campo: 'bm', titulo: 'BM' },
+      { campo: 'valor', titulo: 'Valor da NF', tipo: 'moeda', total: 'soma' },
+      { campo: 'reidi', titulo: 'REIDI', tipo: 'moeda', total: 'soma' },
+      { campo: 'acumulado', titulo: 'Acumulado do pedido', tipo: 'moeda' },
+      { campo: 'saldo', titulo: 'Saldo após a NF', tipo: 'moeda', render: (v) => h('span', { class: v < -0.004 ? 'ctc-text-danger ctc-num' : 'ctc-num' }, formatarMoeda(v)) },
+      { campo: 'perc', titulo: '% do pedido', tipo: 'percentual', casas: 1 },
+      { campo: 'status', titulo: 'Boleto', ordenavel: false, render: (v) => h('span', { class: 'ctc-cluster' }, v.map((x) => criarBadge({ texto: x, variante: x === 'Sem boleto' ? 'warning' : VARIANTE_PRAZO[x] }))) },
+      { campo: 'vencimento', titulo: 'Vencimento', tipo: 'data' },
+    ],
+  });
+  const info = (rotulo, valor, classe) => h('div', { class: 'fd-comp__info' }, h('span', {}, rotulo), h('b', { class: classe || null }, valor));
+  const modal = criarModal({
+    titulo: `Composição do pedido ${ped.numero}`,
+    tamanho: 'xl',
+    destruirAoFechar: true,
+    conteudo: [
+      h('div', { class: 'fd-comp__topo' },
+        h('div', { class: 'fd-comp__caminho' },
+          h('span', { class: 'fd-comp__chip is-insumo' }, ins ? ins.nome : '—'), ' › ',
+          h('span', { class: 'fd-comp__chip is-fornecedor' }, ter ? ter.nome : '—'), ' › ',
+          h('span', { class: 'fd-comp__chip is-pedido' }, `Pedido ${ped.numero}`)),
+        h('div', { class: 'fd-comp__infos' },
+          info('Valor do pedido', formatarMoeda(total)),
+          info(`Consumido (${nfs.length} NF${nfs.length === 1 ? '' : 's'})`, formatarMoeda(consumido)),
+          info('Saldo', formatarMoeda(total - consumido), total - consumido < -0.004 ? 'ctc-text-danger' : null),
+          h('div', { class: 'fd-comp__info fd-comp__avanco' }, h('span', {}, 'Avanço'),
+            h('div', { class: 'fd-arv__avanco' },
+              h('div', { class: 'fd-arv__trilho' }, h('i', { class: classes(pct > 100.005 && 'is-acima', pct >= 99.995 && pct <= 100.005 && 'is-cheio'), style: `width:${Math.min(100, Math.max(0, pct))}%` })),
+              h('span', {}, formatarPercentual(pct, { casas: 1 })))))),
+      tabela.elemento,
+      h('div', { class: 'ctc-text-xs ctc-text-subtle' }, 'Clique numa NF para abrir os detalhes dela.'),
+    ],
+    acoes: [
+      { texto: 'Abrir pedido', variante: 'outline', onClick: () => { abrirPedido(ped); } },
+      { texto: 'Fechar', variante: 'primary' },
+    ],
+  });
+  modal.abrir();
+}
+
 function secaoGeralArvore() {
   const codigos = codigosHierarquia();
   const cod = (id) => (codigos.get(id) || {}).codigo || '';
@@ -12581,7 +12694,7 @@ function secaoGeralArvore() {
   const cabecalho = (nivel, colunas) => h('div', { class: `fd-arv__cab fd-arv__cab--n${nivel}` }, colunas.map((c) => h('span', {}, c)));
   const abrirItem = (fn) => (e) => { e.stopPropagation(); fn(); };
 
-  function linha({ nivel, chave, filhos, codigo, nome, onAbrir, sub, valores }) {
+  function linha({ nivel, chave, filhos, codigo, nome, onAbrir, sub, valores, junto }) {
     const aberto = chave && (abertosGeral.has(chave) || Boolean(norm(consulta.busca).trim()));
     const lin = h('div', {
       class: classes('fd-arv__lin', `fd-arv__lin--n${nivel}`, filhos && 'is-grupo', aberto && 'is-aberto'),
@@ -12594,7 +12707,8 @@ function secaoGeralArvore() {
       h('div', { class: 'fd-arv__txt' },
         h('div', {},
           codigo ? h('span', { class: 'fd-arv__cod' }, codigo) : null,
-          h('button', { type: 'button', class: 'fd-arv__link', title: 'Abrir detalhes', onClick: abrirItem(onAbrir) }, nome)),
+          h('button', { type: 'button', class: 'fd-arv__link', title: 'Abrir detalhes', onClick: abrirItem(onAbrir) }, nome),
+          junto || null),
         sub ? h('div', { class: 'fd-arv__sub' }, sub) : null)),
     valores.map((v) => h('div', { class: 'fd-arv__col' }, v)));
     return { lin, aberto };
@@ -12611,7 +12725,7 @@ function secaoGeralArvore() {
         sub: `${d.qtdTers} fornecedor(es) · ${d.qtdPeds} pedido(s) · ${d.qtdNfs} NF(s) · em pedidos ${formatarMoeda(d.emPedidos)}`,
         valores: [moeda(d.total), moeda(d.consumido), moeda(d.total - d.consumido, true), avanco(pctFD(d.consumido, d.total))],
       });
-      const bloco = h('div', { class: 'fd-arv__bloco fd-arv__bloco--n1' }, lin);
+      const bloco = h('div', { class: classes('fd-arv__bloco fd-arv__bloco--n1', aberto && 'is-aberto') }, lin);
       if (aberto) {
         const filhos = h('div', { class: 'fd-arv__filhos' },
           cabecalho(2, ['Fornecedores do insumo', 'Total dos pedidos', 'Consumido (NFs)', 'Saldo', 'Avanço']));
@@ -12622,7 +12736,7 @@ function secaoGeralArvore() {
             sub: [t.ter.uf, t.ter.cnpj, `${t.qtdPeds} pedido(s)`].filter(Boolean).join(' · '),
             valores: [moeda(t.total), moeda(t.consumido), moeda(t.total - t.consumido, true), avanco(pctFD(t.consumido, t.total))],
           });
-          const b2 = h('div', { class: 'fd-arv__bloco fd-arv__bloco--n2' }, r2.lin);
+          const b2 = h('div', { class: classes('fd-arv__bloco fd-arv__bloco--n2', r2.aberto && 'is-aberto') }, r2.lin);
           if (r2.aberto) {
             const f2 = h('div', { class: 'fd-arv__filhos' },
               cabecalho(3, ['Pedidos do fornecedor', 'Valor do pedido', 'Consumido (NFs)', 'Saldo', 'Avanço']));
@@ -12630,36 +12744,18 @@ function secaoGeralArvore() {
             t.peds.forEach((pd) => {
               const pct = pctFD(pd.consumido, pd.total);
               const sit = situacaoPedido({ perc: pct });
-              const r3 = linha({
-                nivel: 3, chave: `p:${pd.ped.id}`, filhos: true, codigo: cod(pd.ped.id), nome: `Pedido ${pd.ped.numero}`, onAbrir: () => abrirPedido(pd.ped),
+              const botaoComp = h('button', {
+                type: 'button', class: 'fd-arv__comp', title: 'Ver as notas fiscais deste pedido',
+                onClick: (e) => { e.stopPropagation(); abrirComposicaoPedido(pd.ped); },
+              }, criarIcone('documento', 14), `Composição (${pd.qtdNfs} NF${pd.qtdNfs === 1 ? '' : 's'})`);
+              f2.append(h('div', { class: 'fd-arv__bloco fd-arv__bloco--n3' }, linha({
+                nivel: 3, filhos: false, codigo: cod(pd.ped.id), nome: `Pedido ${pd.ped.numero}`, onAbrir: () => abrirPedido(pd.ped),
+                junto: botaoComp,
                 sub: h('span', { class: 'fd-arv__subflex' },
-                  `emissão ${formatarData(pd.ped.dataEmissao)} · ${pd.qtdNfs} NF(s)`,
+                  `emissão ${formatarData(pd.ped.dataEmissao)}`,
                   criarBadge({ texto: sit, variante: VARIANTE_SITUACAO[sit] })),
                 valores: [moeda(pd.total), moeda(pd.consumido), moeda(pd.total - pd.consumido, true), avanco(pct)],
-              });
-              const b3 = h('div', { class: 'fd-arv__bloco fd-arv__bloco--n3' }, r3.lin);
-              if (r3.aberto) {
-                const f3 = h('div', { class: 'fd-arv__filhos' },
-                  cabecalho(4, ['Notas fiscais do pedido', 'Valor da NF', 'Boleto', 'Vencimento', '% do pedido']));
-                if (!pd.nfs.length) f3.append(h('div', { class: 'fd-arv__vazio' }, 'Nenhuma NF lançada neste pedido.'));
-                pd.nfs.forEach((nf) => {
-                  const bols = boletosDaNota(nf.id);
-                  const st = bols.length ? bols.map((b) => statusBoleto(b)) : ['Sem boleto'];
-                  const venc = bols.map((b) => b.vencimento).filter(Boolean).sort();
-                  f3.append(linha({
-                    nivel: 4, filhos: false, codigo: cod(nf.id), nome: `NF ${nf.numero}`, onAbrir: () => abrirModalNota(nf),
-                    sub: [formatarData(nf.data), nf.bm ? `BM${nf.bm}` : ''].filter(Boolean).join(' · '),
-                    valores: [
-                      moeda(vn(nf.valor)),
-                      h('span', { class: 'fd-arv__badges' }, [...new Set(st)].map((x) => criarBadge({ texto: x, variante: x === 'Sem boleto' ? 'warning' : VARIANTE_PRAZO[x] }))),
-                      h('span', { class: 'fd-arv__num' }, venc.length ? formatarData(venc[venc.length - 1]) : '—'),
-                      avanco(pctFD(vn(nf.valor), pd.total)),
-                    ],
-                  }).lin);
-                });
-                b3.append(f3);
-              }
-              f2.append(b3);
+              }).lin));
             });
             b2.append(f2);
           }
@@ -12690,20 +12786,18 @@ function secaoGeralArvore() {
     abertosGeral.clear();
     insumos.forEach((x) => abertosGeral.add(`i:${x.id}`));
     if (nivel >= 2) terceiros.forEach((x) => abertosGeral.add(`t:${x.id}`));
-    if (nivel >= 3) pedidos.forEach((x) => abertosGeral.add(`p:${x.id}`));
     render();
   };
   return {
-    tabela, titulo: 'Visão geral — insumo › fornecedor › pedido › NF', icone: 'tabela',
+    tabela, titulo: 'Visão geral — insumo › fornecedor › pedido', icone: 'tabela',
     selects: [],
     acoes: [
       { texto: 'Fechar tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Mostrar só os insumos', onClick: () => { abertosGeral.clear(); render(); } },
-      { texto: 'Até fornecedores', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir insumos', onClick: () => abrirAte(1) },
-      { texto: 'Até pedidos', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir insumos e fornecedores', onClick: () => abrirAte(2) },
-      { texto: 'Abrir tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir até as notas fiscais', onClick: () => abrirAte(3) },
+      { texto: 'Até fornecedores', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir os insumos (mostra os fornecedores)', onClick: () => abrirAte(1) },
+      { texto: 'Abrir tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir até os pedidos', onClick: () => abrirAte(2) },
       { texto: 'Exportar tudo', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Planilha completa do recorte: obra, insumos, terceiros, pedidos, NFs e boletos', onClick: exportarTudo },
     ],
-    rodape: 'Clique na linha para abrir ou fechar o nível; clique no nome para ver os detalhes. Insumo: total = valor da aba Insumos. Fornecedor e pedido: total = valor dos pedidos. Consumido = soma das NFs; saldo = total − consumido; avanço = consumido ÷ total.',
+    rodape: 'Clique na linha do insumo ou do fornecedor para abrir ou fechar; clique no nome para ver os detalhes. "Composição" mostra as NFs do pedido. Insumo: total = valor da aba Insumos. Fornecedor e pedido: total = valor dos pedidos. Consumido = soma das NFs; saldo = total − consumido; avanço = consumido ÷ total.',
   };
 }
 
@@ -12917,6 +13011,9 @@ function paginaVisaoGeral() {
 }
 
 function montarPaginaBase(secoes, pagina) {
+  /* v1.82: a Visao geral nao tem a barra de pesquisa/insumo/terceiro: nenhum filtro escondido fica valendo */
+  const semBarra = pagina === 'visao';
+  if (semBarra) filtroBase = { insumo: '', terceiro: '' };
   abaBase = ultimaAbaPagina[pagina];
   if (!secoes.some((s) => s.id === abaBase)) abaBase = secoes[0].id;
   if (filtroBase.insumo && !insumos.some((i) => i.nome === filtroBase.insumo)) filtroBase.insumo = '';
@@ -12952,7 +13049,7 @@ function montarPaginaBase(secoes, pagina) {
         fecharFiltroExcel();
         /* Notas e boletos filtra pelo proprio titulo de cada coluna (estilo Excel): a barra de
            pesquisa/insumo/terceiro do topo some nessa aba e nao deixa filtro escondido valendo */
-        const semBarraTopo = sec.id === 'notas';
+        const semBarraTopo = semBarra || sec.id === 'notas';
         barra.elemento.hidden = semBarraTopo;
         if (semBarraTopo) {
           const est = barra.obterEstado();
@@ -12980,7 +13077,7 @@ function montarPaginaBase(secoes, pagina) {
   });
   return [
     alertaFicticio(),
-    barra.elemento,
+    semBarra ? null : barra.elemento,
     resumo,
     /* com uma secao so (Base de faturamento) mostra o conteudo direto, sem a linha de abas */
     secoes.length > 1 ? abas.elemento : abas.painel,
@@ -17305,7 +17402,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.81 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.82 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
@@ -17319,7 +17416,8 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
           { texto: 'Novo insumo', icone: 'mais', variante: 'primary', apenasEdicao: true, onClick: () => abrirModalInsumo() },
         ],
       },
-      visao: { titulo: 'Visão geral — insumos, terceiros, pedidos e produtos', caminho: ['Principal'], render: paginaVisaoGeral },
+      /* v1.82: sem titulo/caminho no topo (o nome da pagina ja aparece no cabecalho) */
+      visao: { titulo: '', nomeCurto: 'Visão geral', render: paginaVisaoGeral },
       base: { titulo: 'Base de faturamento — notas fiscais e boletos', caminho: ['Principal'], render: paginaBase },
       aliquotas: { titulo: 'Tabela ICMS / DIFAL', caminho: ['Configurações'], render: paginaAliquotas },
       importar: { titulo: 'Importar / Exportar — Excel e base completa', caminho: ['Principal'], render: paginaImportarExportar },
