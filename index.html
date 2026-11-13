@@ -7236,7 +7236,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.86.0
+   Versao: 1.87.0
+   1.87.0: menu com "Visão gerencial" em cascata (Dashboard e Tendência).
    1.86.0: botão "Composição" do pedido sem a quantidade de NFs.
    1.85.0: Composição do pedido com 2 abas: Itens do pedido (qtd e valor total, consumido e
            saldo por item, da aba Pedidos e produtos) e Notas fiscais (como antes).
@@ -17423,11 +17424,17 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         {
           titulo: 'Principal',
           itens: [
-            { id: 'visao', texto: 'Dashboard', emoji: '📊' },
+            /* v1.87: Dashboard e Tendencia em cascata dentro de "Visao gerencial" */
+            {
+              id: 'grupo-gerencial', texto: 'Visão gerencial', emoji: '📊',
+              itens: [
+                { id: 'visao', texto: 'Dashboard' },
+                { id: 'tendencia', texto: 'Tendência' },
+              ],
+            },
             { id: 'insumos', texto: 'Insumos', emoji: '💰' },
             { id: 'pedidos', texto: 'Pedidos e produtos', emoji: '🧾' },
             { id: 'base', texto: 'Base de faturamento', emoji: '🗂️' },
-            { id: 'tendencia', texto: 'Tendência', emoji: '📈' },
             { id: 'importar', texto: 'Importar / Exportar', emoji: '📤' },
           ],
         },
@@ -17456,7 +17463,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.86 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.87 · KZ App Standard v1.7',
     },
     paginas: {
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
