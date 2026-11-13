@@ -7236,7 +7236,8 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.83.0
+   Versao: 1.84.0
+   1.84.0: sai o Dashboard FD; a Visão geral passa a se chamar Dashboard e é a tela principal.
    1.83.0: sai a aba Terceiros da Visão geral; Pedidos e produtos vira item próprio do menu.
    1.82.0: Visão geral sem o título do topo e sem a barra de pesquisa/Insumo/Terceiro.
            Visão geral vai até os pedidos; o botão "Composição" do pedido abre as NFs numa
@@ -17377,9 +17378,8 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         {
           titulo: 'Principal',
           itens: [
-            { id: 'painel', texto: 'Dashboard FD', emoji: '📊' },
+            { id: 'visao', texto: 'Dashboard', emoji: '📊' },
             { id: 'insumos', texto: 'Insumos', emoji: '💰' },
-            { id: 'visao', texto: 'Visão geral', emoji: '🔎' },
             { id: 'pedidos', texto: 'Pedidos e produtos', emoji: '🧾' },
             { id: 'base', texto: 'Base de faturamento', emoji: '🗂️' },
             { id: 'tendencia', texto: 'Tendência', emoji: '📈' },
@@ -17411,10 +17411,9 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.83 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.84 · KZ App Standard v1.7',
     },
     paginas: {
-      painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
       obra: { titulo: 'Obra e aditivos', caminho: ['Configurações'], render: paginaObra },
       insumos: {
@@ -17426,20 +17425,21 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         ],
       },
       /* v1.82: sem titulo/caminho no topo (o nome da pagina ja aparece no cabecalho) */
-      visao: { titulo: '', nomeCurto: 'Visão geral', render: paginaVisaoGeral },
+      /* v1.84: a antiga Visao geral passa a ser o Dashboard (tela principal); o Dashboard FD antigo saiu */
+      visao: { titulo: '', nomeCurto: 'Dashboard', render: paginaVisaoGeral },
       pedidos: { titulo: 'Pedidos e produtos', caminho: ['Principal'], render: paginaPedidosProdutos },
       base: { titulo: 'Base de faturamento — notas fiscais e boletos', caminho: ['Principal'], render: paginaBase },
       aliquotas: { titulo: 'Tabela ICMS / DIFAL', caminho: ['Configurações'], render: paginaAliquotas },
       importar: { titulo: 'Importar / Exportar — Excel e base completa', caminho: ['Principal'], render: paginaImportarExportar },
     },
-    paginaInicial: 'painel',
+    paginaInicial: 'visao',
     somenteLeitura: perfil === 'visualizador',
   });
   appAtual = app;
 
   /* v1.75: nome da pagina aberta ao lado do titulo, como no Controle de Custos */
   const NOME_PAGINA = {
-    painel: 'Dashboard', insumos: 'Insumos', visao: 'Visão geral', pedidos: 'Pedidos e produtos', base: 'Base de faturamento', tendencia: 'Tendência',
+    insumos: 'Insumos', visao: 'Dashboard', pedidos: 'Pedidos e produtos', base: 'Base de faturamento', tendencia: 'Tendência',
     importar: 'Importar / Exportar', obra: 'Obra e aditivos', aliquotas: 'Tabela ICMS / DIFAL',
   };
   const chipPagina = h('span', { class: 'fd-hdr-pagina' });
