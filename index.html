@@ -1161,7 +1161,25 @@ img { max-width: 100%; display: block; }
 }
 
 /* v1.78: resumo do topo em grafico (Pedidos x faturado + Boletos) */
-.fd-resumo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.fd-resumo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 980px) { .fd-resumo { grid-template-columns: 1fr; } }
+/* v1.80: graficos de pizza do topo */
+.fd-pizza { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.fd-pizza__rosca { flex: none; width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center;
+  box-shadow: 0 2px 10px rgba(15,23,42,.12); }
+.fd-pizza__furo { width: 92px; height: 92px; border-radius: 50%; background: #fff; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; line-height: 1.1; box-shadow: inset 0 1px 3px rgba(15,23,42,.10); }
+.fd-pizza__furo b { font-size: 21px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
+.fd-pizza__furo span { font-size: 11px; color: #64748b; }
+.fd-pizza__legenda { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 10px; }
+.fd-pizza__item { display: flex; gap: 10px; align-items: flex-start; }
+.fd-pizza__ponto { flex: none; width: 12px; height: 12px; border-radius: 4px; margin-top: 3px; }
+.fd-pizza__ponto.is-total { background: #fff; border: 2px solid #475569; }
+.fd-pizza__rot { font-size: 12px; color: #64748b; }
+.fd-pizza__val { font-size: 17px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fd-pizza__val small { font-size: 12px; font-weight: 600; color: #64748b; }
+.fd-pizza__item.is-total .fd-pizza__val { font-size: 15px; color: #334155; }
+.fd-pizza__extra { font-size: 12px; color: #475569; padding-top: 8px; border-top: 1px dashed #e2e8f0; }
 .fd-resumo__bloco { background: #fff; border-radius: 14px; padding: 16px 18px; box-shadow: var(--ctc-shadow-1);
   display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .fd-resumo__cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
@@ -1203,6 +1221,57 @@ img { max-width: 100%; display: block; }
 .fd-resumo__item b { font-weight: 800; color: #0f172a; min-width: 22px; text-align: right; }
 .fd-resumo__item-val { color: #64748b; font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 108px; text-align: right; }
 .fd-resumo__item.is-zero { opacity: .45; }
+
+/* v1.80: Visao geral em arvore (insumo > fornecedor > pedido > NF) */
+.fd-arv { --fd-arv-cols: minmax(260px, 2.4fr) repeat(3, minmax(120px, 1fr)) minmax(150px, 1.1fr); font-size: 13px; overflow-x: auto; }
+.fd-arv__cab, .fd-arv__lin, .fd-arv__total { display: grid; grid-template-columns: var(--fd-arv-cols); align-items: center; gap: 12px; min-width: 860px; }
+.fd-arv__cab { padding: 8px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; color: #64748b; }
+.fd-arv__cab span:not(:first-child) { text-align: right; }
+.fd-arv__cab--n1 { background: #1e293b; color: #e2e8f0; }
+.fd-arv__cab--n2 { padding-left: 40px; background: #eef2f7; }
+.fd-arv__cab--n3 { padding-left: 66px; background: #f4f7fb; }
+.fd-arv__cab--n4 { padding-left: 92px; background: #f8fafc; }
+.fd-arv__lin { padding: 10px 14px; border-bottom: 1px solid #e2e8f0; background: #fff; transition: background .15s; }
+.fd-arv__lin.is-grupo { cursor: pointer; }
+.fd-arv__lin.is-grupo:hover { background: #f1f5f9; }
+.fd-arv__lin:focus-visible { outline: 2px solid #2563eb; outline-offset: -2px; }
+.fd-arv__lin--n1 { background: #f8fafc; border-left: 4px solid #1e3a5f; }
+.fd-arv__lin--n1 .fd-arv__link { font-size: 14px; font-weight: 800; color: #0f172a; }
+.fd-arv__lin--n2 { padding-left: 36px; border-left: 4px solid #16a34a; }
+.fd-arv__lin--n2 .fd-arv__link { font-weight: 700; color: #14532d; }
+.fd-arv__lin--n3 { padding-left: 62px; border-left: 4px solid #2563eb; }
+.fd-arv__lin--n3 .fd-arv__link { font-weight: 700; color: #1e3a8a; }
+.fd-arv__lin--n4 { padding-left: 88px; border-left: 4px solid #cbd5e1; font-size: 12.5px; }
+.fd-arv__lin--n4 .fd-arv__link { font-weight: 600; color: #334155; }
+.fd-arv__lin.is-aberto { background: #eef4ff; }
+.fd-arv__nome { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.fd-arv__seta { flex: none; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; color: #64748b;
+  transition: transform .2s; margin-top: 1px; }
+.fd-arv__lin.is-aberto .fd-arv__seta { transform: rotate(90deg); color: #1e3a5f; }
+.fd-arv__txt { min-width: 0; }
+.fd-arv__cod { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 6px; background: #e2e8f0; color: #475569; font-size: 11px; font-weight: 700; }
+.fd-arv__link { all: unset; cursor: pointer; border-bottom: 1px dashed transparent; }
+.fd-arv__link:hover { border-bottom-color: currentColor; }
+.fd-arv__link:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; border-radius: 3px; }
+.fd-arv__sub { margin-top: 2px; font-size: 11.5px; color: #64748b; }
+.fd-arv__subflex { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.fd-arv__col { text-align: right; min-width: 0; }
+.fd-arv__num { font-variant-numeric: tabular-nums; white-space: nowrap; font-weight: 600; color: #0f172a; }
+.fd-arv__num.is-negativo { color: #dc2626; }
+.fd-arv__badges { display: inline-flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.fd-arv__avanco { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.fd-arv__avanco span { min-width: 48px; text-align: right; font-size: 12px; font-weight: 700; color: #334155; font-variant-numeric: tabular-nums; }
+.fd-arv__trilho { flex: 1; max-width: 120px; height: 8px; border-radius: 999px; background: #e2e8f0; overflow: hidden; }
+.fd-arv__trilho i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+.fd-arv__trilho i.is-cheio { background: linear-gradient(90deg, #22c55e, #15803d); }
+.fd-arv__trilho i.is-acima { background: repeating-linear-gradient(45deg, #dc2626 0 6px, #ef4444 6px 12px); }
+.fd-arv__vazio { padding: 10px 14px 10px 92px; font-size: 12px; color: #94a3b8; font-style: italic; border-bottom: 1px solid #e2e8f0; }
+.fd-arv__total { padding: 12px 14px; background: #1e293b; color: #fff; font-size: 13.5px; }
+.fd-arv__total .fd-arv__num { color: #fff; }
+.fd-arv__total .fd-arv__num.is-negativo { color: #fca5a5; }
+.fd-arv__total .fd-arv__sub { color: #cbd5e1; }
+.fd-arv__total .fd-arv__avanco span { color: #fff; }
+.fd-arv__total .fd-arv__trilho { background: rgba(255,255,255,.2); }
 
 /* v1.75: Abrir Versao (Nuvem) em cartoes */
 .fd-versoes .ctc-modal__dialog { max-width: 560px; overflow: hidden; }
@@ -7117,7 +7186,10 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.79.0
+   Versao: 1.80.0
+   1.80.0: topo com 2 gráficos de pizza (total dos insumos x consumido x saldo; pedidos x
+           consumido x saldo) e a Visão geral vira árvore fechada no insumo: insumo > fornecedor >
+           pedido > NF, com total, consumido, saldo e barra de avanço em cada nível.
    1.79.0: barra Pedidos × faturado mostra "% (valor)" em cada parte e ocupa toda a largura;
            sai a rosca dos boletos do resumo do topo.
    1.78.0: o resumo do topo (Visão geral e Base de faturamento) vira gráfico: barra Pedidos ×
@@ -12446,7 +12518,186 @@ function secaoGeralAgrupada() {
   };
 }
 
-function secaoGeral() {
+/*
+ * v1.80: Visao geral em arvore, toda fechada no insumo (dados da aba Insumos).
+ * Insumo > fornecedor (terceiro do insumo) > pedidos do fornecedor > NFs do pedido.
+ * Cada nivel tem titulo e os valores gerenciais: total, consumido (NFs), saldo e avanco.
+ */
+const abertosGeral = new Set();
+
+function secaoGeral() { return secaoGeralArvore(); }
+
+function secaoGeralArvore() {
+  const codigos = codigosHierarquia();
+  const cod = (id) => (codigos.get(id) || {}).codigo || '';
+  const norm = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  let consulta = { busca: '', filtros: {} };
+  const raiz = h('div', { class: 'fd-arv' });
+
+  function montarDados() {
+    const f = consulta.filtros || {};
+    const b = norm(consulta.busca).trim();
+    const casa = (...t) => !b || t.some((x) => norm(x).includes(b));
+    const lista = [];
+    ordenar(insumos.filter((i) => !f.insumo || i.nome === f.insumo), 'nome').forEach((ins) => {
+      const insOk = casa(ins.nome);
+      const ters = ordenar(terceiros.filter((t) => t.insumoId === ins.id && (!f.terceiro || t.nome === f.terceiro)), 'nome').map((ter) => {
+        const terOk = insOk || casa(ter.nome, ter.cnpj);
+        const todosPeds = pedidos.filter((x) => x.terceiroId === ter.id)
+          .sort((x, y) => String(x.dataEmissao).localeCompare(String(y.dataEmissao)) || String(x.numero).localeCompare(String(y.numero)));
+        const peds = todosPeds.map((ped) => {
+          const pedOk = terOk || casa(ped.numero);
+          const todasNfs = notasDoPedido(ped.id).sort((x, y) => String(x.data).localeCompare(String(y.data)) || String(x.numero).localeCompare(String(y.numero)));
+          const nfs = todasNfs.filter((n) => pedOk || casa(n.numero));
+          if (!pedOk && !nfs.length) return null;
+          return { ped, nfs, total: vn(ped.valor), consumido: somar(todasNfs, 'valor'), qtdNfs: todasNfs.length };
+        }).filter(Boolean);
+        if (!terOk && !peds.length) return null;
+        const ids = new Set(todosPeds.map((x) => x.id));
+        return { ter, peds, total: somar(todosPeds, 'valor'), consumido: somar(notas.filter((n) => ids.has(n.pedidoId)), 'valor'), qtdPeds: todosPeds.length };
+      }).filter(Boolean);
+      if (f.terceiro && !ters.length) return;
+      if (!insOk && !ters.length) return;
+      const r = resumoInsumo(ins);
+      lista.push({ ins, ters, total: r.vigente, consumido: r.faturado, emPedidos: r.comprometido, qtdTers: r.ters.length, qtdPeds: r.peds.length, qtdNfs: r.nfs.length });
+    });
+    return lista;
+  }
+
+  const avanco = (pct) => h('div', { class: 'fd-arv__avanco' },
+    h('div', { class: 'fd-arv__trilho' }, h('i', { class: classes(pct > 100.005 && 'is-acima', pct >= 99.995 && pct <= 100.005 && 'is-cheio'), style: `width:${Math.min(100, Math.max(0, pct))}%` })),
+    h('span', {}, formatarPercentual(pct, { casas: 1 })));
+  const moeda = (v, perigo) => h('span', { class: classes('fd-arv__num', perigo && v < -0.004 && 'is-negativo') }, formatarMoeda(v));
+  const cabecalho = (nivel, colunas) => h('div', { class: `fd-arv__cab fd-arv__cab--n${nivel}` }, colunas.map((c) => h('span', {}, c)));
+  const abrirItem = (fn) => (e) => { e.stopPropagation(); fn(); };
+
+  function linha({ nivel, chave, filhos, codigo, nome, onAbrir, sub, valores }) {
+    const aberto = chave && (abertosGeral.has(chave) || Boolean(norm(consulta.busca).trim()));
+    const lin = h('div', {
+      class: classes('fd-arv__lin', `fd-arv__lin--n${nivel}`, filhos && 'is-grupo', aberto && 'is-aberto'),
+      role: filhos ? 'button' : null, tabindex: filhos ? '0' : null, 'aria-expanded': filhos ? String(Boolean(aberto)) : null,
+      onClick: filhos ? () => { if (abertosGeral.has(chave)) abertosGeral.delete(chave); else abertosGeral.add(chave); render(); } : null,
+      onKeydown: filhos ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } } : null,
+    },
+    h('div', { class: 'fd-arv__nome' },
+      h('span', { class: 'fd-arv__seta' }, filhos ? criarIcone('chevron-direita', 14) : null),
+      h('div', { class: 'fd-arv__txt' },
+        h('div', {},
+          codigo ? h('span', { class: 'fd-arv__cod' }, codigo) : null,
+          h('button', { type: 'button', class: 'fd-arv__link', title: 'Abrir detalhes', onClick: abrirItem(onAbrir) }, nome)),
+        sub ? h('div', { class: 'fd-arv__sub' }, sub) : null)),
+    valores.map((v) => h('div', { class: 'fd-arv__col' }, v)));
+    return { lin, aberto };
+  }
+
+  function render() {
+    const dados = montarDados();
+    const filhosIns = [];
+    let tTotal = 0; let tCons = 0; let tPed = 0;
+    dados.forEach((d) => {
+      tTotal += d.total; tCons += d.consumido; tPed += d.emPedidos;
+      const { lin, aberto } = linha({
+        nivel: 1, chave: `i:${d.ins.id}`, filhos: true, codigo: cod(d.ins.id), nome: d.ins.nome, onAbrir: () => abrirModalInsumo(d.ins),
+        sub: `${d.qtdTers} fornecedor(es) · ${d.qtdPeds} pedido(s) · ${d.qtdNfs} NF(s) · em pedidos ${formatarMoeda(d.emPedidos)}`,
+        valores: [moeda(d.total), moeda(d.consumido), moeda(d.total - d.consumido, true), avanco(pctFD(d.consumido, d.total))],
+      });
+      const bloco = h('div', { class: 'fd-arv__bloco fd-arv__bloco--n1' }, lin);
+      if (aberto) {
+        const filhos = h('div', { class: 'fd-arv__filhos' },
+          cabecalho(2, ['Fornecedores do insumo', 'Total dos pedidos', 'Consumido (NFs)', 'Saldo', 'Avanço']));
+        if (!d.ters.length) filhos.append(h('div', { class: 'fd-arv__vazio' }, 'Nenhum fornecedor cadastrado neste insumo.'));
+        d.ters.forEach((t) => {
+          const r2 = linha({
+            nivel: 2, chave: `t:${t.ter.id}`, filhos: true, codigo: cod(t.ter.id), nome: t.ter.nome, onAbrir: () => abrirModalTerceiro(t.ter),
+            sub: [t.ter.uf, t.ter.cnpj, `${t.qtdPeds} pedido(s)`].filter(Boolean).join(' · '),
+            valores: [moeda(t.total), moeda(t.consumido), moeda(t.total - t.consumido, true), avanco(pctFD(t.consumido, t.total))],
+          });
+          const b2 = h('div', { class: 'fd-arv__bloco fd-arv__bloco--n2' }, r2.lin);
+          if (r2.aberto) {
+            const f2 = h('div', { class: 'fd-arv__filhos' },
+              cabecalho(3, ['Pedidos do fornecedor', 'Valor do pedido', 'Consumido (NFs)', 'Saldo', 'Avanço']));
+            if (!t.peds.length) f2.append(h('div', { class: 'fd-arv__vazio' }, 'Nenhum pedido cadastrado para este fornecedor.'));
+            t.peds.forEach((pd) => {
+              const pct = pctFD(pd.consumido, pd.total);
+              const sit = situacaoPedido({ perc: pct });
+              const r3 = linha({
+                nivel: 3, chave: `p:${pd.ped.id}`, filhos: true, codigo: cod(pd.ped.id), nome: `Pedido ${pd.ped.numero}`, onAbrir: () => abrirPedido(pd.ped),
+                sub: h('span', { class: 'fd-arv__subflex' },
+                  `emissão ${formatarData(pd.ped.dataEmissao)} · ${pd.qtdNfs} NF(s)`,
+                  criarBadge({ texto: sit, variante: VARIANTE_SITUACAO[sit] })),
+                valores: [moeda(pd.total), moeda(pd.consumido), moeda(pd.total - pd.consumido, true), avanco(pct)],
+              });
+              const b3 = h('div', { class: 'fd-arv__bloco fd-arv__bloco--n3' }, r3.lin);
+              if (r3.aberto) {
+                const f3 = h('div', { class: 'fd-arv__filhos' },
+                  cabecalho(4, ['Notas fiscais do pedido', 'Valor da NF', 'Boleto', 'Vencimento', '% do pedido']));
+                if (!pd.nfs.length) f3.append(h('div', { class: 'fd-arv__vazio' }, 'Nenhuma NF lançada neste pedido.'));
+                pd.nfs.forEach((nf) => {
+                  const bols = boletosDaNota(nf.id);
+                  const st = bols.length ? bols.map((b) => statusBoleto(b)) : ['Sem boleto'];
+                  const venc = bols.map((b) => b.vencimento).filter(Boolean).sort();
+                  f3.append(linha({
+                    nivel: 4, filhos: false, codigo: cod(nf.id), nome: `NF ${nf.numero}`, onAbrir: () => abrirModalNota(nf),
+                    sub: [formatarData(nf.data), nf.bm ? `BM${nf.bm}` : ''].filter(Boolean).join(' · '),
+                    valores: [
+                      moeda(vn(nf.valor)),
+                      h('span', { class: 'fd-arv__badges' }, [...new Set(st)].map((x) => criarBadge({ texto: x, variante: x === 'Sem boleto' ? 'warning' : VARIANTE_PRAZO[x] }))),
+                      h('span', { class: 'fd-arv__num' }, venc.length ? formatarData(venc[venc.length - 1]) : '—'),
+                      avanco(pctFD(vn(nf.valor), pd.total)),
+                    ],
+                  }).lin);
+                });
+                b3.append(f3);
+              }
+              f2.append(b3);
+            });
+            b2.append(f2);
+          }
+          filhos.append(b2);
+        });
+        bloco.append(filhos);
+      }
+      filhosIns.push(bloco);
+    });
+    definirMetaBase(`${dados.length} de ${insumos.length} insumos`);
+    raiz.replaceChildren(
+      cabecalho(1, ['Insumo', rotuloValorInsumo(), 'Consumido (NFs)', 'Saldo', 'Avanço']),
+      ...(filhosIns.length ? filhosIns : [h('div', { class: 'fd-arv__vazio' }, insumos.length ? 'Nenhum item encontrado para o filtro.' : 'Nenhum insumo cadastrado. Cadastre na aba Insumos.')]),
+      dados.length ? h('div', { class: 'fd-arv__total' },
+        h('div', { class: 'fd-arv__nome' }, h('span', { class: 'fd-arv__seta' }), h('div', {}, h('b', {}, 'Total'), h('div', { class: 'fd-arv__sub' }, `em pedidos ${formatarMoeda(tPed)}`))),
+        h('div', { class: 'fd-arv__col' }, moeda(tTotal)),
+        h('div', { class: 'fd-arv__col' }, moeda(tCons)),
+        h('div', { class: 'fd-arv__col' }, moeda(tTotal - tCons, true)),
+        h('div', { class: 'fd-arv__col' }, avanco(pctFD(tCons, tTotal)))) : null);
+  }
+
+  const tabela = {
+    elemento: raiz,
+    atualizarConsulta: ({ busca = '', filtros = {} } = {}) => { consulta = { busca, filtros }; render(); },
+  };
+  render();
+  const abrirAte = (nivel) => {
+    abertosGeral.clear();
+    insumos.forEach((x) => abertosGeral.add(`i:${x.id}`));
+    if (nivel >= 2) terceiros.forEach((x) => abertosGeral.add(`t:${x.id}`));
+    if (nivel >= 3) pedidos.forEach((x) => abertosGeral.add(`p:${x.id}`));
+    render();
+  };
+  return {
+    tabela, titulo: 'Visão geral — insumo › fornecedor › pedido › NF', icone: 'tabela',
+    selects: [],
+    acoes: [
+      { texto: 'Fechar tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Mostrar só os insumos', onClick: () => { abertosGeral.clear(); render(); } },
+      { texto: 'Até fornecedores', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir insumos', onClick: () => abrirAte(1) },
+      { texto: 'Até pedidos', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir insumos e fornecedores', onClick: () => abrirAte(2) },
+      { texto: 'Abrir tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir até as notas fiscais', onClick: () => abrirAte(3) },
+      { texto: 'Exportar tudo', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Planilha completa do recorte: obra, insumos, terceiros, pedidos, NFs e boletos', onClick: exportarTudo },
+    ],
+    rodape: 'Clique na linha para abrir ou fechar o nível; clique no nome para ver os detalhes. Insumo: total = valor da aba Insumos. Fornecedor e pedido: total = valor dos pedidos. Consumido = soma das NFs; saldo = total − consumido; avanço = consumido ÷ total.',
+  };
+}
+
+function secaoGeralAntiga() {
   if (modoGeral === 'agrupada') return secaoGeralAgrupada();
   if (modoGeral === 'recolhida') return secaoGeralRecolhida();
   const mes = mesEstimadoAtual();
@@ -12545,7 +12796,11 @@ function resumoBase() {
   const bols = boletos.filter((b) => idsNf.has(b.notaId));
   const valor = somar(peds, 'valor');
   const faturado = somar(nfs, 'valor');
-  return graficoResumoBase({ peds, nfs, valor, faturado });
+  /* v1.80: total do faturamento direto = valor vigente dos insumos do recorte (aba Insumos) */
+  const insRecorte = insumos.filter((i) => (!filtroBase.insumo || i.nome === filtroBase.insumo)
+    && (!filtroBase.terceiro || terceiros.some((t) => t.insumoId === i.id && t.nome === filtroBase.terceiro)));
+  const totalFD = insRecorte.reduce((a, i) => a + valorVigente(i), 0);
+  return graficoResumoBase({ peds, nfs, valor, faturado, totalFD, qtdInsumos: insRecorte.length });
 }
 
 /*
@@ -12555,45 +12810,53 @@ function resumoBase() {
  */
 const pctFD = (parte, total) => (total ? (parte / total) * 100 : 0);
 
-function graficoResumoBase({ peds, nfs, valor, faturado }) {
-  const saldo = valor - faturado;
-  const acima = saldo < 0;
-  const escala = Math.max(valor, faturado) || 1;
-  const semMoeda = (v) => formatarMoeda(v).replace(/R\$\s?/, '').trim();
-  const segmento = (classe, v, rotulo) => {
-    const largura = (v / escala) * 100;
-    const pct = formatarPercentual(pctFD(v, valor), { casas: 1 });
-    const estreita = largura < 22;
-    return h('div', {
-      class: classes('fd-resumo__seg', classe, estreita && 'is-estreita'),
-      style: `width:${largura}%`, title: `${rotulo}: ${pct} (${formatarMoeda(v)})`,
-    }, v > 0 ? h('span', {}, h('b', {}, pct), estreita ? h('br') : ' ', `(${semMoeda(v)})`) : null);
+function graficoResumoBase({ peds, nfs, valor, faturado, totalFD, qtdInsumos }) {
+  const COR = { consumido: '#2563eb', saldo: '#16a34a', acima: '#dc2626' };
+  /* pizza (rosca) com o % consumido no centro e a legenda com valor e % de cada parte */
+  const pizza = ({ titulo, total, sub, consumido, rotuloTotal, extra }) => {
+    const saldo = total - consumido;
+    const acima = saldo < 0;
+    const fatias = acima
+      ? [{ rotulo: 'Consumido (NFs) até o total', valor: total, cor: COR.consumido }, { rotulo: 'Consumido acima do total', valor: -saldo, cor: COR.acima }]
+      : [{ rotulo: `Consumido (${nfs.length} NF${nfs.length === 1 ? '' : 's'})`, valor: consumido, cor: COR.consumido }, { rotulo: 'Saldo', valor: saldo, cor: COR.saldo }];
+    const base = fatias.reduce((a, f) => a + f.valor, 0);
+    let acum = 0;
+    const gradiente = base > 0
+      ? `conic-gradient(${fatias.filter((f) => f.valor > 0).map((f) => { const a = acum; acum += (f.valor / base) * 100; return `${f.cor} ${a}% ${acum}%`; }).join(',')})`
+      : '#e2e8f0';
+    const pctConsumido = pctFD(consumido, total);
+    return h('div', { class: 'fd-resumo__bloco' },
+      h('div', { class: 'fd-resumo__cab' },
+        h('span', { class: 'fd-resumo__tit' }, titulo),
+        h('span', { class: 'fd-resumo__total' }, formatarMoeda(total), ' ', h('small', {}, sub))),
+      h('div', { class: 'fd-pizza' },
+        h('div', {
+          class: 'fd-pizza__rosca', style: `background:${gradiente}`, role: 'img',
+          'aria-label': `${titulo}: ${fatias.map((f) => `${f.rotulo} ${formatarMoeda(f.valor)}`).join(', ')}`,
+        }, h('div', { class: 'fd-pizza__furo' },
+          h('b', {}, formatarPercentual(pctConsumido, { casas: 1 })),
+          h('span', {}, 'consumido'))),
+        h('div', { class: 'fd-pizza__legenda' },
+          h('div', { class: 'fd-pizza__item is-total' },
+            h('span', { class: 'fd-pizza__ponto is-total' }),
+            h('div', {}, h('div', { class: 'fd-pizza__rot' }, rotuloTotal), h('div', { class: 'fd-pizza__val' }, formatarMoeda(total)))),
+          fatias.map((f) => h('div', { class: 'fd-pizza__item' },
+            h('span', { class: 'fd-pizza__ponto', style: `background:${f.cor}` }),
+            h('div', {},
+              h('div', { class: 'fd-pizza__rot' }, f.rotulo),
+              h('div', { class: 'fd-pizza__val' }, formatarMoeda(f.valor), ' ', h('small', {}, `(${formatarPercentual(pctFD(f.valor, total), { casas: 2 })})`))))),
+          extra ? h('div', { class: 'fd-pizza__extra' }, extra) : null)));
   };
-  const barra = h('div', { class: 'fd-resumo__barra', role: 'img',
-    'aria-label': `Pedidos ${formatarMoeda(valor)}: faturado ${formatarMoeda(faturado)}, saldo ${formatarMoeda(saldo)}` },
-  acima
-    ? [segmento('is-faturado', valor, 'Faturado até o valor dos pedidos'), segmento('is-acima', -saldo, 'Faturado acima dos pedidos')]
-    : [segmento('is-faturado', faturado, 'Faturado em NFs'), segmento('is-saldo', saldo, 'Saldo dos pedidos')]);
-  const legenda = (classe, rotulo, v, extra) => h('div', { class: 'fd-resumo__leg' },
-    h('span', { class: `fd-resumo__ponto ${classe}` }),
-    h('div', {},
-      h('div', { class: 'fd-resumo__leg-rot' }, rotulo),
-      h('div', { class: 'fd-resumo__leg-val' }, formatarMoeda(v)),
-      extra ? h('div', { class: 'fd-resumo__leg-sub' }, extra) : null));
-
-  const blocoPedidos = h('div', { class: 'fd-resumo__bloco' },
-    h('div', { class: 'fd-resumo__cab' },
-      h('span', { class: 'fd-resumo__tit' }, 'Pedidos × faturado'),
-      h('span', { class: 'fd-resumo__total' }, `${formatarMoeda(valor)} `, h('small', {}, `em ${peds.length} pedido(s)`))),
-    barra,
-    h('div', { class: 'fd-resumo__legendas' },
-      legenda('is-faturado', `Faturado em NFs (${nfs.length})`, faturado, `${formatarPercentual(pctFD(faturado, valor), { casas: 2 })} dos pedidos`),
-      acima
-        ? legenda('is-acima', 'Faturado acima dos pedidos', -saldo, 'NFs passam do valor dos pedidos')
-        : legenda('is-saldo', 'Saldo dos pedidos', saldo, `${formatarPercentual(pctFD(saldo, valor), { casas: 2 })} a faturar`),
-      legenda('is-pedidos', `Pedidos (${peds.length})`, valor, 'valor dos pedidos de compra')));
-
-  return h('div', { class: 'fd-resumo' }, blocoPedidos);
+  return h('div', { class: 'fd-resumo' },
+    pizza({
+      titulo: 'Faturamento direto — total dos insumos', total: totalFD, consumido: faturado,
+      sub: `em ${qtdInsumos} insumo(s)`, rotuloTotal: `Total dos insumos (${rotuloValorInsumo().toLowerCase()})`,
+      extra: `Em pedidos: ${formatarMoeda(valor)} (${formatarPercentual(pctFD(valor, totalFD), { casas: 2 })} do total)`,
+    }),
+    pizza({
+      titulo: 'Pedidos de compra', total: valor, consumido: faturado,
+      sub: `em ${peds.length} pedido(s)`, rotuloTotal: `Total dos pedidos (${peds.length})`,
+    }));
 }
 
 /* Base de faturamento (v1.76): so Notas e boletos */
@@ -16995,7 +17258,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.79 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.80 · KZ App Standard v1.7',
     },
     paginas: {
       painel: { titulo: 'Dashboard FD', caminho: ['Principal'], render: paginaPainel },
