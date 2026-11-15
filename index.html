@@ -1434,6 +1434,61 @@ img { max-width: 100%; display: block; }
 @media print { #assist-btn, #assist-painel, #tour-veu { display: none !important; } }
 @media (prefers-reduced-motion: reduce) { #tour-foco::after { animation: none; } }
 
+/* v1.90: rascunho, aviso de nova versao, evolucao e celular */
+.fd-rasc { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+.fd-rasc div { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+.fd-rasc span { font-size: 11px; color: #64748b; } .fd-rasc b { font-size: 13.5px; color: #0f172a; }
+.fd-versao { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 10095; display: flex; align-items: center; gap: 12px;
+  max-width: calc(100vw - 24px); padding: 10px 12px 10px 16px; border-radius: 14px; background: #0f172a; color: #fff;
+  box-shadow: 0 16px 40px rgba(15,23,42,.35); font-size: 13px; animation: fd-versao-entra .35s cubic-bezier(.34,1.4,.64,1); }
+.fd-versao div { display: flex; flex-direction: column; } .fd-versao small { color: #cbd5e1; font-size: 11.5px; }
+.fd-versao__icone { font-size: 20px; }
+.fd-versao__ok { all: unset; cursor: pointer; padding: 7px 14px; border-radius: 999px; background: #007aff; color: #fff; font-weight: 700; white-space: nowrap; }
+.fd-versao__ok:hover { background: #0a84ff; }
+.fd-versao__x { all: unset; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #cbd5e1; }
+.fd-versao__x:hover { background: rgba(255,255,255,.12); color: #fff; }
+@keyframes fd-versao-entra { from { opacity: 0; transform: translate(-50%, -12px); } to { opacity: 1; transform: translateX(-50%); } }
+.fd-evol-link { display: flex; justify-content: flex-end; margin-top: -6px; }
+.fd-pz__leg-movel { display: none; flex-direction: column; gap: 8px; margin-top: 6px; }
+.fd-pz__leg-movel > div { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 13px; color: #475569; }
+.fd-pz__ponto-movel { width: 12px; height: 12px; border-radius: 4px; }
+.fd-pz__valor-movel { color: #0f172a; font-size: 14px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) {
+  /* arvore do Dashboard vira cartoes: nome em cima e os valores em 2 colunas, com rotulo */
+  .fd-arv { overflow-x: visible; }
+  .fd-arv__cab { display: none; }
+  .fd-arv__lin, .fd-arv__total { min-width: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 14px; padding: 10px 12px; }
+  .fd-arv__lin .fd-arv__nome, .fd-arv__total .fd-arv__nome { grid-column: 1 / -1; }
+  .fd-arv__col { text-align: left; }
+  .fd-arv__col::before { content: attr(data-rot); display: block; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .3px; }
+  .fd-arv__lin--n1.is-aberto .fd-arv__col::before, .fd-arv__total .fd-arv__col::before { color: #cbd5e1; }
+  .fd-arv__avanco { justify-content: flex-start; }
+  .fd-arv__trilho { max-width: none; }
+  .fd-arv__bloco--n1 > .fd-arv__filhos, .fd-arv__bloco--n2 > .fd-arv__filhos { margin-left: 8px; }
+  .fd-arv__lin--n2, .fd-arv__lin--n3 { padding-left: 10px; }
+  .fd-arv__comp { margin: 4px 0 0; }
+  /* pizzas e cartoes */
+  .fd-resumo__cab { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .fd-resumo__bloco { padding: 12px; }
+  .fd-pz__extra { font-size: 11.5px; }
+  /* janelas e assistente ocupam a tela */
+  .fd-comp__infos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fd-rasc { grid-template-columns: 1fr; }
+  #assist-painel { left: 8px; right: 8px; width: auto; bottom: 66px; height: calc(100vh - 140px); }
+  #assist-btn { left: 10px; bottom: 10px; padding: 8px 12px 8px 10px; }
+  .fd-versao { top: 8px; font-size: 12px; }
+  .fd-evol-link { justify-content: flex-start; margin-top: 0; }
+  /* pizza: rotulos ao redor somem e aparece a legenda embaixo */
+  .fd-pz svg .fd-pz__rot, .fd-pz svg .fd-pz__val, .fd-pz svg .fd-pz__guia { display: none; }
+  .fd-pz__leg-movel { display: flex; }
+  /* evolucao: grafico com rolagem lateral, mantendo o texto legivel */
+  .fd-evol .ctc-panel__body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .fd-evol .ctc-panel__body svg { min-width: 760px; }
+  /* tabelas largas: rolagem lateral dentro do cartao (a pagina nao rola de lado) */
+  .ctc-main .ctc-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .ctc-main { overflow-x: hidden; }
+}
+
 /* v1.75: Abrir Versao (Nuvem) em cartoes */
 .fd-versoes .ctc-modal__dialog { max-width: 560px; overflow: hidden; }
 .fd-versoes .ctc-modal__header { background: #1e293b; color: #fff; border-bottom: 0; }
@@ -7347,7 +7402,12 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.89.0
+   Versao: 1.91.0
+   1.91.0: Dashboard sem os botoes Fechar tudo / Ate fornecedores / Abrir tudo / Exportar tudo
+           (a arvore abre clicando na linha) e sem o link "Ver por insumo na Tendencia".
+   1.90.0: limpeza do codigo antigo sem uso (Dashboard FD, modos antigos da Visao geral,
+           aba Terceiros); rascunho automatico; aviso de nova versao; NF repetida em outro pedido;
+           filtro estilo Excel em Pedidos e produtos; evolucao no Dashboard; ajustes para celular.
    1.89.0: Assistente do Controle (como no Controle de Custos): perguntas e respostas, o que faz
            cada botão (com apresentação), "Mostrar na tela" com passo a passo destacando o botão real
            e os números da obra aberta.
@@ -8741,30 +8801,6 @@ function botoesLinha(lista) {
   })));
 }
 
-/**
- * Celula de GRD: numeros ja lancados + botao "+" ao lado para incluir outro.
- * Usada na ultima coluna das tabelas de notas e de boletos.
- */
-function celulaGrd(objeto) {
-  const lista = objeto.grds || [];
-  return h('div', { class: 'ctc-cluster' },
-    lista.length ? lista.map((g) => criarBadge({ texto: g, variante: 'info' })) : h('span', { class: 'ctc-text-subtle ctc-text-xs' }, 'sem GRD'),
-    botaoFD({
-      icone: 'mais', variante: 'ghost', tamanho: 'sm', titulo: 'Adicionar nº de GRD', apenasEdicao: true,
-      onClick: async (e) => {
-        if (e) e.stopPropagation();
-        const valor = await solicitarValor({
-          titulo: 'Adicionar GRD', rotulo: 'Nº da GRD (várias: separe por ;)', obrigatorio: true,
-        });
-        if (valor == null) return;
-        objeto.grds = [...lista, ...lerGrds(valor)];
-        /* na NF, a GRD e o lancamento no e-clic */
-        if ('pedidoId' in objeto) { objeto.eclic = true; if (!objeto.eclicData) objeto.eclicData = hojeIso(); }
-        registrarAlteracao();
-        toast.sucesso('GRD adicionada', textoGrds(objeto.grds));
-      },
-    }));
-}
 
 /* ---- Grafico SVG (linhas e barras) ---- */
 
@@ -8783,81 +8819,7 @@ function elSvg(tag, atributos = {}, ...filhos) {
   return el;
 }
 
-function legendaGrafico(itens) {
-  return h('div', { class: 'ctc-legend' }, itens.map(({ texto, tema, tracejada }) => h('span', { class: 'ctc-legend__item' },
-    h('span', { class: `ctc-legend__swatch ctc-theme-${tema}` }), tracejada ? `${texto} (- -)` : texto)));
-}
 
-/**
- * Grafico mensal: barras agrupadas e/ou linhas, um eixo em R$.
- * serie: { meses, barras: [{ valores, cor }], linhas: [{ valores, cor, tracejada }], marcador: indice }
- */
-function graficoMensal({ meses, barras = [], linhas = [], marcador = -1, altura: alturaTotal = 300 }) {
-  const L = 960; const A = alturaTotal;
-  const m = { e: 92, d: 16, t: 14, b: 46 };
-  const largura = L - m.e - m.d;
-  const altura = A - m.t - m.b;
-  const n = Math.max(meses.length, 1);
-  const todos = [...barras, ...linhas].flatMap((s) => s.valores).filter((v) => v != null);
-  const maximo = Math.max(1, ...todos) * 1.08;
-  const y = (v) => m.t + altura - (vn(v) / maximo) * altura;
-  const faixa = largura / n;
-  const xc = (i) => m.e + faixa * i + faixa / 2;
-
-  const svg = elSvg('svg', {
-    viewBox: `0 0 ${L} ${A}`, width: '100%', role: 'img', 'aria-label': 'Gráfico mensal', 'font-family': 'inherit',
-  });
-  for (let k = 0; k <= 4; k += 1) {
-    const v = (maximo / 4) * k;
-    svg.append(
-      elSvg('line', { x1: m.e, x2: L - m.d, y1: y(v), y2: y(v), stroke: COR_GRAFICO.grade, 'stroke-width': 1 }),
-      elSvg('text', { x: m.e - 8, y: y(v) + 4, 'text-anchor': 'end', 'font-size': 11, fill: COR_GRAFICO.eixo }, formatarMoedaCompacta(v)),
-    );
-  }
-  const passo = Math.ceil(n / 14);
-  meses.forEach((mes, i) => {
-    if (i % passo !== 0 && i !== n - 1) return;
-    svg.append(elSvg('text', { x: xc(i), y: A - m.b + 18, 'text-anchor': 'middle', 'font-size': 11, fill: COR_GRAFICO.eixo }, formatarData(mes, 'mes-ano')));
-  });
-  if (marcador >= 0 && marcador < n) {
-    const xm = m.e + faixa * (marcador + 1);
-    svg.append(
-      elSvg('line', { x1: xm, x2: xm, y1: m.t, y2: m.t + altura, stroke: COR_GRAFICO.hoje, 'stroke-width': 1, 'stroke-dasharray': '3 3' }),
-      elSvg('text', { x: xm - 4, y: m.t + 10, 'text-anchor': 'end', 'font-size': 10, fill: COR_GRAFICO.hoje }, 'hoje'),
-    );
-  }
-  const larguraBarra = Math.max(2, (faixa * 0.7) / Math.max(barras.length, 1));
-  barras.forEach((s, b) => {
-    s.valores.forEach((v, i) => {
-      if (!v) return;
-      const x0 = m.e + faixa * i + faixa * 0.15 + larguraBarra * b;
-      svg.append(elSvg('rect', {
-        x: x0, y: y(v), width: larguraBarra - 1, height: Math.max(0, m.t + altura - y(v)), fill: s.cor, 'fill-opacity': s.opacidade ?? 0.85, rx: 1,
-      }, elSvg('title', {}, `${formatarData(meses[i], 'mes-ano')} — ${s.nome}: ${formatarMoeda(v)}`)));
-    });
-  });
-  linhas.forEach((s) => {
-    const pontos = s.valores.map((v, i) => (v == null ? null : `${xc(i)},${y(v)}`));
-    let trecho = [];
-    const fechar = () => {
-      if (trecho.length > 1) {
-        svg.append(elSvg('polyline', {
-          points: trecho.join(' '), fill: 'none', stroke: s.cor, 'stroke-width': 2.5, 'stroke-dasharray': s.tracejada ? '6 4' : null, 'stroke-linejoin': 'round',
-        }));
-      }
-      trecho = [];
-    };
-    pontos.forEach((p) => { if (p) trecho.push(p); else fechar(); });
-    fechar();
-    s.valores.forEach((v, i) => {
-      if (v == null) return;
-      svg.append(elSvg('circle', { cx: xc(i), cy: y(v), r: 3, fill: s.cor },
-        elSvg('title', {}, `${formatarData(meses[i], 'mes-ano')} — ${s.nome}: ${formatarMoeda(v)}`)));
-    });
-  });
-  svg.append(elSvg('line', { x1: m.e, x2: L - m.d, y1: m.t + altura, y2: m.t + altura, stroke: COR_GRAFICO.eixo, 'stroke-width': 1 }));
-  return h('div', { class: 'ctc-stack' }, svg);
-}
 
 /** Curva acumulada (e, se pedido, barras mensais) de uma serie de tendencia. */
 /** SVG (texto gerado aqui, valores escapados) -> elemento, ocupando a largura disponivel. */
@@ -8955,167 +8917,9 @@ function tabelaSerie(serie) {
 
 let filtroPainel = [];   // ids de insumos; vazio = todos
 
-function insumosFiltrados() {
-  return filtroPainel.length ? insumos.filter((i) => filtroPainel.includes(i.id)) : insumos.slice();
-}
 
-function conteudoPainel() {
-  const lista = insumosFiltrados();
-  const resumos = lista.map((ins) => ({ ins, r: resumoInsumo(ins) }));
-  const soma = (campo) => resumos.reduce((t, x) => t + x.r[campo], 0);
-  const vigente = soma('vigente');
-  const comprometido = soma('comprometido');
-  const faturado = soma('faturado');
-  const reidi = soma('reidi');
-  const difal = soma('difal');
-  const idsNf = new Set(resumos.flatMap((x) => x.r.nfs.map((n) => n.id)));
-  const nfsFiltro = notas.filter((n) => idsNf.has(n.id));
-  const bols = boletos.filter((b) => idsNf.has(b.notaId));
-  const abertos = bols.filter((b) => ['Em aberto', 'Vencido', 'Em contestação'].includes(statusBoleto(b)));
-  const vencidos = bols.filter((b) => statusBoleto(b) === 'Vencido');
-  const nfsSemBoleto = nfsFiltro.filter((n) => !boletosDaNota(n.id).length);
-  const pedsDivergentes = resumos.flatMap((x) => x.r.peds).filter((p) => resumoPedido(p).divergente);
-  const nfsSemEclic = nfsFiltro.filter((n) => !n.eclic);
-  const serie = serieTendencia(lista);
 
-  const pedsFiltro = resumos.flatMap((x) => x.r.peds);
-  const qtdTerceiros = resumos.reduce((t, x) => t + x.r.ters.length, 0);
-  const nfsSemBM = nfsFiltro.filter((n) => !n.bm);
-  const saldoPedidos = comprometido - faturado;
-  const aderencia = vigente ? (comprometido / vigente) * 100 : 0;
 
-  /* Indicadores no modelo previsto x comprometido x NFs x saldo x aderencia */
-  const indicadores = h('div', { class: 'ctc-grid ctc-grid--6' },
-    criarKpi({ rotulo: temAditivoValor() ? 'Previsto (valor vigente)' : 'Previsto (valor total)', valor: formatarMoeda(vigente), sub: `${lista.length} insumo(s)`, variante: 'accent', tema: 1 }).elemento,
-    criarKpi({ rotulo: 'Comprometido (pedidos)', valor: formatarMoeda(comprometido), sub: `${qtdTerceiros} terceiro(s) · ${pedsFiltro.length} pedido(s)`, variante: 'warning' }).elemento,
-    criarKpi({ rotulo: 'NFs lançadas', valor: formatarMoeda(faturado), sub: `${nfsFiltro.length} nota(s) fiscal(is)`, variante: 'accent', tema: 3 }).elemento,
-    criarKpi({ rotulo: 'Saldo (pedidos − NFs)', valor: formatarMoeda(saldoPedidos), sub: 'comprometido − NFs lançadas', variante: saldoPedidos < 0 ? 'danger' : 'success' }).elemento,
-    criarKpi({
-      rotulo: 'Aderência ao previsto', valor: formatarPercentual(aderencia, { casas: 2 }), variante: aderencia > 100 ? 'danger' : null,
-      sub: `faturado: ${formatarPercentual(vigente ? (faturado / vigente) * 100 : 0, { casas: 2 })} do previsto`, progresso: { percentual: aderencia, variante: aderencia > 100 ? 'danger' : null },
-    }).elemento,
-    criarKpi({ rotulo: 'REIDI nas NFs', valor: formatarMoeda(reidi), sub: `DIFAL ${formatarMoeda(difal)} · ${abertos.length} boleto(s) em aberto` }).elemento);
-
-  const pendencias = [
-    nfsSemBM.length ? criarAlerta({
-      tipo: 'warning', titulo: `${nfsSemBM.length} NF(s) a lançar em BM (${formatarMoeda(somar(nfsSemBM, 'valor'))})`,
-      mensagem: nfsSemBM.map((n) => n.numero).join(', '),
-      acoes: [{ texto: 'Ver notas', onClick: () => irParaBase('notas') }],
-    }) : null,
-    pedsDivergentes.length ? criarAlerta({
-      tipo: 'warning', titulo: `${pedsDivergentes.length} pedido(s) com valor diferente da soma dos produtos`,
-      mensagem: pedsDivergentes.map((p) => p.numero).join(', '),
-      acoes: [{ texto: 'Ver pedidos', onClick: () => irParaBase('pedidos') }],
-    }) : null,
-  ].filter(Boolean);
-  /* faixa compacta no topo: boletos vencidos e NFs sem lancamento no e-clic (so a quantidade) */
-  const faixaAvisos = vencidos.length || nfsSemEclic.length ? h('div', { class: 'ctc-toolbar' },
-    vencidos.length ? criarBadge({ texto: `${vencidos.length} boleto(s) vencido(s) · ${formatarMoeda(somar(vencidos, 'valor'))}`, variante: 'danger' }) : null,
-    vencidos.length ? criarBotao({ texto: 'Ver boletos', variante: 'ghost', tamanho: 'sm', onClick: () => irParaBase('notas') }) : null,
-    nfsSemEclic.length ? criarBadge({ texto: `${nfsSemEclic.length} NF(s) sem lançamento no e-clic`, variante: 'warning' }) : null,
-  ) : null;
-
-  const tabelaInsumos = criarTabela({
-    dados: resumos.map(({ ins, r }) => ({
-      ins, nome: ins.nome, vigente: r.vigente, comprometido: r.comprometido, faturado: r.faturado,
-      perc: r.percFaturado, saldo: r.saldoFaturar, saldoContratar: r.saldoContratar, terceiros: r.ters.length, pedidos: r.peds.length, nfs: r.nfs.length,
-    })),
-    compacta: true, altura: 'auto', listrada: true,
-    linhaVariante: (l) => (l.saldo < 0 || l.saldoContratar < 0 ? 'danger' : null),
-    vazio: { titulo: 'Nenhum insumo cadastrado', mensagem: 'Cadastre os insumos em Base de dados > Insumos.' },
-    /* titulo e valor centralizados na mesma coluna; a barra de % faturado fica dentro da tabela */
-    colunas: [
-      { campo: 'nome', titulo: 'Insumo', fixa: true },
-      ...[
-        { campo: 'terceiros', titulo: 'Terceiros', tipo: 'numero', total: 'soma' },
-        { campo: 'pedidos', titulo: 'Pedidos', tipo: 'numero', total: 'soma' },
-        { campo: 'nfs', titulo: 'NFs', tipo: 'numero', total: 'soma' },
-        { campo: 'vigente', titulo: rotuloValorInsumo(), tipo: 'moeda', total: 'soma' },
-        { campo: 'comprometido', titulo: 'Em pedidos', tipo: 'moeda', total: 'soma' },
-        { campo: 'saldoContratar', titulo: 'Saldo a contratar', tipo: 'moeda', total: 'soma' },
-        { campo: 'faturado', titulo: 'Faturado', tipo: 'moeda', total: 'soma' },
-        {
-          campo: 'perc', titulo: '% faturado',
-          render: (v) => h('div', { class: 'ctc-stack' },
-            criarProgresso({ percentual: v, tamanho: 'sm', variante: v > 100 ? 'danger' : null, rotulo: '% faturado do insumo' }),
-            h('span', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(v, { casas: 2 }))),
-        },
-        { campo: 'saldo', titulo: 'Saldo a faturar', tipo: 'moeda', total: 'soma' },
-      ].map((c) => ({ ...c, alinhamento: 'centro', ordenavel: false })),
-    ],
-  });
-
-  return h('div', { class: 'ctc-stack' },
-    faixaAvisos,
-    indicadores,
-    pendencias.length ? h('div', { class: 'ctc-stack' }, pendencias) : null,
-    criarPainel({ titulo: 'Insumos', icone: 'tabela', semEspaco: true, conteudo: tabelaInsumos.elemento }).elemento,
-    painelSaldoPedidos(pedsFiltro),
-    blocoCurvas(serie, { mensal: false }));
-}
-
-/** Saldo por pedido de compra; pedidos 100% consumidos ficam num grupo no fim. */
-function painelSaldoPedidos(lista) {
-  const linhas = lista.map((p) => ({ p, r: resumoPedido(p) }));
-  const ativos = linhas.filter((x) => x.r.perc < 99.995).sort((a, b) => b.r.perc - a.r.perc);
-  const consumidos = linhas.filter((x) => x.r.perc >= 99.995);
-  const linha = ({ p, r }, apagada) => {
-    const cls = apagada ? 'ctc-text-muted' : null;
-    return h('tr', { onClick: () => abrirPedido(p), title: 'Abrir pedido' },
-      h('td', { class: cls },
-        h('div', { class: apagada ? null : 'ctc-text-strong' }, p.numero),
-        apagada ? h('div', { class: 'ctc-text-xs ctc-text-subtle' }, '✓ 100% consumido') : null),
-      h('td', { class: apagada ? cls : 'ctc-text-strong' }, terceiroDoPedido(p)?.nome || '—'),
-      h('td', { class: cls }, insumoDoPedido(p)?.nome || '—'),
-      h('td', { class: cls }, formatarData(p.dataEmissao)),
-      h('td', { class: `ctc-col--num ctc-num${apagada ? ' ctc-text-muted' : ''}` }, formatarMoeda(p.valor)),
-      h('td', { class: `ctc-col--num ctc-num${apagada ? ' ctc-text-muted' : ''}` }, formatarMoeda(r.faturado)),
-      h('td', { class: `ctc-col--num ctc-num ${apagada ? 'ctc-text-muted' : r.saldo < 0 ? 'ctc-text-danger' : 'ctc-text-success'}` }, formatarMoeda(r.saldo)),
-      h('td', {},
-        criarProgresso({ percentual: r.perc, tamanho: 'sm', variante: r.perc >= 80 ? 'danger' : 'success', rotulo: 'Utilização do pedido' }),
-        h('div', { class: 'ctc-text-xs ctc-text-muted' }, `${formatarPercentual(r.perc, { casas: 1 })} utilizado`)));
-  };
-  const corpo = [
-    ...ativos.map((x) => linha(x, false)),
-    consumidos.length ? h('tr', {}, h('td', { colspan: 8, class: 'ctc-text-xs ctc-text-strong ctc-text-muted' }, `PEDIDOS 100% CONSUMIDOS (${consumidos.length})`)) : null,
-    ...consumidos.map((x) => linha(x, true)),
-  ].filter(Boolean);
-  return criarPainel({
-    titulo: 'Saldo por pedido de compra', icone: 'documento', semEspaco: true,
-    tag: 'Pedidos 100% consumidos ficam no fim da lista',
-    conteudo: h('div', { class: 'ctc-table-wrap ctc-table-wrap--auto' },
-      h('table', { class: 'ctc-table ctc-table--compact' },
-        h('thead', {}, h('tr', {}, ['Pedido de compra', 'Terceiro', 'Insumo', 'Emissão', 'Valor do pedido', 'Consumido (NF)', 'Saldo', 'Utilização']
-          .map((t, i) => h('th', { class: [4, 5, 6].includes(i) ? 'ctc-col--num' : null }, t)))),
-        h('tbody', {}, corpo.length ? corpo : h('tr', {}, h('td', { colspan: 8, class: 'ctc-text-subtle' }, 'Nenhum pedido lançado.'))))),
-  }).elemento;
-}
-
-function paginaPainel() {
-  const area = h('div', {});
-  const atualizar = () => area.replaceChildren(conteudoPainel());
-  const filtro = criarSelecaoMultipla({
-    rotulo: 'Insumos',
-    opcoes: insumos.map((i) => ({ valor: i.id, texto: i.nome })),
-    selecionados: filtroPainel,
-    onMudar: (lista) => { filtroPainel = lista; atualizar(); },
-  });
-  atualizar();
-  const meta = h('span', { class: 'ctc-text-muted ctc-text-sm' },
-    obra.nome ? `${obra.nome} · ${obra.cliente || 'cliente não informado'} · ${obra.inicio ? formatarData(obra.inicio) : '?'} a ${fimVigente() ? formatarData(fimVigente()) : '?'}` : 'Obra não cadastrada');
-  return [
-    alertaFicticio(),
-    alertaSemObra(),
-    alertaDistribuicao(),
-    h('div', { class: 'ctc-toolbar' },
-      h('span', { class: 'ctc-text-strong ctc-text-sm' }, 'Filtrar insumos:'),
-      filtro.elemento,
-      botaoFD({ texto: 'Todos', variante: 'ghost', tamanho: 'sm', onClick: () => { filtroPainel = []; recarregar(); } }),
-      h('span', { class: 'ctc-spacer' }),
-      meta),
-    area,
-  ];
-}
 
 
 /* =============================================================================
@@ -10082,82 +9886,6 @@ function abrirModalTerceiro(ter = null, insumoPadrao = '', { arquivoInicial = nu
   if (arquivoInicial && insumos.length) preencherDeArquivo(arquivoInicial).catch((erro) => notificar({ tipo: 'danger', titulo: 'Não foi possível ler o arquivo', mensagem: erro.message }));
 }
 
-function secaoTerceiros() {
-  const codigos = codigosHierarquia();
-  const linhas = terceiros.map((t) => {
-    const peds = pedidos.filter((p) => p.terceiroId === t.id);
-    const resumos = peds.map((p) => resumoPedido(p));
-    const valor = somar(peds, 'valor');
-    const faturado = resumos.reduce((s2, r) => s2 + r.faturado, 0);
-    const esgotados = resumos.filter((r) => situacaoPedido(r) === 'Esgotado').length;
-    const ultimo = peds.map((p) => p.dataEmissao).filter(Boolean).sort().pop() || '';
-    return {
-      ter: t, ...(codigos.get(t.id) || {}), nome: t.nome, terceiro: t.nome, insumo: insumoPorId(t.insumoId)?.nome || '—', uf: t.uf, cnpj: t.cnpj,
-      pedidos: peds.length, ativos: peds.length - esgotados, esgotados, valor, faturado, saldo: valor - faturado,
-      utilizacao: valor ? (faturado / valor) * 100 : 0, ultimo,
-    };
-  });
-  const tabela = criarTabela({
-    dados: linhas, listrada: true, altura: 'auto',
-    ordenacao: { campo: 'ordem', direcao: 'asc' },
-    vazio: { titulo: 'Nenhum terceiro', mensagem: 'Cadastre os fornecedores de cada insumo.' },
-    onAtualizar: ({ total, filtrados }) => definirMetaBase(`${filtrados} de ${total} terceiros`),
-    onLinhaClick: (l) => { filtroBase = { ...filtroBase, terceiro: l.nome }; irParaBase('pedidos'); },
-    colunas: [
-      COLUNA_CODIGO,
-      { campo: 'insumo', titulo: 'Insumo' },
-      { campo: 'nome', titulo: 'Terceiro' },
-      { campo: 'cnpj', titulo: 'CNPJ' },
-      { campo: 'uf', titulo: 'UF' },
-      { campo: 'pedidos', titulo: 'Pedidos', tipo: 'numero', total: 'soma' },
-      {
-        campo: 'ativos', titulo: 'Ativos / esgotados', ordenavel: false,
-        render: (_, l) => (l.pedidos ? h('div', { class: 'ctc-cluster' },
-          criarBadge({ texto: `${l.ativos} ativo(s)`, variante: l.ativos ? 'info' : 'neutral' }),
-          l.esgotados ? criarBadge({ texto: `${l.esgotados} esgotado(s)`, variante: 'neutral' }) : null) : criarBadge({ texto: 'sem pedido', variante: 'warning' })),
-      },
-      { campo: 'ultimo', titulo: 'Último pedido', tipo: 'data' },
-      { campo: 'valor', titulo: 'Valor em pedidos', tipo: 'moeda', total: 'soma' },
-      { campo: 'faturado', titulo: 'Faturado', tipo: 'moeda', total: 'soma' },
-      { campo: 'saldo', titulo: 'Saldo', tipo: 'moeda', total: 'soma' },
-      {
-        campo: 'utilizacao', titulo: 'Utilização',
-        render: (v) => h('div', { class: 'ctc-stack' },
-          criarProgresso({ percentual: v, tamanho: 'sm', variante: v >= 80 ? 'danger' : 'success', rotulo: 'Utilização' }),
-          h('span', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(v, { casas: 2 }))),
-      },
-      {
-        campo: 'novoPedido', titulo: '', ordenavel: false,
-        render: (_, l) => botaoFD({
-          texto: 'Pedido', icone: 'mais', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Novo pedido de ${l.nome}`,
-          onClick: (e) => { if (e) e.stopPropagation(); abrirModalPedido(null, l.ter.id); },
-        }),
-      },
-      {
-        campo: 'acoes', titulo: '', ordenavel: false, classe: 'ctc-col--actions',
-        render: (_, l) => botoesLinha([
-          { icone: 'editar', titulo: 'Editar terceiro', apenasEdicao: true, onClick: () => abrirModalTerceiro(l.ter) },
-          {
-            icone: 'lixeira', titulo: 'Excluir terceiro', apenasEdicao: true,
-            onClick: () => excluirItem({
-              titulo: `Excluir ${l.nome}?`, mensagem: 'O terceiro será removido.',
-              bloqueio: l.pedidos ? 'Este terceiro tem pedidos. Exclua os pedidos antes.' : null,
-              executar: () => terceiros.splice(terceiros.indexOf(l.ter), 1),
-            }),
-          },
-        ]),
-      },
-    ],
-  });
-  return {
-    tabela, titulo: 'Terceiros por insumo', icone: 'usuario', selects: [],
-    acoes: [
-      { texto: 'Importar', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar terceiros (Excel/CSV)', onClick: importarTerceiros },
-      { texto: 'Exportar', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exportar terceiros filtrados (Excel)', onClick: () => exportarTerceiros(tabela.obterFiltrados().map((l) => l.ter)) },
-    ],
-    rodape: 'Clique num terceiro para ver só os pedidos dele.',
-  };
-}
 
 
 /* =============================================================================
@@ -10993,6 +10721,10 @@ const pedidosAbertosLista = new Set();   // pedidos com produtos visiveis na aba
  * unidades contratadas, abatidas pelas NFs, saldo de unidades, valores SEM/COM REIDI
  * e as NFs que abateram cada produto. Recebe a busca e os filtros comuns da base.
  */
+/* v1.90: filtros estilo Excel e ordem da tela Pedidos e produtos (valem ate sair do app) */
+const filtrosPedidosLista = {};
+const ordemPedidosLista = { coluna: null, direcao: 'asc' };
+
 function secaoPedidosProdutos() {
   const COLS = ['Pedido / produto', 'Emissão', 'Un', 'Qtd contratada', 'Qtd abatida (NFs)', 'Saldo (un)', 'Unit. SEM REIDI', 'Unit. COM REIDI', '% REIDI',
     'Valor (COM REIDI)', 'Faturado', 'Saldo R$', '% faturado', 'Situação / NFs', 'Ações'];
@@ -11010,8 +10742,74 @@ function secaoPedidosProdutos() {
     h('span', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(perc, { casas: 2 }))));
   const icone = (cfg) => botaoFD({ variante: 'ghost', tamanho: 'sm', apenasEdicao: true, ...cfg, onClick: (e) => { if (e) e.stopPropagation(); cfg.onClick(); } });
   let filtrados = [];
+  let estadoAtual = { filtros: filtroBase };
 
-  function desenhar(estado = {}) {
+  /* v1.90: filtro estilo Excel nas colunas do pedido (os produtos acompanham o pedido) */
+  const SITUACAO_PED = (ped, r) => {
+    const distAtivo = distratoAtivoDoPedido(ped.id);
+    return distAtivo ? (statusDistrato(distAtivo) === 'Aprovado' ? 'Distratado' : 'Distrato solicitado') : r.excedido ? 'Excedido' : r.prods.length ? (r.perc >= 99.995 ? 'Sem saldo' : 'OK') : 'Sem produtos';
+  };
+  const infoPedido = (ped) => {
+    const r = resumoPedido(ped);
+    const totalQtd = r.prods.reduce((t, p) => t + vn(p.quantidade), 0);
+    const totalAbatida = r.prods.reduce((t, p) => t + analisarProduto(p).qtdFaturada, 0);
+    return { ped, r, totalQtd, totalAbatida, situacao: SITUACAO_PED(ped, r) };
+  };
+  /* indice da coluna -> { texto (o que aparece no filtro), valor (para ordenar), numerica } */
+  const COL_FILTRO = {
+    0: { texto: (x) => `Pedido ${x.ped.numero}`, valor: (x) => String(x.ped.numero) },
+    1: { texto: (x) => formatarData(x.ped.dataEmissao), valor: (x) => String(x.ped.dataEmissao || '') },
+    3: { texto: (x) => (x.r.prods.length ? formatarNumero(x.totalQtd) : ''), valor: (x) => x.totalQtd, numerica: true },
+    4: { texto: (x) => (x.r.prods.length ? formatarNumero(x.totalAbatida) : ''), valor: (x) => x.totalAbatida, numerica: true },
+    5: { texto: (x) => (x.r.prods.length ? formatarNumero(x.totalQtd - x.totalAbatida) : ''), valor: (x) => x.totalQtd - x.totalAbatida, numerica: true },
+    8: { texto: (x) => (x.ped.modoReidi === 'sem' ? '—' : temPercPedido(x.ped) ? percExato(x.ped.percentualReidi) : x.ped.modoReidi === 'pedido' ? percExato(x.r.percReidi) : 'por produto'), valor: (x) => x.r.percReidi, numerica: true },
+    9: { texto: (x) => formatarMoeda(vn(x.ped.valor)), valor: (x) => vn(x.ped.valor), numerica: true },
+    10: { texto: (x) => formatarMoeda(x.r.faturado), valor: (x) => x.r.faturado, numerica: true },
+    11: { texto: (x) => formatarMoeda(x.r.saldo), valor: (x) => x.r.saldo, numerica: true },
+    12: { texto: (x) => formatarPercentual(x.r.perc, { casas: 2 }), valor: (x) => x.r.perc, numerica: true },
+    13: { texto: (x) => x.situacao, valor: (x) => x.situacao },
+  };
+  const filtrosPed = filtrosPedidosLista;
+  const textoFiltro = (i, x) => { const t = String(COL_FILTRO[i].texto(x) ?? '').trim(); return t === '' ? VAZIO_FILTRO : t; };
+  const passaFiltrosPed = (x, exceto) => Object.keys(COL_FILTRO).every((i) => {
+    if (String(i) === String(exceto)) return true;
+    const lista = filtrosPed[i];
+    return !Array.isArray(lista) || lista.includes(textoFiltro(i, x));
+  });
+  const ordenarPeds = (lista) => {
+    const o = ordemPedidosLista;
+    if (o.coluna == null || !COL_FILTRO[o.coluna]) return lista;
+    const col = COL_FILTRO[o.coluna];
+    return lista.slice().sort((a, b) => {
+      const x = col.valor(a); const y = col.valor(b);
+      const r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'pt-BR', { numeric: true });
+      return o.direcao === 'desc' ? -r : r;
+    });
+  };
+  function abrirFiltroPed(i, botao) {
+    const f = estadoAtual.filtros || {};
+    const contagem = new Map();
+    pedidos.forEach((ped) => {
+      const ter = terceiroDoPedido(ped);
+      const ins = ter ? insumoPorId(ter.insumoId) : null;
+      if (f.insumo && ins?.nome !== f.insumo) return;
+      if (f.terceiro && ter?.nome !== f.terceiro) return;
+      const x = infoPedido(ped);
+      if (!passaFiltrosPed(x, i)) return;
+      const v = textoFiltro(i, x);
+      contagem.set(v, (contagem.get(v) || 0) + 1);
+    });
+    abrirMenuFiltroExcel({
+      botao, titulo: COLS[i], contagem, numerica: Boolean(COL_FILTRO[i].numerica), atual: filtrosPed[i],
+      ordemAtiva: String(ordemPedidosLista.coluna) === String(i) ? ordemPedidosLista.direcao : null,
+      onOrdenar: (direcao) => { ordemPedidosLista.coluna = i; ordemPedidosLista.direcao = direcao; recarregar(); },
+      onAplicar: (lista) => { if (lista) filtrosPed[i] = lista; else delete filtrosPed[i]; recarregar(); },
+    });
+  }
+  const temFiltroPed = () => Object.keys(filtrosPed).some((k) => Array.isArray(filtrosPed[k]));
+
+  function desenhar(estado = estadoAtual) {
+    estadoAtual = estado;
     const f = estado.filtros || {};
     const termo = normalizarTexto(estado.busca || '');
     const linhas = [];
@@ -11028,11 +10826,10 @@ function secaoPedidosProdutos() {
         .sort((x, y) => String(x.dataEmissao || '').localeCompare(String(y.dataEmissao || '')) || String(x.numero).localeCompare(String(y.numero)));
       const bloco = [];
       let valTer = 0; let fatTer = 0; let qtdPed = 0;
-      peds.forEach((ped) => {
-        const r = resumoPedido(ped);
+      ordenarPeds(peds.map(infoPedido)).forEach((info) => {
+        if (!passaFiltrosPed(info)) return;
+        const { ped, r, situacao } = info;
         const distAtivo = distratoAtivoDoPedido(ped.id);
-        const situacao = distAtivo ? (statusDistrato(distAtivo) === 'Aprovado' ? 'Distratado' : 'Distrato solicitado') : r.excedido ? 'Excedido' : r.prods.length ? (r.perc >= 99.995 ? 'Sem saldo' : 'OK') : 'Sem produtos';
-        if (f.situacao && f.situacao !== situacao) return;
         const prods = r.prods;
         if (termo) {
           const texto = normalizarTexto([ped.numero, ter.nome, ter.cnpj, ins?.nome, ped.observacoes,
@@ -11113,7 +10910,7 @@ function secaoPedidosProdutos() {
         filhos.forEach((tr) => { tr.hidden = !aberto; });
         bloco.push(...filhos);
       });
-      if (!bloco.length && (termo || f.situacao)) return;
+      if (!bloco.length && (termo || temFiltroPed())) return;
       /* faixa do terceiro: agrupa os pedidos dele */
       linhas.push(h('tr', { class: 'ctc-row--level-1' }, h('td', { colspan: n },
         h('div', { class: 'ctc-toolbar' },
@@ -11138,20 +10935,28 @@ function secaoPedidosProdutos() {
 
   const elemento = h('div', { class: 'ctc-table-wrap ctc-table-wrap--auto' },
     h('table', { class: 'ctc-table ctc-table--compact' },
-      h('thead', {}, h('tr', {}, COLS.map((c, i) => h('th', { class: NUM.includes(i) ? 'ctc-col--num' : null }, c)))),
+      h('thead', {}, h('tr', {}, COLS.map((c, i) => (COL_FILTRO[i]
+        ? thFiltroExcel({
+          titulo: c, classe: NUM.includes(i) ? 'ctc-col--num' : null, ativo: Array.isArray(filtrosPed[i]),
+          ordemAtiva: String(ordemPedidosLista.coluna) === String(i) ? ordemPedidosLista.direcao : null,
+          onOrdenar: () => { const mesma = String(ordemPedidosLista.coluna) === String(i); ordemPedidosLista.coluna = i; ordemPedidosLista.direcao = mesma && ordemPedidosLista.direcao === 'asc' ? 'desc' : 'asc'; recarregar(); },
+          onFiltrar: (botao) => abrirFiltroPed(i, botao),
+        })
+        : h('th', { class: NUM.includes(i) ? 'ctc-col--num' : null }, c))))),
       corpo, rodape));
   desenhar({ filtros: filtroBase });
   return {
     tabela: { elemento, atualizarConsulta: desenhar, obterFiltrados: () => filtrados.map((ped) => ({ ped })) },
     titulo: 'Pedidos e produtos — por terceiro', icone: 'documento',
-    selects: [{ campo: 'situacao', rotulo: 'Situação', opcoes: ['OK', 'Sem saldo', 'Distrato solicitado', 'Distratado', 'Excedido', 'Sem produtos'] }],
+    selects: [],
     acoes: [
+      { texto: 'Limpar filtros', variante: 'ghost', tamanho: 'sm', titulo: 'Tirar os filtros e a ordenação das colunas', onClick: () => { Object.keys(filtrosPed).forEach((k) => delete filtrosPed[k]); ordemPedidosLista.coluna = null; recarregar(); } },
       { texto: 'Mostrar produtos', variante: 'ghost', tamanho: 'sm', onClick: () => { pedidos.forEach((x) => pedidosAbertosLista.add(x.id)); recarregar(); } },
       { texto: 'Só pedidos', variante: 'ghost', tamanho: 'sm', titulo: 'Recolher os produtos de todos os pedidos', onClick: () => { pedidosAbertosLista.clear(); recarregar(); } },
       { texto: 'Importar', icone: 'upload', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: 'Importar pedidos com produtos (Excel, CSV ou PDF)', onClick: abrirImportacaoPedidos },
       { texto: 'Exportar', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Exportar pedidos e produtos filtrados (Excel)', onClick: () => exportarPedidos(filtrados) },
     ],
-    rodape: 'Faixa escura: terceiro (com o total dos pedidos dele). Faixa cinza com barra azul: pedido (pedidos sem saldo ficam brancos e apagados). Abaixo, os produtos (seta do pedido). Ações do pedido: + produto, lançar NF, excluir.',
+    rodape: 'Faixa escura: terceiro (com o total dos pedidos dele). Faixa cinza com barra azul: pedido (pedidos sem saldo ficam brancos e apagados). Abaixo, os produtos (seta do pedido). Ações do pedido: + produto, lançar NF, excluir. O ▼ de cada coluna filtra e ordena os pedidos, como no Excel (os produtos acompanham o pedido).',
   };
 }
 
@@ -11244,6 +11049,16 @@ function abrirModalNota(nf = null, { pedidoId = '', rascunho = null } = {}) {
     onEnviar: async (v) => {
       const repetida = notas.find((x) => x !== nf && x.pedidoId === v.pedidoId && normalizarTexto(x.numero) === normalizarTexto(v.numero));
       if (repetida) { formulario.definirErro('numero', 'Esta NF já foi lançada neste pedido.'); return; }
+      /* v1.90: mesma NF ja lancada em OUTRO pedido do mesmo fornecedor (erro comum ao importar) */
+      const terPed = pedidoPorId(v.pedidoId)?.terceiroId;
+      const emOutro = notas.find((x) => x !== nf && x.pedidoId !== v.pedidoId && normalizarTexto(x.numero) === normalizarTexto(v.numero)
+        && pedidoPorId(x.pedidoId)?.terceiroId === terPed);
+      if (emOutro && !(await confirmar({
+        titulo: 'NF já lançada em outro pedido',
+        mensagem: `A NF ${v.numero} já está lançada no pedido ${pedidoPorId(emOutro.pedidoId)?.numero || '?'} deste mesmo fornecedor (${formatarData(emOutro.data)}, ${formatarMoeda(vn(emOutro.valor))}). Lançar mesmo assim?`,
+        textoConfirmar: 'Lançar mesmo assim',
+        perigo: true,
+      }))) return;
       const itens = [...itensMapa.entries()]
         .filter(([id, i]) => vn(i.quantidade) > 0 && produtoPorId(id)?.pedidoId === v.pedidoId)
         .map(([produtoId, i]) => ({ produtoId, quantidade: vn(i.quantidade), valorUnit: vn(i.valorUnit) }));
@@ -11864,6 +11679,114 @@ ${barraImpressao('Ficha — use "Salvar como PDF" na janela de impressão (A4 re
 
 /* ---- A grade ---- */
 
+/**
+ * v1.90: menu do filtro estilo Excel (comum a Base de faturamento e Pedidos e produtos).
+ *   abrirMenuFiltroExcel({ botao, titulo, contagem: Map(valor -> qtd), numerica, atual: [valores] | null,
+ *                          ordemAtiva: 'asc' | 'desc' | null, onOrdenar(direcao), onAplicar(lista | null) })
+ * onAplicar recebe null quando todos os valores ficam marcados (= sem filtro).
+ */
+function abrirMenuFiltroExcel({ botao, titulo, contagem, numerica = false, atual = null, ordemAtiva = null, onOrdenar, onAplicar }) {
+  fecharFiltroExcel();
+  const valores = [...contagem.keys()].sort((a, b) => {
+    if (a === VAZIO_FILTRO) return 1;
+    if (b === VAZIO_FILTRO) return -1;
+    return a.localeCompare(b, 'pt-BR', { numeric: true });
+  });
+  const atualSet = Array.isArray(atual) ? new Set(atual) : null;
+  const marcados = new Set(valores.filter((v) => !atualSet || atualSet.has(v)));
+  let termo = '';
+  let botaoOk = null;
+  const lista = h('div', { class: 'fd-filtro-menu__lista' });
+  const visiveisMenu = () => valores.filter((v) => !termo || normalizarTexto(v).includes(termo));
+  const todosBox = h('input', { type: 'checkbox' });
+  function desenharLista() {
+    const vis = visiveisMenu();
+    const qtdMarcados = vis.filter((v) => marcados.has(v)).length;
+    if (botaoOk) botaoOk.disabled = qtdMarcados === 0;   // como no Excel: sem nada marcado, OK bloqueado
+    todosBox.checked = vis.length > 0 && qtdMarcados === vis.length;
+    todosBox.indeterminate = qtdMarcados > 0 && qtdMarcados < vis.length;
+    lista.replaceChildren(
+      h('label', { class: 'fd-filtro-menu__item fd-filtro-menu__item--todos' }, todosBox, h('span', {}, termo ? '(Selecionar todos os resultados)' : '(Selecionar tudo)')),
+      ...(vis.length ? vis.map((v) => {
+        const box = h('input', { type: 'checkbox' });
+        box.checked = marcados.has(v);
+        box.addEventListener('change', () => { if (box.checked) marcados.add(v); else marcados.delete(v); desenharLista(); });
+        return h('label', { class: 'fd-filtro-menu__item', title: v }, box, h('span', {}, v), h('small', {}, String(contagem.get(v))));
+      }) : [h('div', { class: 'fd-filtro-menu__vazio' }, 'Nenhum valor encontrado.')]),
+    );
+  }
+  todosBox.addEventListener('change', () => {
+    const marcar = todosBox.checked;
+    visiveisMenu().forEach((v) => { if (marcar) marcados.add(v); else marcados.delete(v); });
+    desenharLista();
+  });
+  const busca = h('input', { type: 'search', class: 'ctc-input ctc-input--sm fd-filtro-menu__busca ctc-allow-readonly', placeholder: 'Pesquisar', 'aria-label': `Pesquisar valores de ${titulo}` });
+  busca.addEventListener('input', () => { termo = normalizarTexto(busca.value.trim()); desenharLista(); });
+  const ordenar = (direcao) => { fecharFiltroExcel(); onOrdenar(direcao); };
+  const aplicarFiltro = () => {
+    /* com pesquisa digitada, vale o que esta marcado ENTRE os resultados (igual ao Excel) */
+    const escolhidos = valores.filter((v) => marcados.has(v) && (!termo || normalizarTexto(v).includes(termo)));
+    fecharFiltroExcel();
+    onAplicar(escolhidos.length === valores.length ? null : escolhidos);
+  };
+  const limparFiltro = () => { fecharFiltroExcel(); onAplicar(null); };
+  const menu = h('div', { class: 'fd-filtro-menu', role: 'dialog', 'aria-label': `Filtro de ${titulo}` },
+    h('div', { class: 'fd-filtro-menu__cab' }, titulo),
+    h('button', { type: 'button', class: `fd-filtro-menu__ordem${ordemAtiva === 'asc' ? ' is-ativo' : ''}`, onClick: () => ordenar('asc') },
+      numerica ? '↑ Classificar do menor para o maior' : '↑ Classificar de A a Z'),
+    h('button', { type: 'button', class: `fd-filtro-menu__ordem${ordemAtiva === 'desc' ? ' is-ativo' : ''}`, onClick: () => ordenar('desc') },
+      numerica ? '↓ Classificar do maior para o menor' : '↓ Classificar de Z a A'),
+    h('div', { class: 'fd-filtro-menu__sep' }),
+    busca,
+    lista,
+    h('div', { class: 'fd-filtro-menu__rodape' },
+      botaoFD({ texto: 'Limpar', variante: 'ghost', tamanho: 'sm', onClick: limparFiltro }),
+      h('span', { class: 'ctc-spacer' }),
+      botaoFD({ texto: 'Cancelar', variante: 'ghost', tamanho: 'sm', onClick: fecharFiltroExcel }),
+      (botaoOk = botaoFD({ texto: 'OK', variante: 'primary', tamanho: 'sm', onClick: aplicarFiltro }))));
+  menu.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); fecharFiltroExcel(); botao.focus(); }
+    if (e.key === 'Enter' && e.target === busca) { e.preventDefault(); aplicarFiltro(); }
+  });
+  desenharLista();
+  document.body.append(menu);
+  const r = botao.getBoundingClientRect();
+  const larg = menu.offsetWidth;
+  const alt = menu.offsetHeight;
+  menu.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - larg - 8))}px`;
+  menu.style.top = `${r.bottom + alt + 8 > window.innerHeight ? Math.max(8, r.top - alt - 4) : r.bottom + 4}px`;
+  const fora = (e) => { if (!menu.contains(e.target)) fecharFiltroExcel(); };
+  setTimeout(() => {
+    document.addEventListener('mousedown', fora);
+    window.addEventListener('scroll', fora, true);
+    window.addEventListener('resize', fecharFiltroExcel);
+  }, 0);
+  menuFiltroAberto = {
+    menu,
+    sair: () => {
+      document.removeEventListener('mousedown', fora);
+      window.removeEventListener('scroll', fora, true);
+      window.removeEventListener('resize', fecharFiltroExcel);
+    },
+  };
+  busca.focus();
+}
+
+/** v1.90: cabecalho de coluna com titulo (clique ordena) e o botao ▼ do filtro estilo Excel. */
+function thFiltroExcel({ titulo, ativo, ordemAtiva, classe, onOrdenar, onFiltrar }) {
+  const seta = ordemAtiva ? (ordemAtiva === 'desc' ? ' ▼' : ' ▲') : '';
+  const span = h('span', {
+    class: 'fd-th__titulo', role: 'button', tabindex: '0', title: 'Clique para ordenar por esta coluna',
+    onClick: onOrdenar, onKeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOrdenar(); } },
+  }, `${titulo}${seta}`);
+  const botao = h('button', {
+    type: 'button', class: `fd-filtro-btn ctc-allow-readonly${ativo ? ' is-ativo' : ''}`,
+    title: ativo ? `Filtro aplicado em ${titulo}` : `Filtrar ${titulo}`, 'aria-label': `Filtrar ${titulo}`,
+    onClick: (e) => { e.stopPropagation(); onFiltrar(botao); },
+  }, '▼');
+  return h('th', { class: classe || null }, h('div', { class: 'fd-th' }, span, botao));
+}
+
 function secaoNotasBoletos() {
   /*
    * Cada opcao do seletor e uma BASE propria, em colunas (como uma planilha):
@@ -11973,9 +11896,8 @@ function secaoNotasBoletos() {
       h('div', { class: 'fd-th' }, titulo, botao));
   }), h('th', {}));
 
-  /* Menu do filtro (como no Excel): ordenar, pesquisar, (Selecionar tudo) + valores com contagem, Limpar / Cancelar / OK */
+  /* Menu do filtro (como no Excel): usa o menu comum abrirMenuFiltroExcel (v1.90) */
   function abrirFiltroExcel(c, botao) {
-    fecharFiltroExcel();
     const chave = `${c.id}__lista`;
     /* valores possiveis = linhas que passam nos filtros das OUTRAS colunas */
     const contagem = new Map();
@@ -11984,96 +11906,14 @@ function secaoNotasBoletos() {
       const v = valorFiltro(c, r);
       contagem.set(v, (contagem.get(v) || 0) + 1);
     });
-    const valores = [...contagem.keys()].sort((a, b) => {
-      if (a === VAZIO_FILTRO) return 1;
-      if (b === VAZIO_FILTRO) return -1;
-      return a.localeCompare(b, 'pt-BR', { numeric: true });
+    abrirMenuFiltroExcel({
+      botao, titulo: c.titulo, contagem,
+      numerica: c.tipo && !['texto', 'badge'].includes(c.tipo),
+      atual: filtros[chave],
+      ordemAtiva: ordem.coluna === c.id ? ordem.direcao : null,
+      onOrdenar: (direcao) => { ordemColunaNotas[base] = { coluna: c.id, direcao }; recarregar(); },
+      onAplicar: (lista) => { if (lista) filtros[chave] = lista; else delete filtros[chave]; recarregar(); },
     });
-    const atual = Array.isArray(filtros[chave]) ? new Set(filtros[chave]) : null;
-    const marcados = new Set(valores.filter((v) => !atual || atual.has(v)));
-    let termo = '';
-    let botaoOk = null;
-
-    const lista = h('div', { class: 'fd-filtro-menu__lista' });
-    const visiveisMenu = () => valores.filter((v) => !termo || normalizarTexto(v).includes(termo));
-    const todosBox = h('input', { type: 'checkbox' });
-    function desenharLista() {
-      const vis = visiveisMenu();
-      const qtdMarcados = vis.filter((v) => marcados.has(v)).length;
-      if (botaoOk) botaoOk.disabled = qtdMarcados === 0;   // como no Excel: sem nada marcado, OK bloqueado
-      todosBox.checked = vis.length > 0 && qtdMarcados === vis.length;
-      todosBox.indeterminate = qtdMarcados > 0 && qtdMarcados < vis.length;
-      lista.replaceChildren(
-        h('label', { class: 'fd-filtro-menu__item fd-filtro-menu__item--todos' }, todosBox, h('span', {}, termo ? '(Selecionar todos os resultados)' : '(Selecionar tudo)')),
-        ...(vis.length ? vis.map((v) => {
-          const box = h('input', { type: 'checkbox' });
-          box.checked = marcados.has(v);
-          box.addEventListener('change', () => { if (box.checked) marcados.add(v); else marcados.delete(v); desenharLista(); });
-          return h('label', { class: 'fd-filtro-menu__item', title: v }, box, h('span', {}, v), h('small', {}, String(contagem.get(v))));
-        }) : [h('div', { class: 'fd-filtro-menu__vazio' }, 'Nenhum valor encontrado.')]),
-      );
-    }
-    todosBox.addEventListener('change', () => {
-      const marcar = todosBox.checked;
-      visiveisMenu().forEach((v) => { if (marcar) marcados.add(v); else marcados.delete(v); });
-      desenharLista();
-    });
-    const busca = h('input', { type: 'search', class: 'ctc-input ctc-input--sm fd-filtro-menu__busca ctc-allow-readonly', placeholder: 'Pesquisar', 'aria-label': `Pesquisar valores de ${c.titulo}` });
-    busca.addEventListener('input', () => { termo = normalizarTexto(busca.value.trim()); desenharLista(); });
-
-    const numerica = c.tipo && !['texto', 'badge'].includes(c.tipo);
-    const ordenar = (direcao) => { ordemColunaNotas[base] = { coluna: c.id, direcao }; fecharFiltroExcel(); recarregar(); };
-    const aplicarFiltro = () => {
-      /* com pesquisa digitada, vale o que esta marcado ENTRE os resultados (igual ao Excel) */
-      const escolhidos = valores.filter((v) => marcados.has(v) && (!termo || normalizarTexto(v).includes(termo)));
-      if (escolhidos.length === valores.length) delete filtros[chave];
-      else filtros[chave] = escolhidos;
-      fecharFiltroExcel();
-      recarregar();
-    };
-    const limparFiltro = () => { delete filtros[chave]; fecharFiltroExcel(); recarregar(); };
-
-    const menu = h('div', { class: 'fd-filtro-menu', role: 'dialog', 'aria-label': `Filtro de ${c.titulo}` },
-      h('div', { class: 'fd-filtro-menu__cab' }, c.titulo),
-      h('button', { type: 'button', class: `fd-filtro-menu__ordem${ordem.coluna === c.id && ordem.direcao === 'asc' ? ' is-ativo' : ''}`, onClick: () => ordenar('asc') },
-        numerica ? '↑ Classificar do menor para o maior' : '↑ Classificar de A a Z'),
-      h('button', { type: 'button', class: `fd-filtro-menu__ordem${ordem.coluna === c.id && ordem.direcao === 'desc' ? ' is-ativo' : ''}`, onClick: () => ordenar('desc') },
-        numerica ? '↓ Classificar do maior para o menor' : '↓ Classificar de Z a A'),
-      h('div', { class: 'fd-filtro-menu__sep' }),
-      busca,
-      lista,
-      h('div', { class: 'fd-filtro-menu__rodape' },
-        botaoFD({ texto: 'Limpar', variante: 'ghost', tamanho: 'sm', onClick: limparFiltro }),
-        h('span', { class: 'ctc-spacer' }),
-        botaoFD({ texto: 'Cancelar', variante: 'ghost', tamanho: 'sm', onClick: fecharFiltroExcel }),
-        (botaoOk = botaoFD({ texto: 'OK', variante: 'primary', tamanho: 'sm', onClick: aplicarFiltro }))));
-    menu.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') { e.preventDefault(); fecharFiltroExcel(); botao.focus(); }
-      if (e.key === 'Enter' && e.target === busca) { e.preventDefault(); aplicarFiltro(); }
-    });
-    desenharLista();
-    document.body.append(menu);
-    /* posiciona logo abaixo do botao, sem sair da tela */
-    const r = botao.getBoundingClientRect();
-    const larg = menu.offsetWidth;
-    const alt = menu.offsetHeight;
-    menu.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - larg - 8))}px`;
-    menu.style.top = `${r.bottom + alt + 8 > window.innerHeight ? Math.max(8, r.top - alt - 4) : r.bottom + 4}px`;
-    const fora = (e) => { if (!menu.contains(e.target)) fecharFiltroExcel(); };
-    setTimeout(() => {
-      document.addEventListener('mousedown', fora);
-      window.addEventListener('scroll', fora, true);
-      window.addEventListener('resize', fecharFiltroExcel);
-    }, 0);
-    menuFiltroAberto = {
-      menu,
-      sair: () => {
-        document.removeEventListener('mousedown', fora);
-        window.removeEventListener('scroll', fora, true);
-        window.removeEventListener('resize', fecharFiltroExcel);
-      },
-    };
-    busca.focus();
   }
   const elemento = h('div', { class: 'ctc-table-wrap ctc-table-wrap--full' },
     h('table', { class: 'ctc-table ctc-table--compact ctc-table--grid ctc-table--striped' }, h('thead', {}, cabecalho), corpo, rodape));
@@ -12210,25 +12050,16 @@ let abaBase = 'geral';
 const ultimaAbaPagina = { visao: 'geral', base: 'notas', pedidos: 'pedidos' };
 /* v1.76: Terceiros e Pedidos e produtos ficam na Visao geral; Notas e boletos na Base de faturamento */
 const ABAS_VISAO = ['geral'];
-/* v1.83: a aba Terceiros saiu; Pedidos e produtos virou item proprio do menu */
-const PAGINA_DA_ABA = { geral: 'visao', terceiros: 'visao', pedidos: 'pedidos', notas: 'base' };
 let filtroBase = { insumo: '', terceiro: '' };
 let definirMetaBase = () => {};
 
 const SECOES_BASE = [
   /* paleta forte e neutra: cabecalhos neutros; a hierarquia aparece nas faixas das tabelas */
   { id: 'geral', texto: 'Visão geral', montar: () => secaoGeral(), contar: () => insumos.length },
-  { id: 'terceiros', texto: 'Terceiros', montar: () => secaoTerceiros(), contar: () => terceiros.length },
   { id: 'pedidos', texto: 'Pedidos e produtos', montar: () => secaoPedidosProdutos(), contar: () => pedidos.length },
   { id: 'notas', texto: 'Notas e boletos', montar: () => secaoNotasBoletos(), contar: () => notas.length },
 ];
 
-function irParaBase(aba) {
-  /* v1.76: Visao geral, Terceiros e Pedidos ficam na pagina Visao geral; Notas e boletos na Base */
-  const pagina = PAGINA_DA_ABA[aba] || 'base';
-  ultimaAbaPagina[pagina] = aba === 'terceiros' ? 'geral' : aba;
-  if (appAtual) appAtual.navegar(pagina);
-}
 
 /* ---- Visao geral: insumo > terceiro > pedido > NF > boleto ---- */
 
@@ -12248,455 +12079,18 @@ function prazoBoleto(b) {
 }
 const VARIANTE_PRAZO = { ...VARIANTE_BOLETO, 'Vence em até 2 dias': 'warning', 'A vencer': 'info' };
 
-let mesEstimadoGeral = '';
 
-function mesEstimadoAtual() {
-  const meses = mesesObra();
-  if (!meses.length) return '';
-  if (meses.includes(mesEstimadoGeral)) return mesEstimadoGeral;
-  const hoje = mesHoje();
-  if (hoje < meses[0]) return meses[0];
-  if (hoje > meses[meses.length - 1]) return meses[meses.length - 1];
-  return hoje;
-}
 
 /* ---- Visao geral: tabela unica linha x coluna ---- */
 
-/**
- * Uma linha por boleto (ou por NF sem boleto, pedido sem NF, terceiro sem pedido,
- * insumo sem terceiro). Os textos (insumo, terceiro, pedido, NF) aparecem em todas as
- * linhas para busca e filtro; os VALORES do insumo, do pedido e da NF aparecem so na
- * primeira linha de cada um, para os totais nao somarem em dobro.
- */
-function linhasVisaoGeral() {
-  const linhas = [];
-  const codigos = codigosHierarquia();
-  const cod = (id) => codigos.get(id) || { codigo: '', ordem: '' };
-  const idxMes = mesesObra().indexOf(mesEstimadoAtual());
-  ordenar(insumos, 'nome').forEach((ins) => {
-    let insPrimeira = true;
-    const doInsumo = () => {
-      const r = insPrimeira
-        ? { valorInsumo: valorVigente(ins), estimadoMes: idxMes >= 0 ? previstoMensal(ins)[idxMes] : null, insPrimeira: true }
-        : { valorInsumo: null, estimadoMes: null, insPrimeira: false };
-      insPrimeira = false;
-      return r;
-    };
-    const ters = ordenar(terceiros.filter((t) => t.insumoId === ins.id), 'nome');
-    const baseIns = { _ins: ins, insumo: ins.nome, codIns: cod(ins.id).codigo, ...cod(ins.id) };
-    if (!ters.length) { linhas.push({ ...baseIns, ...doInsumo(), terceiro: '', nivel: 'Insumo sem terceiro' }); return; }
-    ters.forEach((ter) => {
-      const peds = pedidos.filter((p) => p.terceiroId === ter.id)
-        .sort((x, y) => String(x.dataEmissao).localeCompare(String(y.dataEmissao)) || String(x.numero).localeCompare(String(y.numero)));
-      const valorTer = somar(peds, 'valor');
-      const fatTer = peds.reduce((t, p) => t + resumoPedido(p).faturado, 0);
-      let terPrimeira = true;
-      const doTerceiro = () => {
-        const v = terPrimeira
-          ? { pedidosTer: peds.length, valorTer, saldoTer: valorTer - fatTer, terPrimeira: true }
-          : { pedidosTer: null, valorTer: null, saldoTer: null, terPrimeira: false };
-        terPrimeira = false;
-        return v;
-      };
-      const baseTer = { ...baseIns, _ter: ter, terceiro: ter.nome, codTer: cod(ter.id).codigo, uf: ter.uf || '', ...cod(ter.id) };
-      if (!peds.length) { linhas.push({ ...baseTer, ...doInsumo(), ...doTerceiro(), nivel: 'Terceiro sem pedido' }); return; }
-      peds.forEach((ped) => {
-        const r = resumoPedido(ped);
-        const situacao = situacaoPedido(r);
-        let pedPrimeira = true;
-        const doPedido = () => {
-          const v = pedPrimeira
-            ? { valorPedido: vn(ped.valor), faturadoPedido: r.faturado, saldoPedido: r.saldo, utilizacao: r.perc, reidiPedido: r.reidi, pedPrimeira: true }
-            : { valorPedido: null, faturadoPedido: null, saldoPedido: null, utilizacao: null, reidiPedido: null, pedPrimeira: false };
-          pedPrimeira = false;
-          return v;
-        };
-        const basePed = {
-          ...baseTer, ...cod(ped.id), codPed: cod(ped.id).codigo, posicao: cod(ped.id).posicao,
-          _ped: ped, pedido: ped.numero, emissao: ped.dataEmissao, situacao, divergente: r.divergente,
-          modoReidi: rotuloReidiPedido(ped, r),
-        };
-        const nfs = ordenar(r.nfs, 'data', 'asc', 'data');
-        if (!nfs.length) { linhas.push({ ...basePed, ...doInsumo(), ...doTerceiro(), ...doPedido(), nivel: 'Pedido sem NF' }); return; }
-        nfs.forEach((nf) => {
-          const an = analisarNota(nf);
-          const bols = ordenar(boletosDaNota(nf.id), 'vencimento', 'asc', 'data');
-          const baseNf = { ...basePed, ...cod(nf.id), _nf: nf, eclic: nf.eclic ? 'Sim' : 'Não', nf: nf.numero, dataNf: nf.data, bm: nf.bm ? `BM${nf.bm}` : '', conferencia: an.situacao, grdNf: textoGrds(nf.grds) };
-          const valoresNf = {
-            valorNf: vn(nf.valor), reidi: vn(nf.reidi), difalPerc: vn(nf.difalPerc), difalValor: vn(nf.difalValor), ufNf: `${nf.ufOrigem || '?'}→${nf.ufDestino || '?'}`, nfPrimeira: true,
-          };
-          const semValoresNf = { valorNf: null, reidi: null, difalPerc: null, difalValor: null, ufNf: '', nfPrimeira: false };
-          if (!bols.length) { linhas.push({ ...baseNf, ...doInsumo(), ...doTerceiro(), ...doPedido(), ...valoresNf, status: 'Sem boleto', nivel: 'NF sem boleto' }); return; }
-          bols.forEach((b, i) => {
-            linhas.push({
-              ...baseNf, ...cod(b.id), ...doInsumo(), ...doTerceiro(), ...doPedido(), ...(i === 0 ? valoresNf : semValoresNf),
-              _bol: b, boleto: b.numero, valorBoleto: b.valor == null ? null : vn(b.valor), vencimento: b.vencimento, pagamento: b.pagamento,
-              status: statusBoleto(b), prazo: prazoBoleto(b), grdBoleto: textoGrds(b.grds), nivel: 'Boleto',
-            });
-          });
-        });
-      });
-    });
-  });
-  return linhas;
-}
 
-/** Rotulo "Estimado em <mes ▾>": o mes e um botao pequeno que abre a escolha de qualquer mes da obra. */
-function botaoMesEstimado() {
-  const meses = mesesObra();
-  if (!meses.length) return null;
-  const atual = mesEstimadoAtual();
-  const bms = opcoesBM();
-  const textoMes = (m) => {
-    const i = meses.indexOf(m);
-    return `${formatarData(m, 'mes-ano')}${bms[i] ? ` · BM${bms[i].valor}` : ''}`;
-  };
-  return h('span', { class: 'ctc-cluster ctc-text-sm ctc-text-muted' }, 'Estimado em',
-    h('button', {
-      type: 'button', class: 'ctc-btn ctc-btn--ghost ctc-btn--sm', title: 'Escolher outro mês da obra',
-      onClick: () => {
-        const formulario = criarFormulario({
-          colunas: 1, semBotoes: true, valores: { mes: atual },
-          campos: [{ nome: 'mes', rotulo: 'Mês da obra', tipo: 'select', obrigatorio: true, opcoes: meses.map((m) => ({ valor: m, texto: `${textoMes(m)}${m === mesHoje() ? ' (atual)' : ''}` })) }],
-          onEnviar: (v) => { mesEstimadoGeral = v.mes; modal.fechar(); recarregar(); },
-        });
-        const modal = criarModal({
-          titulo: 'Estimado em qual mês?', tamanho: 'sm', destruirAoFechar: true, conteudo: formulario.elemento,
-          acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Mostrar', variante: 'primary', fechar: false, onClick: () => formulario.enviar() }],
-        });
-        modal.abrir();
-      },
-    }, textoMes(atual), criarIcone('chevron-baixo')));
-}
 
-/* Modo da visao geral: 'completa' (ate o boleto) ou 'recolhida' (terceiros e pedidos). */
-let modoGeral = 'agrupada';
 
-function seletorModoGeral() {
-  return criarSegmentado({
-    rotulo: 'Detalhe da visão geral',
-    opcoes: [
-      { valor: 'agrupada', texto: 'Por pedido' },
-      { valor: 'recolhida', texto: 'Só pedidos' },
-      { valor: 'completa', texto: 'Linha por boleto' },
-    ],
-    valor: modoGeral,
-    onMudar: (v) => { modoGeral = v; recarregar(); },
-  }).elemento;
-}
 
-/** Visao recolhida: uma linha por pedido (e terceiro sem pedido), com resumo das NFs e boletos. */
-function secaoGeralRecolhida() {
-  const codigos = codigosHierarquia();
-  const linhas = [];
-  ordenar(insumos, 'nome').forEach((ins) => {
-    let insPrimeira = true;
-    ordenar(terceiros.filter((t) => t.insumoId === ins.id), 'nome').forEach((ter) => {
-      const peds = pedidos.filter((p) => p.terceiroId === ter.id)
-        .sort((x, y) => String(x.dataEmissao).localeCompare(String(y.dataEmissao)) || String(x.numero).localeCompare(String(y.numero)));
-      const valorTer = somar(peds, 'valor');
-      const fatTer = peds.reduce((t, p) => t + resumoPedido(p).faturado, 0);
-      const base = {
-        _ins: ins, _ter: ter, insumo: ins.nome, codIns: codigos.get(ins.id)?.codigo, terceiro: ter.nome, codTer: codigos.get(ter.id)?.codigo, uf: ter.uf || '',
-      };
-      const terceiroCampos = (primeira) => (primeira
-        ? { pedidosTer: peds.length, valorTer, saldoTer: valorTer - fatTer, terPrimeira: true }
-        : { pedidosTer: null, valorTer: null, saldoTer: null, terPrimeira: false });
-      if (!peds.length) {
-        linhas.push({ ...base, ...codigos.get(ter.id), ...terceiroCampos(true), insPrimeira });
-        insPrimeira = false;
-        return;
-      }
-      peds.forEach((ped, k) => {
-        const r = resumoPedido(ped);
-        const bols = r.nfs.flatMap((n) => boletosDaNota(n.id));
-        const abertos = bols.filter((b) => ['Em aberto', 'Vencido', 'Em contestação'].includes(statusBoleto(b))).length;
-        const vencidos = bols.filter((b) => statusBoleto(b) === 'Vencido').length;
-        const ultimaNf = r.nfs.map((n) => n.data).filter(Boolean).sort().pop() || '';
-        linhas.push({
-          ...base, ...codigos.get(ped.id), ...terceiroCampos(k === 0), insPrimeira, _ped: ped,
-          pedido: ped.numero, codPed: codigos.get(ped.id)?.codigo, posicao: codigos.get(ped.id)?.posicao, emissao: ped.dataEmissao,
-          modoReidi: rotuloReidiPedido(ped, r),
-          valorPedido: vn(ped.valor), faturadoPedido: r.faturado, saldoPedido: r.saldo, utilizacao: r.perc, situacao: situacaoPedido(r), divergente: r.divergente,
-          produtosQtd: r.prods.length, nfsQtd: r.nfs.length, ultimaNf,
-          boletosTexto: bols.length ? `${bols.length}${abertos ? ` · ${abertos} em aberto` : ' · quitados'}` : (r.nfs.length ? 'sem boleto' : ''),
-          vencidos,
-        });
-        insPrimeira = false;
-      });
-    });
-  });
-  const so = (flag, fn) => (v, l) => (l[flag] ? fn(v, l) : '');
-  const tabela = criarTabela({
-    dados: linhas, compacta: true, listrada: true, porPagina: 50,
-    onAtualizar: ({ total, filtrados }) => definirMetaBase(`${filtrados} de ${total} linhas (terceiros e pedidos)`),
-    onLinhaClick: (l) => (l._ped ? abrirPedido(l._ped) : abrirModalTerceiro(l._ter)),
-    linhaVariante: (l) => (l.vencidos ? 'danger' : l.situacao === 'Esgotado' ? 'warning' : null),
-    vazio: { titulo: 'Nenhum terceiro cadastrado', mensagem: 'Use o painel "Cadastrar" para lançar terceiros e pedidos.' },
-    colunas: [
-      { campo: 'insumo', titulo: 'Insumo', fixa: true, render: (v, l) => h('span', { class: l.insPrimeira ? 'ctc-text-strong' : 'ctc-text-muted' }, `${l.codIns} · ${v}`) },
-      { campo: 'terceiro', titulo: 'Terceiro', render: (v, l) => h('span', { class: l.terPrimeira ? 'ctc-text-strong' : 'ctc-text-muted' }, `${l.codTer} · ${v}`) },
-      { campo: 'uf', titulo: 'UF' },
-      { campo: 'pedidosTer', titulo: 'Pedidos do terceiro', ordenavel: false, render: so('terPrimeira', (v) => criarBadge({ texto: v === 1 ? '1 pedido' : `${v} pedidos`, variante: v ? 'info' : 'warning' })) },
-      { campo: 'valorTer', titulo: 'Total do terceiro', tipo: 'moeda', ordenavel: false, render: so('terPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'saldoTer', titulo: 'Saldo do terceiro', tipo: 'moeda', ordenavel: false, render: so('terPrimeira', (v) => h('span', { class: v < 0 ? 'ctc-text-danger ctc-num' : 'ctc-num' }, formatarMoeda(v))) },
-      {
-        campo: 'pedido', titulo: 'Pedido',
-        render: (v, l) => (v ? h('div', {}, h('div', { class: 'ctc-text-strong' }, `${l.codPed} · ${v}`), h('div', { class: 'ctc-text-xs ctc-text-muted' }, `pedido ${l.posicao} do terceiro`)) : h('span', { class: 'ctc-text-xs ctc-text-subtle' }, 'sem pedido')),
-      },
-      { campo: 'emissao', titulo: 'Emissão', tipo: 'data' },
-      { campo: 'modoReidi', titulo: 'REIDI' },
-      { campo: 'produtosQtd', titulo: 'Produtos', tipo: 'numero' },
-      { campo: 'valorPedido', titulo: 'Valor pedido', tipo: 'moeda', total: 'soma' },
-      { campo: 'faturadoPedido', titulo: 'Faturado', tipo: 'moeda', total: 'soma' },
-      { campo: 'saldoPedido', titulo: 'Saldo', tipo: 'moeda', total: 'soma', render: (v) => (v == null ? '' : h('span', { class: v < 0 ? 'ctc-text-danger ctc-num' : 'ctc-num' }, formatarMoeda(v))) },
-      {
-        campo: 'utilizacao', titulo: 'Utilização', ordenavel: false,
-        render: (v, l) => (l._ped ? h('div', { class: 'ctc-stack' },
-          criarProgresso({ percentual: v, tamanho: 'sm', variante: v >= 80 ? 'danger' : 'success', rotulo: 'Utilização' }),
-          h('span', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(v, { casas: 2 }))) : ''),
-      },
-      { campo: 'situacao', titulo: 'Situação', render: (v, l) => (v ? h('div', { class: 'ctc-cluster' }, criarBadge({ texto: v, variante: VARIANTE_SITUACAO[v] }), l.divergente ? criarBadge({ texto: 'Divergente', variante: 'warning' }) : null) : '') },
-      { campo: 'nfsQtd', titulo: 'NFs', tipo: 'numero', total: 'soma' },
-      { campo: 'ultimaNf', titulo: 'Última NF', tipo: 'data' },
-      { campo: 'boletosTexto', titulo: 'Boletos', render: (v, l) => (v ? criarBadge({ texto: v, variante: l.vencidos ? 'danger' : v.includes('aberto') || v === 'sem boleto' ? 'warning' : 'success' }) : '') },
-    ],
-  });
-  return {
-    tabela, titulo: 'Visão geral recolhida — terceiros e pedidos', icone: 'tabela',
-    selects: [{ campo: 'situacao', rotulo: 'Situação pedido', opcoes: ['Normal', 'Crítico', 'Esgotado'] }],
-    acoes: [
-      seletorModoGeral(),
-      { texto: 'Exportar tudo', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Planilha completa do recorte', onClick: exportarTudo },
-    ],
-    rodape: 'Uma linha por pedido (terceiros sem pedido também aparecem). Os totais do terceiro ficam na primeira linha dele. Clique num pedido para abrir produtos e NFs; use "Completa" para ver cada NF e boleto.',
-  };
-}
 
 /* ---- Visao "Por pedido": uma tabela so, organizada como planilha de controle ---- */
 
-const pedidosFechados = new Set();   // pedidos com NFs ocultas (seta)
-const nfsAbertasGeral = new Set();   // NFs com produtos visiveis na visao por pedido
-const insumosFechadosGeral = new Set();   // insumos recolhidos (faixa com totais continua visivel)
-const terceirosFechadosGeral = new Set(); // terceiros recolhidos (faixa com totais continua visivel)
 
-/**
- * Linhas por nivel, na ordem: INSUMO (faixa) > TERCEIRO (faixa) > PEDIDO (nº real) >
- * NFs do pedido por data, com valor ACUMULADO do pedido e SALDO apos cada NF > boletos da NF.
- * Funciona como tabela da base: recebe busca e filtros comuns (insumo, terceiro, situacao).
- */
-function secaoGeralAgrupada() {
-  const COLS = ['Documento', 'Data', 'BM', 'Valor', 'Acumulado do pedido', 'Saldo do pedido', '% do pedido', 'REIDI', 'DIFAL', 'Situação', 'Boletos / pagamento', 'GRD'];
-  const n = COLS.length;
-  const area = h('tbody', {});
-  const rodape = h('tfoot', {});
-  const num = (v, classe = '') => h('td', { class: `ctc-col--num ctc-num ${classe}`.trim() }, v == null ? '' : formatarMoeda(v));
-  const vazio = () => h('td', {});
-  const faixa = (classe, ...conteudo) => h('tr', { class: classe }, h('td', { colspan: n }, h('div', { class: 'ctc-toolbar' }, ...conteudo)));
-  const resumoTexto = (partes) => h('span', { class: 'ctc-text-xs ctc-text-muted' }, partes.filter(Boolean).join(' · '));
-  /* texto claro para faixas escuras (sem a cor apagada) */
-  const resumoClaro = (partes) => h('span', { class: 'ctc-text-xs' }, partes.filter(Boolean).join(' · '));
-  const plural = (q, s1, sN) => `${q} ${q === 1 ? s1 : sN}`;
-
-  /* cada linha guarda a que insumo/terceiro/pedido/NF pertence; a visibilidade e recalculada de uma vez */
-  function aplicarVisibilidade() {
-    [...area.children].forEach((tr) => {
-      const d = tr.dataset;
-      tr.hidden = Boolean((d.dentroIns && insumosFechadosGeral.has(d.dentroIns))
-        || (d.dentroTer && terceirosFechadosGeral.has(d.dentroTer))
-        || (d.dentroPed && pedidosFechados.has(d.dentroPed))
-        || (d.nfItem && !nfsAbertasGeral.has(d.nfItem)));
-    });
-  }
-  /* seta padrao: alterna o item no conjunto e redesenha a visibilidade */
-  function setaNivel(conjunto, id, { fecharQuandoMarcado = true, tituloAberto, tituloFechado, variante = 'ghost' }) {
-    const aberto = () => (fecharQuandoMarcado ? !conjunto.has(id) : conjunto.has(id));
-    const botao = h('button', {
-      type: 'button', class: `ctc-btn ctc-btn--${variante} ctc-btn--sm`, title: aberto() ? tituloAberto : tituloFechado, 'aria-expanded': String(aberto()),
-      onClick: (e) => {
-        e.stopPropagation();
-        if (conjunto.has(id)) conjunto.delete(id); else conjunto.add(id);
-        aplicarVisibilidade();
-        botao.replaceChildren(criarIcone(aberto() ? 'chevron-baixo' : 'chevron-direita'));
-        botao.setAttribute('aria-expanded', String(aberto()));
-        botao.title = aberto() ? tituloAberto : tituloFechado;
-      },
-    }, criarIcone(aberto() ? 'chevron-baixo' : 'chevron-direita'));
-    return botao;
-  }
-
-  function desenhar(estado = {}) {
-    const f = estado.filtros || {};
-    const termo = normalizarTexto(estado.busca || '');
-    const linhas = [];
-    let totPed = 0; let totFat = 0; let qtdPed = 0; let qtdNf = 0;
-    const casa = (...textos) => !termo || normalizarTexto(textos.filter(Boolean).join(' ')).includes(termo);
-    ordenar(insumos, 'nome').filter((i) => !f.insumo || i.nome === f.insumo).forEach((ins) => {
-      const ri = resumoInsumo(ins);
-      const blocoIns = [];
-      ordenar(terceiros.filter((t) => t.insumoId === ins.id), 'nome').filter((t) => !f.terceiro || t.nome === f.terceiro).forEach((ter) => {
-        const peds = pedidos.filter((p) => p.terceiroId === ter.id)
-          .sort((x, y) => String(x.dataEmissao).localeCompare(String(y.dataEmissao)) || String(x.numero).localeCompare(String(y.numero)));
-        const blocoTer = [];
-        peds.forEach((ped, k) => {
-          const r = resumoPedido(ped);
-          const situacao = situacaoPedido(r);
-          if (f.situacao && f.situacao !== situacao) return;
-          const nfs = ordenar(r.nfs, 'data', 'asc', 'data');
-          const textosBusca = [ins.nome, ter.nome, ter.cnpj, ped.numero, ped.observacoes,
-            ...produtosDoPedido(ped.id).map((p) => p.descricao),
-            ...nfs.flatMap((nf) => [nf.numero, ...(nf.grds || []), ...boletosDaNota(nf.id).flatMap((b) => [b.numero, ...(b.grds || [])])])];
-          if (!casa(...textosBusca)) return;
-          qtdPed += 1; qtdNf += nfs.length; totPed += vn(ped.valor); totFat += r.faturado;
-          const filhos = [];
-          const seta = setaNivel(pedidosFechados, ped.id, { tituloAberto: 'Ocultar NFs', tituloFechado: 'Mostrar NFs' });
-          const bolsPed = nfs.flatMap((nf) => boletosDaNota(nf.id));
-          const abertos = bolsPed.filter((b) => ['Em aberto', 'Vencido', 'Em contestação'].includes(statusBoleto(b))).length;
-          blocoTer.push(h('tr', { class: 'ctc-row--subtotal ctc-row--info', onClick: () => abrirPedido(ped), title: 'Abrir pedido (produtos e NFs)' },
-            h('td', {}, h('div', {},
-              h('div', { class: 'ctc-cluster' }, seta, h('span', { class: 'ctc-text-strong' }, `Pedido ${ped.numero}`)),
-              resumoTexto([`${k + 1}º de ${peds.length} do terceiro`, plural(r.prods.length, 'produto', 'produtos'), plural(nfs.length, 'NF', 'NFs')]))),
-            h('td', {}, formatarData(ped.dataEmissao)),
-            vazio(),
-            num(vn(ped.valor), 'ctc-text-strong'),
-            num(r.faturado, 'ctc-text-strong'),
-            num(r.saldo, r.saldo < 0 ? 'ctc-text-danger ctc-text-strong' : 'ctc-text-strong'),
-            h('td', {}, h('div', { class: 'ctc-stack' },
-              criarProgresso({ percentual: r.perc, tamanho: 'sm', variante: r.perc >= 99.995 ? 'danger' : r.perc >= 80 ? 'warning' : 'success', rotulo: '% faturado do pedido' }),
-              h('span', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(r.perc, { casas: 2 })))),
-            num(r.reidi),
-            h('td', { class: 'ctc-text-xs' }, `${formatarPercentual(ped.difalPerc, { casas: 2 })} · ${ped.ufOrigem || '?'}→${ped.ufDestino || '?'}`),
-            h('td', {}, h('div', { class: 'ctc-cluster' }, criarBadge({ texto: situacao, variante: VARIANTE_SITUACAO[situacao] }), r.divergente ? criarBadge({ texto: 'Divergente', variante: 'warning' }) : null)),
-            h('td', {}, bolsPed.length ? criarBadge({ texto: `${plural(bolsPed.length, 'boleto', 'boletos')}${abertos ? ` · ${abertos} em aberto` : ' · quitados'}`, variante: abertos ? 'warning' : 'success' }) : ''),
-            h('td', {}, podeEditar() ? botaoFD({ texto: 'NF', icone: 'mais', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Lançar NF do pedido ${ped.numero}`, onClick: (e) => { if (e) e.stopPropagation(); abrirModalNota(null, { pedidoId: ped.id }); } }) : '')));
-          let acumulado = 0;
-          if (!nfs.length) {
-            filhos.push(h('tr', {}, h('td', { colspan: n, class: 'ctc-text-xs ctc-text-subtle' }, '\u00a0\u00a0\u00a0\u00a0└ nenhuma NF lançada para este pedido')));
-          }
-          nfs.forEach((nf, i) => {
-            acumulado += vn(nf.valor);
-            const saldoApos = vn(ped.valor) - acumulado;
-            const perc = vn(ped.valor) ? (acumulado / vn(ped.valor)) * 100 : 0;
-            const an = analisarNota(nf);
-            const bols = ordenar(boletosDaNota(nf.id), 'vencimento', 'asc', 'data');
-            /* produtos da NF: abrem pela seta, ainda nesta aba */
-            const linhasProdutosNf = [
-              ...(nf.itens || []).map((it) => {
-                const pr = produtoPorId(it.produtoId);
-                return h('tr', {},
-                  h('td', {}, h('div', {},
-                    h('div', { class: 'ctc-text-sm' }, `\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0· ${pr ? pr.descricao : '(produto removido)'}`),
-                    pr?.detalhe ? h('div', { class: 'ctc-text-xs ctc-text-muted' }, `\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0${pr.detalhe}`) : null)),
-                  h('td', { class: 'ctc-text-xs' }, `${formatarNumero(it.quantidade)} ${pr?.unidade || ''}`.trim()),
-                  vazio(),
-                  num(vn(it.quantidade) * vn(it.valorUnit), 'ctc-text-muted'),
-                  h('td', { class: 'ctc-text-xs ctc-text-muted', colspan: 3 }, pr ? `unit. ${formatarMoeda(it.valorUnit)} · saldo do produto ${formatarNumero(analisarProduto(pr).saldoQtd)} ${pr.unidade || ''}` : ''),
-                  num(pr ? vn(it.quantidade) * Math.max(0, vn(pr.unitSem) - vn(it.valorUnit)) : null, 'ctc-text-muted'),
-                  vazio(), vazio(), vazio(), vazio());
-              }),
-              ...(nf.itensSemVinculo || []).map((it) => h('tr', { class: 'ctc-row--danger' },
-                h('td', { class: 'ctc-text-sm' }, `\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0⚠ ${it.descricao} (sem produto no pedido)`),
-                h('td', { class: 'ctc-text-xs' }, formatarNumero(it.quantidade)),
-                vazio(), num(vn(it.valorTotal), 'ctc-text-muted'),
-                ...Array.from({ length: 8 }, () => vazio()))),
-            ];
-            linhasProdutosNf.forEach((tr) => { tr.dataset.nfItem = nf.id; });
-            const setaNf = linhasProdutosNf.length
-              ? setaNivel(nfsAbertasGeral, nf.id, { fecharQuandoMarcado: false, tituloAberto: 'Ocultar produtos da NF', tituloFechado: 'Ver produtos da NF' }) : null;
-            filhos.push(h('tr', { onClick: () => abrirModalNota(nf), title: 'Abrir NF' },
-              h('td', {}, h('div', {},
-                h('div', { class: 'ctc-cluster' }, `\u00a0\u00a0\u00a0\u00a0└ NF ${nf.numero}`, setaNf),
-                resumoTexto([`\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0${i + 1}ª NF do pedido`, (nf.itens || []).length ? plural(nf.itens.length, 'produto', 'produtos') : 'sem produto marcado', (nf.itensSemVinculo || []).length ? `${nf.itensSemVinculo.length} item sem pedido` : '']))),
-              h('td', {}, formatarData(nf.data)),
-              h('td', {}, rotuloBM(nf.bm)),
-              num(vn(nf.valor)),
-              num(acumulado),
-              num(saldoApos, saldoApos < 0 ? 'ctc-text-danger' : ''),
-              h('td', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(perc, { casas: 2 })),
-              num(vn(nf.reidi)),
-              h('td', { class: 'ctc-text-xs' }, `${formatarMoeda(nf.difalValor)} (${formatarPercentual(nf.difalPerc, { casas: 2 })})`),
-              h('td', {}),
-              h('td', {}, h('div', { class: 'ctc-cluster' }, seloEclic(nf), bols.length ? null : criarBadge({ texto: 'sem boleto', variante: 'warning' }))),
-              h('td', {}, celulaGrd(nf))));
-            filhos.push(...linhasProdutosNf);
-            bols.forEach((b) => {
-              const prazo = prazoBoleto(b);
-              filhos.push(h('tr', { onClick: () => abrirModalBoleto(b), title: 'Abrir boleto' },
-                h('td', { class: 'ctc-text-sm' }, `\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0└ Boleto ${b.numero}`),
-                h('td', { class: 'ctc-text-xs' }, `venc. ${formatarData(b.vencimento)}`),
-                vazio(),
-                num(b.valor == null ? null : vn(b.valor), 'ctc-text-muted'),
-                vazio(), vazio(), vazio(), vazio(), vazio(),
-                h('td', {}, criarBadge({ texto: prazo, variante: VARIANTE_PRAZO[prazo] })),
-                h('td', { class: 'ctc-text-xs' }, b.pagamento ? `pago ${formatarData(b.pagamento)}` : ''),
-                h('td', {}, celulaGrd(b))));
-            });
-          });
-          filhos.forEach((tr) => { tr.dataset.dentroPed = ped.id; });
-          blocoTer.push(...filhos);
-        });
-        if (!blocoTer.length && (termo || f.situacao)) return;
-        const valorTer = somar(peds, 'valor');
-        const fatTer = peds.reduce((t, p) => t + resumoPedido(p).faturado, 0);
-        blocoTer.forEach((tr) => { tr.dataset.dentroTer = ter.id; });
-        blocoIns.push(faixa('ctc-row--level-3 ctc-row--success',
-          setaNivel(terceirosFechadosGeral, ter.id, { tituloAberto: 'Recolher terceiro', tituloFechado: 'Abrir terceiro' }),
-          h('span', { class: 'ctc-text-strong' }, ter.nome),
-          criarBadge({ texto: ter.uf || 'UF?', variante: 'neutral' }),
-          ter.cnpj ? h('span', { class: 'ctc-text-xs ctc-text-muted' }, `CNPJ ${ter.cnpj}`) : null,
-          resumoTexto([plural(peds.length, 'pedido', 'pedidos'), `total ${formatarMoeda(valorTer)}`, `faturado ${formatarMoeda(fatTer)}`, `saldo ${formatarMoeda(valorTer - fatTer)}`]),
-          botaoFD({ texto: 'Pedido', icone: 'mais', variante: 'ghost', tamanho: 'sm', apenasEdicao: true, titulo: `Novo pedido de ${ter.nome}`, onClick: () => abrirModalPedido(null, ter.id) })));
-        if (!peds.length) {
-          const vazioTer = h('tr', {}, h('td', { colspan: n, class: 'ctc-text-xs ctc-text-subtle' }, '\u00a0\u00a0└ nenhum pedido lançado para este terceiro'));
-          vazioTer.dataset.dentroTer = ter.id;
-          blocoIns.push(vazioTer);
-        }
-        blocoIns.push(...blocoTer);
-      });
-      if (!blocoIns.length && (termo || f.situacao || f.terceiro)) return;
-      blocoIns.forEach((tr) => { tr.dataset.dentroIns = ins.id; });
-      linhas.push(faixa('ctc-row--level-1',
-        setaNivel(insumosFechadosGeral, ins.id, { tituloAberto: 'Recolher insumo', tituloFechado: 'Abrir insumo', variante: 'primary' }),
-        h('span', {}, ins.nome),
-        resumoClaro([`${rotuloValorInsumo().toLowerCase()} ${formatarMoeda(ri.vigente)}`, `em pedidos ${formatarMoeda(ri.comprometido)}`, `faturado ${formatarMoeda(ri.faturado)} (${formatarPercentual(ri.percFaturado, { casas: 2 })})`, `saldo a faturar ${formatarMoeda(ri.saldoFaturar)}`])));
-      if (!blocoIns.length) {
-        const vazioIns = h('tr', {}, h('td', { colspan: n, class: 'ctc-text-xs ctc-text-subtle' }, '\u00a0\u00a0└ nenhum terceiro cadastrado para este insumo'));
-        vazioIns.dataset.dentroIns = ins.id;
-        linhas.push(vazioIns);
-      }
-      linhas.push(...blocoIns);
-    });
-    area.replaceChildren(...(linhas.length ? linhas : [h('tr', {}, h('td', { colspan: n, class: 'ctc-text-subtle' }, 'Nada encontrado com estes filtros.'))]));
-    aplicarVisibilidade();
-    rodape.replaceChildren(h('tr', {},
-      h('td', {}, `Total — ${plural(qtdPed, 'pedido', 'pedidos')} · ${plural(qtdNf, 'NF', 'NFs')}`), vazio(), vazio(),
-      num(totPed), num(totFat), num(totPed - totFat),
-      h('td', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(totPed ? (totFat / totPed) * 100 : 0, { casas: 2 })),
-      vazio(), vazio(), vazio(), vazio(), vazio()));
-    definirMetaBase(`${plural(qtdPed, 'pedido', 'pedidos')} · ${plural(qtdNf, 'NF', 'NFs')}`);
-  }
-
-  const elemento = h('div', { class: 'ctc-table-wrap ctc-table-wrap--auto' },
-    h('table', { class: 'ctc-table ctc-table--compact' },
-      h('thead', {}, h('tr', {}, COLS.map((c, i) => h('th', { class: [3, 4, 5, 7].includes(i) ? 'ctc-col--num' : null }, c)))),
-      area, rodape));
-  desenhar({ filtros: filtroBase });
-  /* objeto com a mesma interface usada pela base (atualizarConsulta) */
-  const tabela = { elemento, atualizarConsulta: desenhar, obterFiltrados: () => [] };
-  return {
-    tabela, titulo: 'Visão geral por pedido — insumo › terceiro › pedido › NFs › boletos', icone: 'tabela',
-    selects: [{ campo: 'situacao', rotulo: 'Situação pedido', opcoes: ['Normal', 'Crítico', 'Esgotado'] }],
-    acoes: [
-      seletorModoGeral(),
-      { texto: 'Abrir tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir insumos, terceiros e pedidos', onClick: () => { insumosFechadosGeral.clear(); terceirosFechadosGeral.clear(); pedidosFechados.clear(); recarregar(); } },
-      { texto: 'Até pedidos', variante: 'ghost', tamanho: 'sm', titulo: 'Mostrar até os pedidos (oculta NFs)', onClick: () => { insumosFechadosGeral.clear(); terceirosFechadosGeral.clear(); pedidos.forEach((x) => pedidosFechados.add(x.id)); recarregar(); } },
-      { texto: 'Até terceiros', variante: 'ghost', tamanho: 'sm', titulo: 'Mostrar insumos e terceiros com os totais', onClick: () => { insumosFechadosGeral.clear(); terceiros.forEach((x) => terceirosFechadosGeral.add(x.id)); recarregar(); } },
-      { texto: 'Só insumos', variante: 'ghost', tamanho: 'sm', titulo: 'Mostrar só os insumos com os totais', onClick: () => { insumos.forEach((x) => insumosFechadosGeral.add(x.id)); recarregar(); } },
-      { texto: 'Exportar tudo', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Planilha completa do recorte', onClick: exportarTudo },
-    ],
-    rodape: 'Cores por nível: faixa escura = insumo, faixa azul-acinzentada com barra verde = terceiro, faixa cinza com barra azul = pedido, linhas brancas = NFs e boletos. Recolher um nível mantém os totais dele visíveis na própria faixa. Cada pedido aparece pelo seu número, com as NFs em ordem de data. "Acumulado do pedido" soma as NFs até aquela linha e "Saldo do pedido" mostra quanto falta faturar depois dela. A seta do pedido oculta ou mostra as NFs. Clique numa linha para abrir pedido, NF ou boleto.',
-  };
-}
 
 /*
  * v1.80: Visao geral em arvore, toda fechada no insumo (dados da aba Insumos).
@@ -12860,6 +12254,7 @@ function secaoGeralArvore() {
   const cabecalho = (nivel, colunas) => h('div', { class: `fd-arv__cab fd-arv__cab--n${nivel}` }, colunas.map((c) => h('span', {}, c)));
   const abrirItem = (fn) => (e) => { e.stopPropagation(); fn(); };
 
+  const ROTULOS = { 1: [rotuloValorInsumo(), 'Consumido (NFs)', 'Saldo', 'Avanço'], 2: ['Total dos pedidos', 'Consumido (NFs)', 'Saldo', 'Avanço'], 3: ['Valor do pedido', 'Consumido (NFs)', 'Saldo', 'Avanço'] };
   function linha({ nivel, chave, filhos, codigo, nome, onAbrir, sub, valores, junto }) {
     const aberto = chave && (abertosGeral.has(chave) || Boolean(norm(consulta.busca).trim()));
     const lin = h('div', {
@@ -12876,7 +12271,7 @@ function secaoGeralArvore() {
           h('button', { type: 'button', class: 'fd-arv__link', title: 'Abrir detalhes', onClick: abrirItem(onAbrir) }, nome),
           junto || null),
         sub ? h('div', { class: 'fd-arv__sub' }, sub) : null)),
-    valores.map((v) => h('div', { class: 'fd-arv__col' }, v)));
+    valores.map((v, k) => h('div', { class: 'fd-arv__col', 'data-rot': (ROTULOS[nivel] || [])[k] || '' }, v)));
     return { lin, aberto };
   }
 
@@ -12937,10 +12332,10 @@ function secaoGeralArvore() {
       ...(filhosIns.length ? filhosIns : [h('div', { class: 'fd-arv__vazio' }, insumos.length ? 'Nenhum item encontrado para o filtro.' : 'Nenhum insumo cadastrado. Cadastre na aba Insumos.')]),
       dados.length ? h('div', { class: 'fd-arv__total' },
         h('div', { class: 'fd-arv__nome' }, h('span', { class: 'fd-arv__seta' }), h('div', {}, h('b', {}, 'Total'), h('div', { class: 'fd-arv__sub' }, `em pedidos ${formatarMoeda(tPed)}`))),
-        h('div', { class: 'fd-arv__col' }, moeda(tTotal)),
-        h('div', { class: 'fd-arv__col' }, moeda(tCons)),
-        h('div', { class: 'fd-arv__col' }, moeda(tTotal - tCons, true)),
-        h('div', { class: 'fd-arv__col' }, avanco(pctFD(tCons, tTotal)))) : null);
+        h('div', { class: 'fd-arv__col', 'data-rot': 'Total' }, moeda(tTotal)),
+        h('div', { class: 'fd-arv__col', 'data-rot': 'Consumido' }, moeda(tCons)),
+        h('div', { class: 'fd-arv__col', 'data-rot': 'Saldo' }, moeda(tTotal - tCons, true)),
+        h('div', { class: 'fd-arv__col', 'data-rot': 'Avanço' }, avanco(pctFD(tCons, tTotal)))) : null);
   }
 
   const tabela = {
@@ -12948,112 +12343,15 @@ function secaoGeralArvore() {
     atualizarConsulta: ({ busca = '', filtros = {} } = {}) => { consulta = { busca, filtros }; render(); },
   };
   render();
-  const abrirAte = (nivel) => {
-    abertosGeral.clear();
-    insumos.forEach((x) => abertosGeral.add(`i:${x.id}`));
-    if (nivel >= 2) terceiros.forEach((x) => abertosGeral.add(`t:${x.id}`));
-    render();
-  };
   return {
     tabela, titulo: 'Visão geral — insumo › fornecedor › pedido', icone: 'tabela',
     selects: [],
-    acoes: [
-      { texto: 'Fechar tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Mostrar só os insumos', onClick: () => { abertosGeral.clear(); render(); } },
-      { texto: 'Até fornecedores', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir os insumos (mostra os fornecedores)', onClick: () => abrirAte(1) },
-      { texto: 'Abrir tudo', variante: 'ghost', tamanho: 'sm', titulo: 'Abrir até os pedidos', onClick: () => abrirAte(2) },
-      { texto: 'Exportar tudo', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Planilha completa do recorte: obra, insumos, terceiros, pedidos, NFs e boletos', onClick: exportarTudo },
-    ],
+    /* v1.91: sem Fechar tudo / Ate fornecedores / Abrir tudo / Exportar tudo (abre clicando na linha) */
+    acoes: [],
     rodape: 'Clique na linha do insumo ou do fornecedor para abrir ou fechar; clique no nome para ver os detalhes. "Composição" mostra as NFs do pedido. Insumo: total = valor da aba Insumos. Fornecedor e pedido: total = valor dos pedidos. Consumido = soma das NFs; saldo = total − consumido; avanço = consumido ÷ total.',
   };
 }
 
-function secaoGeralAntiga() {
-  if (modoGeral === 'agrupada') return secaoGeralAgrupada();
-  if (modoGeral === 'recolhida') return secaoGeralRecolhida();
-  const mes = mesEstimadoAtual();
-  const so = (flag, fn) => (v, l) => (l[flag] ? fn(v, l) : '');
-  const tabela = criarTabela({
-    dados: linhasVisaoGeral(), compacta: true, listrada: true, porPagina: 50,
-    onAtualizar: ({ total, filtrados }) => definirMetaBase(`${filtrados} de ${total} linhas`),
-    onLinhaClick: (l) => {
-      if (l._bol) abrirModalBoleto(l._bol);
-      else if (l._nf) abrirModalNota(l._nf);
-      else if (l._ped) abrirPedido(l._ped);
-      else if (l._ter) abrirModalTerceiro(l._ter);
-      else abrirModalInsumo(l._ins);
-    },
-    linhaVariante: (l) => (l.status === 'Vencido' ? 'danger' : l.situacao === 'Esgotado' ? 'warning' : null),
-    vazio: { titulo: 'Base vazia', mensagem: 'Use o painel "Cadastrar" acima para lançar insumos, terceiros, pedidos, NFs e boletos.' },
-    colunas: [
-      /* insumo (a numeracao fica no proprio nome: 1 · insumo, 1.1 · terceiro, 1.1.1 · pedido) */
-      { campo: 'insumo', titulo: 'Insumo', fixa: true, render: (v, l) => h('span', { class: l.insPrimeira ? 'ctc-text-strong' : 'ctc-text-muted' }, `${l.codIns} · ${v}`) },
-      { campo: 'valorInsumo', titulo: rotuloValorInsumo(), tipo: 'moeda', total: 'soma', ordenavel: false, render: so('insPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'estimadoMes', titulo: mes ? `Estimado ${formatarData(mes, 'mes-ano')}` : 'Estimado', tipo: 'moeda', total: 'soma', ordenavel: false, render: so('insPrimeira', (v) => formatarMoeda(v)) },
-      /* terceiro */
-      { campo: 'terceiro', titulo: 'Terceiro', render: (v, l) => (v ? h('span', { class: l.terPrimeira ? 'ctc-text-strong' : null }, `${l.codTer} · ${v}`) : '') },
-      { campo: 'uf', titulo: 'UF' },
-      { campo: 'pedidosTer', titulo: 'Pedidos do terceiro', ordenavel: false, render: so('terPrimeira', (v) => criarBadge({ texto: v === 1 ? '1 pedido' : `${v} pedidos`, variante: v ? 'info' : 'warning' })) },
-      { campo: 'valorTer', titulo: 'Total do terceiro', tipo: 'moeda', ordenavel: false, render: so('terPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'saldoTer', titulo: 'Saldo do terceiro', tipo: 'moeda', ordenavel: false, render: so('terPrimeira', (v) => h('span', { class: v < 0 ? 'ctc-text-danger ctc-num' : 'ctc-num' }, formatarMoeda(v))) },
-      /* pedido */
-      {
-        campo: 'pedido', titulo: 'Pedido',
-        render: (v, l) => (v ? h('div', {},
-          h('div', { class: l.pedPrimeira ? 'ctc-text-strong' : null }, `${l.codPed} · ${v}`),
-          l.pedPrimeira && l.posicao ? h('div', { class: 'ctc-text-xs ctc-text-muted' }, `pedido ${l.posicao} do terceiro`) : null) : ''),
-      },
-      { campo: 'emissao', titulo: 'Emissão', tipo: 'data' },
-      { campo: 'modoReidi', titulo: 'REIDI do pedido' },
-      { campo: 'valorPedido', titulo: 'Valor pedido', tipo: 'moeda', total: 'soma', render: so('pedPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'faturadoPedido', titulo: 'Faturado pedido', tipo: 'moeda', total: 'soma', render: so('pedPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'saldoPedido', titulo: 'Saldo pedido', tipo: 'moeda', total: 'soma', render: so('pedPrimeira', (v) => h('span', { class: v < 0 ? 'ctc-text-danger ctc-num' : 'ctc-num' }, formatarMoeda(v))) },
-      {
-        campo: 'utilizacao', titulo: 'Utilização', ordenavel: false,
-        render: so('pedPrimeira', (v) => h('div', { class: 'ctc-stack' },
-          criarProgresso({ percentual: v, tamanho: 'sm', variante: v >= 80 ? 'danger' : 'success', rotulo: 'Utilização' }),
-          h('span', { class: 'ctc-text-xs ctc-num' }, formatarPercentual(v, { casas: 2 })))),
-      },
-      {
-        campo: 'situacao', titulo: 'Situação pedido',
-        render: so('pedPrimeira', (v, l) => h('div', { class: 'ctc-cluster' }, criarBadge({ texto: v, variante: VARIANTE_SITUACAO[v] }), l.divergente ? criarBadge({ texto: 'Divergente', variante: 'warning' }) : null)),
-      },
-      /* nota fiscal */
-      { campo: 'nf', titulo: 'Nº NF' },
-      { campo: 'dataNf', titulo: 'Data NF', tipo: 'data' },
-      { campo: 'bm', titulo: 'BM' },
-      { campo: 'valorNf', titulo: 'Valor NF', tipo: 'moeda', total: 'soma', render: so('nfPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'reidi', titulo: 'REIDI', tipo: 'moeda', total: 'soma', render: so('nfPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'ufNf', titulo: 'UF NF' },
-      { campo: 'difalPerc', titulo: 'DIFAL %', tipo: 'percentual', casas: 2, render: so('nfPrimeira', (v) => formatarPercentual(v, { casas: 2 })) },
-      { campo: 'difalValor', titulo: 'DIFAL R$', tipo: 'moeda', total: 'soma', render: so('nfPrimeira', (v) => formatarMoeda(v)) },
-      { campo: 'eclic', titulo: 'e-clic (NF)', render: so('nfPrimeira', (v, l) => seloEclic(l._nf)) },
-      { campo: 'grdNf', titulo: 'GRD NF', ordenavel: false, render: so('nfPrimeira', (v, l) => celulaGrd(l._nf)) },
-      /* boleto */
-      { campo: 'boleto', titulo: 'Boleto' },
-      { campo: 'valorBoleto', titulo: 'Valor boleto', tipo: 'moeda', total: 'soma' },
-      { campo: 'vencimento', titulo: 'Vencimento', tipo: 'data' },
-      { campo: 'pagamento', titulo: 'Pagamento', tipo: 'data' },
-      {
-        campo: 'status', titulo: 'Status boleto',
-        render: (v, l) => (!v ? '' : v === 'Sem boleto' ? criarBadge({ texto: v, variante: 'warning' }) : criarBadge({ texto: l.prazo || v, variante: VARIANTE_PRAZO[l.prazo || v] })),
-      },
-      { campo: 'grdBoleto', titulo: 'GRD boleto', ordenavel: false, render: (v, l) => (l._bol ? celulaGrd(l._bol) : '') },
-    ],
-  });
-  return {
-    tabela, titulo: 'Visão geral — insumo, terceiro, pedido, NF e boleto', icone: 'tabela',
-    selects: [
-      { campo: 'situacao', rotulo: 'Situação pedido', opcoes: ['Normal', 'Crítico', 'Esgotado'] },
-      { campo: 'status', rotulo: 'Status boleto', opcoes: ['Em aberto', 'Vencido', 'Pago', 'Cancelado', 'Em contestação', 'Sem boleto'] },
-    ],
-    acoes: [
-      seletorModoGeral(),
-      botaoMesEstimado(),
-      { texto: 'Exportar tudo', icone: 'download', variante: 'ghost', tamanho: 'sm', titulo: 'Planilha completa do recorte: obra, insumos, terceiros, pedidos, NFs e boletos', onClick: exportarTudo },
-    ].filter(Boolean),
-    rodape: 'Uma linha por boleto (ou NF sem boleto, pedido sem NF...). Valores do insumo, do pedido e da NF aparecem só na primeira linha de cada um, para os totais não somarem em dobro. Clique numa linha para abrir o item mais detalhado dela.',
-  };
-}
 
 /** Indicadores do recorte atual (insumo e terceiro escolhidos). */
 function resumoBase() {
@@ -13126,8 +12424,8 @@ function svgPizzaFD({ fatias, centro, rotuloCentro }) {
     const ly = x.ly;
     const tx = fx + x.lado * 8;
     const anc = x.lado > 0 ? 'start' : 'end';
-    return `<path d="M${ax} ${ay}Q${ex} ${ey} ${ex + x.lado * 6} ${ly}L${fx} ${ly}" fill="none" stroke="#94a3b8" stroke-width="1.2"/>`
-      + `<circle cx="${ax}" cy="${ay}" r="3" fill="${x.cor}" stroke="#fff" stroke-width="1.5"/>`
+    return `<path class="fd-pz__guia" d="M${ax} ${ay}Q${ex} ${ey} ${ex + x.lado * 6} ${ly}L${fx} ${ly}" fill="none" stroke="#94a3b8" stroke-width="1.2"/>`
+      + `<circle class="fd-pz__guia" cx="${ax}" cy="${ay}" r="3" fill="${x.cor}" stroke="#fff" stroke-width="1.5"/>`
       + `<text x="${tx}" y="${ly - 8}" text-anchor="${anc}" class="fd-pz__rot">${esc(x.rotulo)} · <tspan fill="${x.cor}" font-weight="800">${esc(x.pct)}</tspan></text>`
       + `<text x="${tx}" y="${ly + 17}" text-anchor="${anc}" class="fd-pz__val">${esc(x.texto)}</text>`;
   }).join('');
@@ -13156,6 +12454,11 @@ function graficoResumoBase({ peds, nfs, valor, faturado, totalFD, qtdInsumos }) 
         h('span', { class: 'fd-resumo__tit' }, titulo),
         h('span', { class: 'fd-resumo__total' }, formatarMoeda(total), ' ', h('small', {}, sub))),
       grafico,
+      /* legenda so no celular (os rotulos ao redor da pizza ficariam pequenos demais) */
+      h('div', { class: 'fd-pz__leg-movel' }, fatias.map((f) => h('div', {},
+        h('span', { class: 'fd-pz__ponto-movel', style: `background:${f.cor}` }),
+        h('span', {}, `${f.rotulo} · `, h('b', { style: `color:${f.cor}` }, f.pct)),
+        h('b', { class: 'fd-pz__valor-movel' }, f.texto)))),
       extra ? h('div', { class: 'fd-pz__extra' }, extra) : null);
   };
   return h('div', { class: 'fd-resumo' },
@@ -13237,10 +12540,10 @@ function montarPaginaBase(secoes, pagina) {
         return h('div', { class: 'ctc-stack' },
           s.topo || null,
           ...(s.avisos || []).filter(Boolean),
-          h('div', { class: 'ctc-toolbar' },
+          (extra || s.acoes.length) ? h('div', { class: 'ctc-toolbar' },
             extra ? extra.elemento : null,
             h('span', { class: 'ctc-spacer' }),
-            ...s.acoes.map((a) => (a instanceof Node ? a : botaoFD(a)))),
+            ...s.acoes.map((a) => (a instanceof Node ? a : botaoFD(a)))) : null,
           criarPainel({ titulo: s.titulo, icone: s.icone, tema: sec.tema, semEspaco: true, conteudo: s.tabela.elemento }).elemento,
           s.rodape ? h('div', { class: 'ctc-text-xs ctc-text-subtle' }, s.rodape) : null);
       },
@@ -13250,6 +12553,7 @@ function montarPaginaBase(secoes, pagina) {
     alertaFicticio(),
     semBarra ? null : barra.elemento,
     resumo,
+    pagina === 'visao' ? blocoEvolucaoDashboard() : null,
     /* com uma secao so (Base de faturamento) mostra o conteudo direto, sem a linha de abas */
     secoes.length > 1 ? abas.elemento : abas.painel,
   ];
@@ -14851,9 +14155,6 @@ const CAB_NOTAS = ['Nº Pedido', 'Terceiro', 'Insumo', 'Nº NF',
   'Boleto Nº', 'Boleto Valor', 'Boleto Vencimento', 'Boleto Pagamento', 'Boleto Status', 'Boleto GRD',
   'Observações'];
 
-function exportarNotas(lista = notas) {
-  exportarPlanilha(`${FORMATO_BASE}-notas-fiscais-${carimboArquivo()}`, [{ nome: 'NFs e itens', cabecalho: CAB_NOTAS, linhas: linhasExportNotas(lista) }]);
-}
 
 /** NFs e boletos numa planilha so (duas abas), no formato aceito pelas importacoes. */
 function exportarNotasBoletos(listaNfs = notas, listaBoletos = boletos) {
@@ -14983,9 +14284,6 @@ function planejarImportacaoNotas(brutas) {
 
 const CAB_BOLETOS = ['Nº NF', 'Nº Pedido', 'Terceiro', 'Nº Doc. Boleto', 'Valor', 'Vencimento', 'Pagamento', 'Status', 'GRD', 'Observações'];
 
-function exportarBoletos(lista = boletos) {
-  exportarPlanilha(`${FORMATO_BASE}-boletos-${carimboArquivo()}`, [{ nome: 'Boletos', cabecalho: CAB_BOLETOS, linhas: linhasExportBoletos(lista) }]);
-}
 
 function linhasExportBoletos(lista) {
   return lista.map((b) => {
@@ -15691,16 +14989,6 @@ function capaRelClienteHtml(d) {
   </section>`;
 }
 
-function kpisRelClienteHtml(d, op) {
-  const itens = [
-    ['Total previsto (contrato)', d.previsto, COR_REL.navy],
-    ['Comprometido', d.comprometidoContrato, COR_REL.laranja],
-    ['Saldo do previsto (contrato)', d.previsto - d.comprometidoContrato, COR_REL.verde],
-    ['Total NFs', d.consumidoContrato, COR_REL.vermelho],
-  ];
-  if (op.reidi) itens.push(['REIDI nas NFs', d.reidiContrato, COR_REL.roxo]);
-  return `<div class="kpis" style="grid-template-columns:repeat(${itens.length},1fr)">${itens.map(([r, v, c]) => `<div class="kpi" style="--cor:#${c}"><div class="rot">${esc(r)}</div><div class="valor">${moedaRel(v)}</div></div>`).join('')}</div>`;
-}
 
 /** Pedidos agrupados por terceiro (mesma ordem dos relatorios). */
 function gruposPorTerceiro(peds) {
@@ -15760,15 +15048,6 @@ function atividadesHtml(d, op) {
   ${linhas.join('')}</table>`;
 }
 
-function legendasDetalhamentoHtml(d) {
-  const nfs = d.peds.flatMap((p) => p.nfs);
-  const sim = nfs.filter((l) => l.nf.eclic).length;
-  return `<div class="painel painel--inteiro legendas-bloco"><div class="cab" style="font-size:12px">Detalhamento por Pedido de Compra — notas fiscais e boletos de cada pedido</div><div class="legendas">
-    Status (% consumido do valor do pedido): <span class="pt">${pontoHtml(COR_REL.verde)}Normal (até 79,9%)</span><span class="pt">${pontoHtml(COR_REL.ambar)}Crítico (80% a 99,9%)</span><span class="pt">${pontoHtml(COR_REL.vermelho)}Zerado (100% ou mais)</span><br>
-    Status do boleto (posição em ${d.agora.data}): ${badgeHtml('Pago', COR_REL.verde, 'D4F4E2')} ${badgeHtml('Vence em até 2 dias', COR_REL.ambar, 'FEF3C7')} ${badgeHtml('Atrasado', COR_REL.vermelho, 'FDE2E4')} ${badgeHtml('A vencer', COR_REL.cinzaPonto, 'EEF0F3')}<br>
-    Via assinada da NF: ${badgeHtml('Sim', COR_REL.verde, 'D4F4E2')} ${sim} &nbsp; ${badgeHtml('Não', COR_REL.vermelho, 'FDE2E4')} ${nfs.length - sim} &nbsp; (total de ${nfs.length} NFs)
-  </div></div>`;
-}
 
 function blocoPedidoHtml(p, op) {
   const colsNF = op.reidi ? 7 : 6;
@@ -15825,66 +15104,7 @@ function blocoPedidoHtml(p, op) {
 
 /* ---- Capa: destaques que nao podem passar despercebidos ---- */
 
-/** Pontos de atencao do contrato (boletos, pedidos, e-clic e consumo do mes). */
-function pontosAtencaoRel(d) {
-  const todasNfs = d.peds.flatMap((p) => p.nfs);
-  const bols = todasNfs.flatMap((l) => l.bols);
-  const atrasados = bols.filter((b) => statusBoleto(b) === 'Vencido');
-  const vencendo = bols.filter((b) => {
-    if (!['Em aberto', 'Em contestação'].includes(statusBoleto(b)) || !b.vencimento) return false;
-    const dias = Math.round((paraData(b.vencimento) - paraData(hojeIso())) / 86400000);
-    return dias >= 0 && dias <= 2;
-  });
-  const esgotados = d.peds.filter((p) => p.perc >= 99.995);
-  const criticos = d.peds.filter((p) => p.perc >= 80 && p.perc < 99.995);
-  const semEclic = todasNfs.filter((l) => !l.nf.eclic);
-  const nfsMes = notas.filter((n) => n.data && formatarData(n.data, 'iso-mes') === d.agora.mesIso);
-  const lista = (itens, campo) => itens.slice(0, 3).map((x) => campo(x)).join(', ') + (itens.length > 3 ? ` e mais ${itens.length - 3}` : '');
-  return [
-    {
-      rot: 'Boletos atrasados', cor: atrasados.length ? COR_REL.vermelho : COR_REL.verde,
-      v: atrasados.length ? `${atrasados.length} · ${moedaRel(somar(atrasados, 'valor'))}` : 'Nenhum',
-      d: atrasados.length ? lista(atrasados, (b) => b.numero) : 'Todos os boletos em dia',
-    },
-    {
-      rot: 'Boletos vencendo (até 2 dias)', cor: vencendo.length ? COR_REL.ambar : COR_REL.verde,
-      v: vencendo.length ? `${vencendo.length} · ${moedaRel(somar(vencendo, 'valor'))}` : 'Nenhum',
-      d: vencendo.length ? lista(vencendo, (b) => `${b.numero} (${dataRel(b.vencimento)})`) : 'Sem vencimentos próximos',
-    },
-    {
-      rot: 'Pedidos zerados / críticos', cor: esgotados.length ? COR_REL.vermelho : criticos.length ? COR_REL.ambar : COR_REL.verde,
-      v: `${esgotados.length} zerado(s) · ${criticos.length} crítico(s)`,
-      d: [...esgotados, ...criticos].length ? lista([...esgotados, ...criticos], (p) => `${p.ped.numero} (${percRel(p.perc)})`) : 'Todos abaixo de 80% de consumo',
-    },
-    {
-      rot: 'NFs não lançadas no e-clic', cor: semEclic.length ? COR_REL.ambar : COR_REL.verde,
-      v: semEclic.length ? `${semEclic.length} · ${moedaRel(somar(semEclic.map((l) => l.nf), 'valor'))}` : 'Todas lançadas',
-      d: semEclic.length ? lista(semEclic, (l) => l.nf.numero) : `${todasNfs.length} NF(s) com via assinada`,
-    },
-    {
-      rot: `Consumido em ${d.agora.mesNome}`, cor: COR_REL.navy, inteiro: true,
-      v: moedaRel(somar(nfsMes, 'valor')), d: `${nfsMes.length} nota(s) fiscal(is) emitida(s) no mês`,
-    },
-  ];
-}
 
-function destaquesCapaHtml(d) {
-  /* consumo das atividades contratuais (largura inteira; ate 9 linhas, o restante somado:
-     a lista completa esta na tabela de Atividades Contratuais) */
-  const lista = ordenar(insumos.map((ins) => ({ ins, r: resumoInsumo(ins) })), 'r.vigente', 'desc');
-  const MAX = 9;
-  const visiveis = lista.length > MAX ? lista.slice(0, MAX - 1) : lista;
-  const resto = lista.slice(visiveis.length);
-  const linha = (nome, prev, fat, comp) => {
-    const perc = prev > 0 ? (fat / prev) * 100 : 0;
-    return `<tr><td class="n">${esc(nome)}</td><td class="v">${moedaRel(prev)}</td><td class="v">${moedaRel(comp)}</td><td class="v">${moedaRel(fat)}</td><td class="v">${moedaRel(prev - fat)}</td><td class="v">${miniBarraHtml(perc)}</td></tr>`;
-  };
-  const linhas = visiveis.map(({ ins, r }) => linha(ins.nome, r.vigente, r.faturado, r.comprometido));
-  if (resto.length) linhas.push(linha(`Demais ${resto.length} atividade(s)`, resto.reduce((t, x) => t + x.r.vigente, 0), resto.reduce((t, x) => t + x.r.faturado, 0), resto.reduce((t, x) => t + x.r.comprometido, 0)));
-  if (!lista.length) linhas.push('<tr><td colspan="6" class="n">Nenhuma atividade contratual cadastrada</td></tr>');
-  return `<div class="bloco-cap bloco-cap--inteiro"><div class="cab">Consumo por atividade contratual — previsto x consumido em NFs</div>
-      <table class="ativ"><thead><tr><th class="n">Atividade</th><th>Previsto</th><th>Comprometido</th><th>Consumido (NFs)</th><th>Saldo</th><th>% consumido</th></tr></thead><tbody>${linhas.join('')}</tbody></table></div>`;
-}
 
 /* ---- Montagem das paginas (no documento aberto, antes de imprimir) ---- */
 
@@ -17376,6 +16596,8 @@ function abrirAjuda() {
 }
 
 const MARCA = { logo: 'KZ', titulo: 'Faturamento Direto' };
+/** v1.90: versao deste arquivo (o aviso de nova versao compara com a publicada) */
+const VERSAO_FD = '1.91.0';
 
 /* ---- Entrada somente por controlador ---- */
 
@@ -17488,6 +16710,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
   const sair = () => {
     desligarProtecao();
     const estado = sessao.obter();
+    if (estado.alteracoes) { clearTimeout(_timerRascunho); RASCUNHO_FD.apagar(); }
     if (!estado.alteracoes) {
       telaEntrada.definirBase({ ...obterBaseParaSalvar(), salvoEm: estado.ultimoSalvamento || estado.base.salvoEm || null }, estado.nomeArquivo);
     }
@@ -17579,7 +16802,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.89 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.91 · KZ App Standard v1.7',
     },
     paginas: {
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
@@ -17604,6 +16827,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
     somenteLeitura: perfil === 'visualizador',
   });
   appAtual = app;
+  if (rascunhoRecuperado && String(nomeArquivo || '').startsWith('Rascunho:')) { rascunhoRecuperado = false; sessao.marcarAlteracao(); }
 
   /* v1.75: nome da pagina aberta ao lado do titulo, como no Controle de Custos */
   const NOME_PAGINA = {
@@ -17889,7 +17113,15 @@ const AC = {
     if (!ja) { try { abrir(); } catch (e) { console.warn('[assistente]', e); } }
   },
   semJanelas: () => fecharJanelasTour(),
-  arvore: (nivel) => () => { const b = BT(nivel === 2 ? 'Abrir tudo' : 'Até fornecedores')(); if (b) b.click(); },
+  /* abre o 1o insumo (e, com nivel 2, o 1o fornecedor dele) clicando nas linhas da arvore */
+  arvore: (nivel) => () => {
+    const ins = document.querySelector('.fd-arv__lin--n1');
+    if (ins && !ins.classList.contains('is-aberto')) ins.click();
+    if (nivel >= 2) {
+      const forn = document.querySelector('.fd-arv__bloco--n1.is-aberto .fd-arv__lin--n2');
+      if (forn && !forn.classList.contains('is-aberto')) forn.click();
+    }
+  },
   emSequencia: (...fns) => () => fns.forEach((f) => { try { f(); } catch (e) { console.warn('[assistente]', e); } }),
 };
 
@@ -18378,13 +17610,11 @@ Object.assign(TOURS_FD, {
   dashboard: { t: 'Dashboard', passos: [
     { pagina: 'visao', sel: SEL('.fd-resumo__bloco'), tit: 'Faturamento direto — total dos insumos', txt: 'Pizza do <b>total dos insumos</b> (aba Insumos, com aditivos): quanto já foi <b>consumido</b> pelas NFs e o <b>saldo</b>. No centro, o % consumido. Embaixo, quanto já está em pedidos.' },
     { pagina: 'visao', sel: SEL('.fd-resumo .fd-resumo__bloco:nth-child(2)'), tit: 'Pedidos de compra', txt: 'Pizza do <b>total dos pedidos</b>: consumido pelas NFs e saldo a faturar.' },
-    { pagina: 'visao', antes: AC.clicar(BT('Fechar tudo')), sel: SEL('.fd-arv'), tit: 'Árvore por insumo', txt: 'Começa fechada no insumo. Cada linha mostra <b>Total</b>, <b>Consumido (NFs)</b>, <b>Saldo</b> e a barra de <b>Avanço</b>.' },
+    { pagina: 'visao', sel: SEL('.fd-arv'), tit: 'Árvore por insumo', txt: 'Começa fechada no insumo. Cada linha mostra <b>Total</b>, <b>Consumido (NFs)</b>, <b>Saldo</b> e a barra de <b>Avanço</b>.' },
     { pagina: 'visao', sel: SEL('.fd-arv__lin--n1'), tit: 'Linha do insumo', txt: 'Clique na linha para abrir os <b>fornecedores</b> do insumo. Clique no <b>nome</b> para abrir o cadastro do insumo.' },
     { pagina: 'visao', antes: AC.arvore(1), sel: SEL('.fd-arv__lin--n2'), tit: 'Fornecedor (terceiro)', txt: 'Faixa verde. Total = soma dos pedidos do fornecedor. Clique para ver os pedidos dele.' },
     { pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__lin--n3'), tit: 'Pedido', txt: 'Linha branca com o número do pedido, a emissão e a situação (Normal, Crítico ou Esgotado).' },
     { pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__comp'), tit: '📄 Composição', txt: 'Abre a composição do pedido: <b>itens</b> (quantidade e valor total, consumido e saldo) e <b>notas fiscais</b>.' },
-    { pagina: 'visao', sel: BT('Fechar tudo'), tit: 'Fechar tudo / Até fornecedores / Abrir tudo', txt: '<b>Fechar tudo</b>: só os insumos. <b>Até fornecedores</b>: abre os insumos. <b>Abrir tudo</b>: abre até os pedidos.' },
-    { pagina: 'visao', sel: BT('Exportar tudo'), tit: '⬇ Exportar tudo', txt: 'Gera a planilha completa (obra, insumos, terceiros, pedidos, NFs e boletos) no Excel.' },
   ] },
   composicao: { t: 'Composição do pedido', passos: [
     { pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__comp'), tit: '📄 Composição', txt: 'Fica na linha de cada pedido, no Dashboard (abra o insumo e o fornecedor).' },
@@ -18450,7 +17680,7 @@ Object.assign(TOURS_FD, {
   ] },
   pedidos_tela: { t: 'Tela Pedidos e produtos', passos: [
     { pagina: 'pedidos', sel: SEL('.ctc-main .ctc-filterbar'), tit: 'Pesquisa e filtros', txt: 'Pesquise por pedido, terceiro, produto ou NF e filtre por insumo e terceiro.' },
-    { pagina: 'pedidos', sel: SEL(`${BARRA_PAG} select`), tit: 'Situação', txt: 'Filtra os pedidos: OK, Sem saldo, Excedido, Distrato solicitado, Distratado ou Sem produtos.' },
+    { pagina: 'pedidos', sel: () => { const th = [...document.querySelectorAll('.ctc-main thead th')].find((x) => /Situação/.test(x.textContent)); return th ? th.querySelector('.fd-filtro-btn') : null; }, tit: '▼ Filtro das colunas', txt: 'Cada coluna do pedido tem o ▼ (como no Excel): ordenar, pesquisar e marcar valores. Na <b>Situação</b>: OK, Sem saldo, Excedido, Distrato solicitado, Distratado ou Sem produtos. Os produtos acompanham o pedido; <b>Limpar filtros</b> tira tudo.' },
     { pagina: 'pedidos', sel: SEL('.ctc-main tr.ctc-row--level-1'), tit: 'Faixa do terceiro', txt: 'Agrupa os pedidos do terceiro com o total, o faturado e o saldo. O <b>+ Pedido</b> cria um pedido para ele.' },
     { pagina: 'pedidos', sel: SEL('.ctc-main tr.ctc-row--subtotal, .ctc-main tbody tr[title="Abrir pedido"]'), tit: 'Linha do pedido', txt: 'Qtd contratada, abatida pelas NFs, saldo, valores, faturado, saldo R$, % faturado e situação. A seta mostra os produtos; clicar na linha abre o pedido.' },
     { pagina: 'pedidos', sel: TITULO('Lançar NF do pedido'), edicao: true, tit: '📄 Lançar NF', txt: 'Abre uma NF nova já ligada a este pedido.' },
@@ -18567,10 +17797,7 @@ const AJUDA_FD = {
   pizza_pedidos: { grupo: 'Dashboard', t: 'Gráfico Pedidos de compra', p: 'grafico pizza pedidos compra consumido saldo', f: 'Mostra o total dos pedidos, quanto as NFs já consumiram e o saldo a faturar, com % e valor.', onde: 'Dashboard, em cima à direita.', pagina: 'visao', sel: SEL('.fd-resumo .fd-resumo__bloco:nth-child(2)'), tour: 'dashboard' },
   arvore: { grupo: 'Dashboard', t: 'Árvore insumo › fornecedor › pedido', p: 'arvore visao geral insumo fornecedor pedido abrir fechar', f: 'Começa fechada no insumo. Clicando na linha abre os fornecedores (faixa verde) e depois os pedidos. Cada nível mostra total, consumido (NFs), saldo e a barra de avanço.', onde: 'Dashboard, embaixo dos gráficos.', pagina: 'visao', sel: SEL('.fd-arv'), tour: 'dashboard' },
   composicao: { grupo: 'Dashboard', t: 'Composição', p: 'composicao pedido itens notas fiscais nfs detalhe', f: 'Abre a janela do pedido com duas abas: <b>Itens do pedido</b> (quantidade e valor total, consumido e saldo de cada item) e <b>Notas fiscais</b> (as NFs com data, BM, valor, REIDI, saldo após a NF, boleto e vencimento).', onde: 'Na linha de cada pedido, no Dashboard.', pagina: 'visao', antes: AC.arvore(2), sel: SEL('.fd-arv__comp'), tour: 'composicao' },
-  fechar_tudo: { grupo: 'Dashboard', t: 'Fechar tudo', p: 'fechar tudo recolher arvore', f: 'Fecha a árvore: mostra só os insumos.', onde: 'Dashboard, acima da árvore.', pagina: 'visao', sel: BT('Fechar tudo') },
-  ate_fornecedores: { grupo: 'Dashboard', t: 'Até fornecedores', p: 'ate fornecedores abrir insumos', f: 'Abre todos os insumos, mostrando os fornecedores (sem os pedidos).', onde: 'Dashboard, acima da árvore.', pagina: 'visao', sel: BT('Até fornecedores') },
-  abrir_tudo: { grupo: 'Dashboard', t: 'Abrir tudo', p: 'abrir tudo expandir arvore pedidos', f: 'Abre a árvore até os pedidos.', onde: 'Dashboard, acima da árvore.', pagina: 'visao', sel: BT('Abrir tudo') },
-  exportar_tudo: { grupo: 'Dashboard', t: 'Exportar tudo', p: 'exportar tudo planilha completa excel', f: 'Gera a planilha completa do recorte: obra, insumos, terceiros, pedidos, NFs e boletos.', onde: 'Dashboard e Importar / Exportar.', pagina: 'visao', sel: BT('Exportar tudo') },
+  exportar_tudo: { grupo: 'Importar / Exportar', t: 'Exportar tudo', p: 'exportar tudo planilha completa excel', f: 'Gera a planilha completa: obra, aditivos, insumos, terceiros, pedidos, NFs e boletos (no mesmo formato aceito pela importação).', onde: 'Importar / Exportar.', pagina: 'importar', sel: BT('Exportar tudo') },
   /* Tendencia */
   tendencia_insumo: { grupo: 'Tendência', t: 'Insumo (Tendência)', p: 'tendencia escolher insumo grafico', f: 'Escolhe o insumo do gráfico de tendência (ou todos).', onde: 'Tendência, no topo.', pagina: 'tendencia', sel: SEL('.ctc-main select'), tour: 'tendencia' },
   editar_projecao: { grupo: 'Tendência', t: 'Editar projeção', p: 'editar projecao previsto bm tendencia', f: 'Leva para a Projeção por BM (tela Insumos), onde se ajusta o previsto de cada BM.', onde: 'Tendência, quando um insumo está escolhido.', edicao: true, pagina: 'tendencia', sel: BT('Editar projeção') },
@@ -18663,7 +17890,7 @@ const ASSIST_TAREFAS_FD = [
   { t: 'Dar baixa (pagar) um boleto', p: 'baixa pagar pago boleto pagamento quitar', passos: ['Na <b>Base de faturamento</b>, clique no boleto (ou abra a NF).', 'Informe a <b>Data de pagamento</b>.', 'Grave: o status passa a <b>Pago</b>.'], pagina: 'base' },
   { t: 'Importar boletos', p: 'importar boletos planilha', passos: ['Na <b>Base de faturamento</b>, clique em <b>Importar boletos</b>.', 'Use a planilha com o Nº NF (e o Nº Pedido se a NF se repetir).', 'Confira e confirme.'], pagina: 'base', aj: 'importar_boletos' },
   { t: 'Filtrar a Base de faturamento (filtro estilo Excel)', p: 'filtrar filtro coluna excel ordenar pesquisar base notas', passos: ['Na <b>Base de faturamento</b>, clique no <b>▼</b> do título da coluna.', 'Ordene, pesquise ou marque os valores que quer ver e clique em <b>OK</b>.', 'Coluna filtrada fica laranja. <b>Limpar filtros</b> tira tudo.'], pagina: 'base', tour: 'base_tela', aj: 'filtro_excel' },
-  { t: 'Exportar para o Excel', p: 'exportar excel planilha baixar xlsx relatorio', passos: ['<b>Exportar tudo</b> (Dashboard ou Importar / Exportar): todas as abas.', '<b>Exportar esta base</b> (Base de faturamento): como está na tela, com filtros.', '<b>Exportar</b> em Insumos, Pedidos e produtos e Obra: só aquela lista.'], pagina: 'importar', aj: 'exportar_tudo' },
+  { t: 'Exportar para o Excel', p: 'exportar excel planilha baixar xlsx relatorio', passos: ['<b>Exportar tudo</b> (Importar / Exportar): todas as abas.', '<b>Exportar esta base</b> (Base de faturamento): como está na tela, com filtros.', '<b>Exportar</b> em Insumos, Pedidos e produtos e Obra: só aquela lista.'], pagina: 'importar', aj: 'exportar_tudo' },
   { t: 'Importar planilhas (insumos, terceiros, pedidos, NFs, boletos)', p: 'importar planilha excel csv insumos terceiros pedidos notas boletos obra', passos: ['Abra <b>☰ Menu › Importar / Exportar</b>.', 'Clique em <b>Exportar tudo</b> para baixar o modelo.', 'Preencha (em Terceiros use o nome exato do insumo; nas NFs o Nº Pedido e o nome exato do terceiro).', 'Clique no botão do tipo que quer importar, escolha o modo e o arquivo, confira e confirme.'], pagina: 'importar', tour: 'importar', aj: 'importar_tipo' },
   { t: 'Salvar o trabalho (nuvem ou arquivo JSON)', p: 'salvar gravar guardar nuvem firebase json backup versao', passos: ['Clique em <b>👤 Controlador</b> no cabeçalho.', 'Na aba <b>Ferramentas</b>: <b>Salvar na nuvem</b> (atualiza a base vinculada), <b>Salvar na base existente</b> ou <b>Exportar JSON</b>.', 'Ao salvar aparece a tela de carregamento “Salvando na nuvem”.'], aviso: 'As alterações ficam só na tela até você salvar.', tour: 'salvar', abrir: 'controlador', aj: 'salvar_nuvem' },
   { t: 'Abrir uma base da nuvem ou um arquivo JSON', p: 'abrir carregar importar base nuvem versao json arquivo', passos: ['Na <b>tela inicial</b>, clique em <b>Importar</b>.', 'Escolha <b>Versão na nuvem</b> (lista em cartões; clique em <b>Carregar</b>) ou <b>Arquivo JSON</b>.', 'Aguarde a tela de carregamento e escolha como entrar (Visualizador ou Controlador).'], aj: 'importar_entrada' },
@@ -18764,6 +17991,160 @@ function assistDadosFD(pergunta) {
   return null;
 }
 
+/* =============================================================================
+   v1.90: RASCUNHO AUTOMATICO
+   A cada alteracao (Controlador), uma copia da base vai para o navegador (IndexedDB).
+   Se o navegador fechar sem salvar, ao abrir de novo o app oferece recuperar.
+   Salvar na nuvem ou em JSON apaga o rascunho; "Sair sem salvar" tambem.
+   ========================================================================== */
+const RASCUNHO_FD = (() => {
+  const DB = 'fd-rascunho'; const LOJA = 'rascunhos';
+  const abrirDb = () => new Promise((ok, erro) => {
+    const req = indexedDB.open(DB, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(LOJA);
+    req.onsuccess = () => ok(req.result);
+    req.onerror = () => erro(req.error);
+  });
+  const op = async (modo, fn) => {
+    const db = await abrirDb();
+    return new Promise((ok, erro) => {
+      const tx = db.transaction(LOJA, modo);
+      const req = fn(tx.objectStore(LOJA));
+      tx.oncomplete = () => { ok(req && req.result); db.close(); };
+      tx.onerror = () => { erro(tx.error); db.close(); };
+    });
+  };
+  const chave = () => `fd:${obraNuvem || 'local'}`;
+  const seguro = (fn) => (...a) => fn(...a).catch((e) => { console.warn('[rascunho]', e); return null; });
+  return {
+    gravar: seguro((dados) => op('readwrite', (st) => st.put(dados, chave()))),
+    ler: seguro(() => op('readonly', (st) => st.get(chave()))),
+    apagar: seguro(() => op('readwrite', (st) => st.delete(chave()))),
+  };
+})();
+let _timerRascunho = null;
+let rascunhoRecuperado = false;
+function agendarRascunho() {
+  clearTimeout(_timerRascunho);
+  _timerRascunho = setTimeout(() => {
+    if (!appAtual || !sessao.podeEditar() || !sessao.obter().alteracoes) return;
+    const estado = sessao.obter();
+    try {
+      RASCUNHO_FD.gravar({
+        salvoEm: new Date().toISOString(),
+        obra: obra.nome || '',
+        usuario: estado.usuario ? estado.usuario.nome : '',
+        nomeArquivo: estado.nomeArquivo || '',
+        alteracoes: estado.alteracoes,
+        base: JSON.parse(JSON.stringify({ ...obterBaseParaSalvar(), vinculoNuvem: vinculoNuvem || null })),
+      });
+    } catch (e) { console.warn('[rascunho]', e); }
+  }, 1200);
+}
+/* toda alteracao agenda o rascunho; todo salvamento apaga */
+{
+  const marcarOriginal = sessao.marcarAlteracao;
+  sessao.marcarAlteracao = (...a) => { const r = marcarOriginal.apply(sessao, a); agendarRascunho(); return r; };
+  const limparOriginal = sessao.limparAlteracoes;
+  sessao.limparAlteracoes = (...a) => { const r = limparOriginal.apply(sessao, a); clearTimeout(_timerRascunho); RASCUNHO_FD.apagar(); return r; };
+}
+/** Na tela inicial: se ficou um rascunho, oferece recuperar. */
+async function oferecerRascunho() {
+  const r = await RASCUNHO_FD.ler();
+  if (!r || !r.base || appAtual) return;
+  const quando = new Date(r.salvoEm);
+  const texto = `${formatarData(quando)} às ${String(quando.getHours()).padStart(2, '0')}:${String(quando.getMinutes()).padStart(2, '0')}`;
+  const modal = criarModal({
+    titulo: '💾 Trabalho não salvo encontrado',
+    tamanho: 'md',
+    destruirAoFechar: true,
+    conteudo: [
+      h('p', {}, 'O controle guardou automaticamente um trabalho que não chegou a ser salvo (o navegador foi fechado ou travou antes de salvar).'),
+      h('div', { class: 'fd-rasc' },
+        h('div', {}, h('span', {}, 'Obra'), h('b', {}, r.obra || '—')),
+        h('div', {}, h('span', {}, 'Guardado em'), h('b', {}, texto)),
+        h('div', {}, h('span', {}, 'Por'), h('b', {}, r.usuario || '—')),
+        h('div', {}, h('span', {}, 'Base de origem'), h('b', {}, String(r.nomeArquivo || 'base da tela').replace(/^Nuvem: /, '☁ ')))),
+      criarAlerta({ tipo: 'info', mensagem: 'Recuperando, a base volta como estava. Entre como Controlador e salve na nuvem para não perder de novo.' }),
+    ],
+    acoes: [
+      { texto: 'Descartar rascunho', variante: 'danger', onClick: async () => {
+        const ok = await confirmar({ titulo: 'Descartar o rascunho?', mensagem: 'O trabalho não salvo será apagado deste navegador. Não tem como desfazer.', textoConfirmar: 'Descartar', perigo: true });
+        if (!ok) return false;
+        await RASCUNHO_FD.apagar();
+        toast.info('Rascunho descartado');
+        return true;
+      } },
+      { texto: 'Agora não', variante: 'outline' },
+      { texto: 'Recuperar', variante: 'primary', onClick: () => {
+        if (!telaEntrada.definirBase(r.base, `Rascunho: ${String(r.nomeArquivo || r.obra || 'base').replace(/^(Nuvem|Rascunho): /, '')}`)) {
+          toast.erro('Rascunho inválido', 'Não foi possível abrir o rascunho.');
+          return false;
+        }
+        rascunhoRecuperado = true;
+        toast.sucesso('Rascunho recuperado', 'Entre como Controlador e salve na nuvem.');
+        return true;
+      } },
+    ],
+  });
+  modal.abrir();
+}
+
+/* =============================================================================
+   v1.90: AVISO DE NOVA VERSAO
+   O site guarda a pagina por ate 10 minutos. O app confere sozinho se ha versao
+   mais nova publicada e mostra uma faixa com "Atualizar agora".
+   ========================================================================== */
+function compararVersaoFD(a, b) {
+  const x = String(a).split('.').map(Number); const y = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i += 1) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); }
+  return 0;
+}
+let _avisoVersaoMostrado = false;
+async function verificarNovaVersao() {
+  if (_avisoVersaoMostrado || !/^https?:$/.test(location.protocol)) return;
+  try {
+    const url = `${location.href.split('#')[0].split('?')[0]}?versao=${Date.now()}`;
+    const resp = await fetch(url, { cache: 'no-store' });
+    if (!resp.ok) return;
+    const texto = await resp.text();
+    const m = texto.match(/const VERSAO_FD = '([\d.]+)'/);
+    if (m && compararVersaoFD(m[1], VERSAO_FD) > 0) mostrarAvisoVersao(m[1]);
+  } catch (e) { /* sem internet: tenta de novo depois */ }
+}
+function mostrarAvisoVersao(nova) {
+  _avisoVersaoMostrado = true;
+  const faixa = h('div', { class: 'fd-versao', role: 'status' },
+    h('span', { class: 'fd-versao__icone' }, '🔄'),
+    h('div', {}, h('b', {}, `Nova versão do Faturamento Direto disponível (v${nova})`),
+      h('small', {}, `Você está usando a v${VERSAO_FD}. Atualize para ver as novidades.`)),
+    h('button', { type: 'button', class: 'fd-versao__ok', onClick: async () => {
+      if (appAtual && sessao.obter().alteracoes) {
+        const ok = await confirmar({ titulo: 'Atualizar agora?', mensagem: 'Há alterações não salvas. Elas ficam guardadas no rascunho automático e podem ser recuperadas ao abrir de novo, mas o ideal é salvar antes. Atualizar mesmo assim?', textoConfirmar: 'Atualizar' });
+        if (!ok) return;
+        agendarRascunho();
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      location.reload();
+    } }, 'Atualizar agora'),
+    h('button', { type: 'button', class: 'fd-versao__x', title: 'Depois', 'aria-label': 'Fechar aviso', onClick: () => faixa.remove() }, '✕'));
+  document.body.append(faixa);
+}
+setTimeout(verificarNovaVersao, 20000);
+setInterval(verificarNovaVersao, 10 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') verificarNovaVersao(); });
+
+/** v1.90: evolucao do faturamento direto no Dashboard (todos os insumos, acumulado). */
+function blocoEvolucaoDashboard() {
+  try {
+    const el = blocoCurvas(serieTendencia(insumos), { mensal: false, titulo: 'Faturamento direto — previsto × real × tendência' });
+    return h('div', { class: 'ctc-stack fd-evol' }, el);
+  } catch (e) {
+    console.warn('[evolucao]', e);
+    return null;
+  }
+}
+
 /* Inicio (v1.73): tela de entrada por perfis; a nuvem KZ pede login so quando usada */
 const telaEntrada = criarTelaEntrada({
   logo: IMAGENS_MODELO.logoConsorcio || MARCA.logo,
@@ -18786,6 +18167,7 @@ let telaEntradaPronta = true;
 
 function mostrarEntrada() {
   telaEntrada.mostrar();
+  setTimeout(oferecerRascunho, 600);
 }
 
 mostrarEntrada();
