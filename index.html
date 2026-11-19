@@ -7402,7 +7402,18 @@ return { iniciarFirebase, observarLogin, sair, entrar, usuarioAtual, carregarPer
 /* ===== app.js ===== */
 /* =============================================================================
    CTC Faturamento Direto — app.js
-   Versao: 1.91.0
+   Versao: 1.95.0
+   1.95.0: Apresentacao: pagina inicial ja abre a "Abertura do consumido (e-clic)" (lancadas x nao
+           lancadas); Atividades: "Saldo a contratar" vira "Saldo" (previsto − consumido em NF);
+           "Consumido do mes" vira "Estimado x Consumido" (projecao por insumo) + slide "Estimado"
+           do mes seguinte; so insumos com estimado no mes.
+   1.94.0: Apresentacao: tabela de NFs do pedido sem a linha de descricao. Distrato: campo
+           "Nº GRD do distrato". Resumo por Pedido de Compra: coluna "GRD de distrato" (N/A sem GRD).
+   1.93.0: "-0" e "-R$ 0,00" (sobra de calculo do computador) aparecem como 0 e R$ 0,00 na tela
+           Pedidos e produtos e na janela do pedido; saldo so fica vermelho abaixo de -R$ 0,005.
+   1.92.0: Base de faturamento: os dados do boleto se repetem em todos os produtos da NF (totais
+           sem duplicar). Pedido: botao "Aditivo de pedido" (acrescimo de quantidade nos produtos
+           e produtos novos), aba "Aditivos" e selos do aditivo na aba Produtos.
    1.91.0: Dashboard sem os botoes Fechar tudo / Ate fornecedores / Abrir tudo / Exportar tudo
            (a arvore abre clicando na linha) e sem o link "Ver por insumo na Tendencia".
    1.90.0: limpeza do codigo antigo sem uso (Dashboard FD, modos antigos da Visao geral,
@@ -8151,6 +8162,16 @@ function numExato(v) {
 }
 const ehNegativoExato = (v) => Number(vn(v).toFixed(6)) < 0;
 
+/**
+ * v1.93: tira o sinal de "-0", "-0,00" e "-R$ 0,00". Sobra de calculo do computador (ex.: -0,0000001)
+ * arredonda para zero na tela, mas o sinal ficava. So muda a exibicao; o valor guardado nao muda.
+ */
+const semMenosZero = (texto) => (/[1-9]/.test(String(texto)) ? texto : String(texto).replace(/^[-−]\s*/, ''));
+const moedaLimpa = (v) => semMenosZero(formatarMoeda(v));
+const numeroLimpo = (v) => semMenosZero(formatarNumero(v));
+/** Saldo em R$ realmente negativo (abaixo de meio centavo). */
+const saldoNegativo = (v) => vn(v) < -0.005;
+
 const percExato = (v) => `${Number(vn(v)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 10 })}%`;
 
 /* ---- Consulta de CNPJ (UF do emissor) ----
@@ -8720,6 +8741,8 @@ function recarregar() {
 
 /** Atualiza o detalhe de pedido aberto (modal) depois de alteracoes. */
 let atualizarDetalheAberto = null;
+/** v1.92: troca a aba do pedido aberto (usado pelo aditivo para mostrar a aba Aditivos). */
+let mudarAbaPedidoAberto = null;
 
 /** Valor do pedido e SEMPRE a soma dos seus produtos (qtd x unitario COM REIDI), sem arredondar. */
 function valorDosProdutos(pedidoId) {
@@ -10160,7 +10183,11 @@ function tabelaProdutosPedido(ped) {
     linhaVariante: (l) => (l.saldoQtd < -0.0001 ? 'danger' : null),
     vazio: { titulo: 'Nenhum produto neste pedido', mensagem: 'Inclua os produtos para fechar o valor do pedido.' },
     colunas: [
-      { campo: 'descricao', titulo: 'Descrição', fixa: true },
+      {
+        campo: 'descricao', titulo: 'Descrição', fixa: true,
+        /* v1.92: selo do aditivo (produto novo ou quantidade acrescida) */
+        render: (v, l) => h('span', {}, v, ...aditivosDoProduto(ped, l.prod).flatMap((a) => [' ', criarBadge({ texto: a.novo ? `novo · ${a.numero}` : `+ ${a.numero}`, variante: a.novo ? 'success' : 'info' })])),
+      },
       { campo: 'unidade', titulo: 'Un' },
       { campo: 'quantidade', titulo: 'Qtd', tipo: 'numero' },
       { campo: 'unitSem', titulo: 'Unit. SEM REIDI', tipo: 'moeda' },
@@ -10367,18 +10394,19 @@ function abrirPedido(ped, abaInicial = 'resumo') {
       h('div', { class: 'ctc-grid ctc-grid--3' },
         criarKpi({
           rotulo: 'Valor do pedido', valor: formatarMoeda(ped.valor),
-          sub: distratoDoPedido(ped.id) ? `produtos ${formatarMoeda(ped.valorOriginal)} − distrato ${formatarMoeda(distratoDoPedido(ped.id).valorSaldo)}` : 'soma dos produtos (qtd × unit. COM REIDI)',
+          sub: subValorPedido(ped),
         }).elemento,
         criarKpi({ rotulo: 'Produtos', valor: String(r.prods.length), sub: `${formatarNumero(r.prods.reduce((t, p) => t + vn(p.quantidade), 0))} unidade(s) contratada(s)` }).elemento,
         criarKpi({ rotulo: 'Produtos SEM REIDI', valor: formatarMoeda(r.totalSem) }).elemento,
         criarKpi({ rotulo: 'REIDI (desconto)', valor: formatarMoeda(r.reidi), sub: rotuloReidiPedido(ped, r), variante: ped.modoReidi === 'sem' ? null : 'success' }).elemento,
         criarKpi({ rotulo: 'Faturado (NFs)', valor: formatarMoeda(r.faturado), progresso: { percentual: r.perc, variante: r.excedido ? 'danger' : null }, sub: formatarPercentual(r.perc) }).elemento,
-        criarKpi({ rotulo: 'Saldo do pedido', valor: formatarMoeda(r.saldo), destaque: r.saldo < 0 ? 'negative' : 'neutral' }).elemento),
+        criarKpi({ rotulo: 'Saldo do pedido', valor: moedaLimpa(r.saldo), destaque: saldoNegativo(r.saldo) ? 'negative' : 'neutral' }).elemento),
       criarAlerta({
         tipo: 'info',
         mensagem: `${ter?.nome || '—'} · ${ins?.nome || '—'} · emissão ${formatarData(ped.dataEmissao)} · ${ped.ufOrigem || '?'} → ${ped.ufDestino || '?'} · DIFAL ${formatarPercentual(ped.difalPerc)}${ped.importado ? ' · importado (4%)' : ''}`,
       }),
       ped.observacoes ? criarAlerta({ tipo: 'warning', titulo: 'Observações', mensagem: ped.observacoes }) : null,
+      alertaAditivosPedido(ped, () => { abaAtual = 'aditivos'; modal.definirConteudo(montar()); }),
       alertaDistratoPedido(ped),
       r.prods.some((p) => !vn(p.quantidade)) ? criarAlerta({ tipo: 'warning', mensagem: 'Há produtos sem quantidade contratada: eles não somam no valor do pedido.' }) : null,
       r.excedido ? criarAlerta({ tipo: 'danger', mensagem: 'As NFs lançadas ultrapassam o valor do pedido.' }) : null);
@@ -10415,15 +10443,18 @@ function abrirPedido(ped, abaInicial = 'resumo') {
         { id: 'resumo', texto: 'Resumo', conteudo: resumo },
         { id: 'produtos', texto: `Produtos (${r.prods.length})`, conteudo: abaProdutos },
         { id: 'notas', texto: `Notas fiscais (${r.nfs.length})`, conteudo: abaNotas },
+        /* v1.92: aditivos do pedido (acrescimo de quantidade e produtos novos) */
+        { id: 'aditivos', texto: `Aditivos (${aditivosDoPedido(ped).length})`, conteudo: () => abaAditivosPedido(ped) },
       ],
     }).elemento;
   };
   const modal = criarModal({
     titulo: `Pedido ${ped.numero} — ${terceiroDoPedido(ped)?.nome || ''}`, tamanho: 'xl', destruirAoFechar: true,
     conteudo: montar(),
-    onFechar: () => { atualizarDetalheAberto = null; },
+    onFechar: () => { atualizarDetalheAberto = null; mudarAbaPedidoAberto = null; },
     acoes: [
       podeEditar() ? { texto: 'Excluir pedido', icone: 'lixeira', variante: 'danger', fechar: false, onClick: () => excluirPedido(ped) } : null,
+      podeEditar() ? { texto: 'Aditivo de pedido', icone: 'mais', variante: 'outline', fechar: false, onClick: () => abrirAditivoPedido(ped) } : null,
       podeEditar() && !distratoAtivoDoPedido(ped.id) && resumoPedido(ped).saldo > 0.005
         ? { texto: 'Distrato de saldo', icone: 'documento', variante: 'outline', fechar: false, onClick: () => abrirDistrato(ped) } : null,
       podeEditar() ? { texto: 'Alterar REIDI', variante: 'outline', fechar: false, onClick: () => abrirAlterarReidi(ped) } : null,
@@ -10435,9 +10466,334 @@ function abrirPedido(ped, abaInicial = 'resumo') {
     if (!pedidos.includes(ped)) { modal.fechar(); return; }
     modal.definirConteudo(montar());
   };
+  mudarAbaPedidoAberto = (id) => { abaAtual = id; };
   modal.abrir();
 }
 
+/* =============================================================================
+   07b. ADITIVO DE PEDIDO (v1.92)
+   Aumenta o pedido: acrescenta quantidade aos produtos ja contratados e/ou cria
+   produtos novos. A mudanca vale para o pedido inteiro (quantidades, valor e saldo)
+   e o aditivo fica registrado em ped.aditivos: nº, data, motivo e itens
+   { produtoId, descricao, unidade, qtdAnterior, qtdAdicional, unitCom, novo }.
+   ========================================================================== */
+
+const aditivosDoPedido = (ped) => (Array.isArray(ped?.aditivos) ? ped.aditivos : []);
+
+/** Valor do item do aditivo pelo unitario COM REIDI atual do produto (ou o do registro, se o produto saiu). */
+function valorItemAditivo(item) {
+  const pr = produtoPorId(item.produtoId);
+  return vn(item.qtdAdicional) * (pr ? unitComEfetivo(pr) : vn(item.unitCom));
+}
+const valorAditivo = (adt) => (adt.itens || []).reduce((t, i) => t + valorItemAditivo(i), 0);
+const valorAditivosPedido = (ped) => aditivosDoPedido(ped).reduce((t, a) => t + valorAditivo(a), 0);
+
+function proximoNumeroAditivo(ped) {
+  const n = aditivosDoPedido(ped).reduce((m, a) => Math.max(m, Number(String(a.numero || '').replace(/\D/g, '')) || 0), 0) + 1;
+  return `ADT-${String(n).padStart(2, '0')}`;
+}
+
+/** Aditivos que mexeram no produto (selo na aba Produtos). */
+function aditivosDoProduto(ped, prod) {
+  return aditivosDoPedido(ped)
+    .filter((a) => (a.itens || []).some((i) => i.produtoId === prod.id))
+    .map((a) => ({ numero: a.numero, novo: (a.itens || []).some((i) => i.produtoId === prod.id && i.novo) }));
+}
+
+/** Texto abaixo do "Valor do pedido": original + aditivos − distrato. */
+function subValorPedido(ped) {
+  const vAdt = valorAditivosPedido(ped);
+  const dist = distratoDoPedido(ped.id);
+  if (vAdt <= 0.005 && !dist) return 'soma dos produtos (qtd × unit. COM REIDI)';
+  return [
+    `original ${formatarMoeda(vn(ped.valorOriginal) - vAdt)}`,
+    vAdt > 0.005 ? `+ aditivos ${formatarMoeda(vAdt)}` : null,
+    dist ? `− distrato ${formatarMoeda(dist.valorSaldo)}` : null,
+  ].filter(Boolean).join(' ');
+}
+
+/** Faixa no Resumo do pedido quando ha aditivo. */
+function alertaAditivosPedido(ped, verAditivos) {
+  const lista = aditivosDoPedido(ped);
+  if (!lista.length) return null;
+  return criarAlerta({
+    tipo: 'success',
+    titulo: `Pedido aditivado: ${lista.length} aditivo(s) · + ${formatarMoeda(valorAditivosPedido(ped))}`,
+    mensagem: lista.map((a) => `${a.numero} (${formatarData(a.data)}): + ${formatarMoeda(valorAditivo(a))}${a.motivo ? ` — ${a.motivo}` : ''}`).join(' · '),
+    acoes: [{ texto: 'Ver aditivos', onClick: verAditivos }],
+  });
+}
+
+/** Aba "Aditivos" do pedido: um bloco por aditivo, com os itens. */
+function abaAditivosPedido(ped) {
+  const lista = aditivosDoPedido(ped);
+  const botaoNovo = botaoFD({ texto: 'Aditivo de pedido', icone: 'mais', variante: 'primary', tamanho: 'sm', apenasEdicao: true, onClick: () => abrirAditivoPedido(ped) });
+  if (!lista.length) {
+    return h('div', { class: 'ctc-stack' },
+      h('div', { class: 'ctc-toolbar' }, botaoNovo),
+      criarAlerta({ tipo: 'info', mensagem: 'Nenhum aditivo neste pedido. O aditivo acrescenta quantidade aos produtos já contratados e/ou inclui produtos novos.' }));
+  }
+  const vAdt = valorAditivosPedido(ped);
+  return h('div', { class: 'ctc-stack' },
+    h('div', { class: 'ctc-toolbar' }, botaoNovo, h('span', { class: 'ctc-spacer' }),
+      h('span', { class: 'ctc-text-sm ctc-text-muted' }, `Original ${formatarMoeda(vn(ped.valorOriginal) - vAdt)} + aditivos ${formatarMoeda(vAdt)} = ${formatarMoeda(ped.valorOriginal)}`)),
+    ...lista.slice().sort((a, b) => String(a.data || '').localeCompare(String(b.data || ''))).map((a) => h('div', { class: 'ctc-stack' },
+      criarAlerta({
+        tipo: 'success',
+        titulo: `${a.numero} · ${formatarData(a.data)} · + ${formatarMoeda(valorAditivo(a))}`,
+        mensagem: [
+          a.motivo || 'Sem motivo informado',
+          `valor do pedido no registro: ${formatarMoeda(a.valorAntes)} → ${formatarMoeda(a.valorDepois)}`,
+        ].join(' · '),
+        acoes: podeEditar() ? [{ texto: 'Excluir aditivo', onClick: () => excluirAditivoPedido(ped, a) }] : [],
+      }),
+      criarTabela({
+        dados: (a.itens || []).map((i) => {
+          const pr = produtoPorId(i.produtoId);
+          return {
+            produto: pr?.descricao || i.descricao, tipo: i.novo ? 'Produto novo' : 'Acréscimo', unidade: pr?.unidade || i.unidade || '',
+            antes: vn(i.qtdAnterior), adicional: vn(i.qtdAdicional), depois: vn(i.qtdAnterior) + vn(i.qtdAdicional),
+            unit: pr ? unitComEfetivo(pr) : vn(i.unitCom), valor: valorItemAditivo(i),
+          };
+        }),
+        compacta: true, altura: 'auto', listrada: true,
+        colunas: [
+          { campo: 'produto', titulo: 'Produto', fixa: true },
+          { campo: 'tipo', titulo: 'Tipo', render: (v) => criarBadge({ texto: v, variante: v === 'Produto novo' ? 'success' : 'info' }) },
+          { campo: 'unidade', titulo: 'Un' },
+          { campo: 'antes', titulo: 'Qtd antes', tipo: 'numero' },
+          { campo: 'adicional', titulo: 'Qtd do aditivo', tipo: 'numero' },
+          { campo: 'depois', titulo: 'Qtd depois', tipo: 'numero' },
+          { campo: 'unit', titulo: 'Unit. COM REIDI', tipo: 'moeda' },
+          { campo: 'valor', titulo: 'Valor do aditivo', tipo: 'moeda', total: 'soma' },
+        ],
+      }).elemento)));
+}
+
+/** Janela do aditivo: acrescimo nos produtos existentes + produtos novos, com previa. */
+function abrirAditivoPedido(ped) {
+  if (distratoAtivoDoPedido(ped.id)) {
+    notificar({ tipo: 'warning', titulo: 'Aditivo bloqueado', mensagem: 'Este pedido tem distrato de saldo solicitado ou aprovado. Reprove ou exclua o distrato antes de aditivar.' });
+    return;
+  }
+  const modo = ped.modoReidi === 'sem' ? 'sem' : temPercPedido(ped) ? 'percentual' : 'dois';
+  const perc = vn(ped.percentualReidi);
+  const prods = produtosDoPedido(ped.id);
+  const acrescimos = new Map();   /* produtoId -> texto digitado */
+  const novos = [];               /* { descricao, unidade, quantidade, unitSem, unitCom } (textos) */
+  const previa = h('div', {});
+  const caixaNovos = h('div', { class: 'ctc-stack' });
+
+  const cabecalho = criarFormulario({
+    colunas: 3, semBotoes: true,
+    valores: { numero: proximoNumeroAditivo(ped), data: hojeIso() },
+    campos: [
+      { nome: 'numero', rotulo: 'Nº do aditivo', obrigatorio: true },
+      { nome: 'data', rotulo: 'Data do aditivo', tipo: 'data', obrigatorio: true },
+      { nome: 'motivo', rotulo: 'Motivo / descrição', larguraTotal: true },
+    ],
+  });
+
+  const campoNum = (valor, aoMudar, placeholder = '0') => h('input', {
+    type: 'text', inputmode: 'decimal', class: 'ctc-input ctc-input--sm ctc-input--num', value: valor, placeholder,
+    onInput: (e) => { aoMudar(e.target.value); atualizarPrevia(); },
+  });
+  const campoTexto = (valor, aoMudar, placeholder = '') => h('input', {
+    type: 'text', class: 'ctc-input ctc-input--sm', value: valor, placeholder,
+    onInput: (e) => { aoMudar(e.target.value); atualizarPrevia(); },
+  });
+
+  /* unitarios de um produto novo conforme o REIDI do pedido */
+  const valoresNovo = (n) => {
+    const sem = paraNumero(n.unitSem);
+    const com = paraNumero(n.unitCom);
+    if (modo === 'sem') return completarValoresReidi('sem', null, sem, null);
+    return completarValoresReidi(ped.modoReidi, modo === 'percentual' ? perc : null, sem, modo === 'percentual' ? null : com);
+  };
+
+  /* ---- produtos ja contratados ---- */
+  const celulasExistentes = new Map();
+  const tabelaExistentes = h('div', { class: 'ctc-table-wrap' }, h('table', { class: 'ctc-table ctc-table--compact ctc-table--striped' },
+    h('thead', {}, h('tr', {}, ...['Produto', 'Un', 'Qtd contratada', 'Qtd faturada', 'Unit. COM REIDI', 'Qtd do aditivo', 'Qtd depois', 'Valor do aditivo']
+      .map((t, i) => h('th', { class: i >= 2 ? 'ctc-col--num' : null }, t)))),
+    h('tbody', {}, ...(prods.length ? prods.map((pr) => {
+      const a = analisarProduto(pr);
+      const depois = h('td', { class: 'ctc-col--num' }, numExato(vn(pr.quantidade)));
+      const valor = h('td', { class: 'ctc-col--num' }, '');
+      celulasExistentes.set(pr.id, { depois, valor, pr });
+      return h('tr', {},
+        h('td', {}, pr.descricao), h('td', {}, pr.unidade || ''),
+        h('td', { class: 'ctc-col--num' }, numExato(vn(pr.quantidade))),
+        h('td', { class: 'ctc-col--num' }, numExato(a.qtdFaturada)),
+        h('td', { class: 'ctc-col--num' }, formatarMoeda(a.unitCom)),
+        h('td', { class: 'ctc-col--num' }, campoNum('', (t) => acrescimos.set(pr.id, t))),
+        depois, valor);
+    }) : [h('tr', {}, h('td', { colspan: 8, class: 'ctc-text-subtle' }, 'Pedido sem produtos: use "Novo produto no aditivo".'))]))));
+
+  /* ---- produtos novos ---- */
+  const titulosNovos = ['Produto (nome)', 'Un', 'Quantidade',
+    ...(modo === 'sem' ? ['Valor unit.'] : modo === 'percentual' ? ['Unit. SEM REIDI', `Unit. COM (${percExato(perc)})`] : ['Unit. SEM REIDI', 'Unit. COM REIDI']),
+    'Valor', ''];
+  const desenharNovos = () => {
+    caixaNovos.replaceChildren(
+      novos.length ? h('div', { class: 'ctc-table-wrap' }, h('table', { class: 'ctc-table ctc-table--compact' },
+        h('thead', {}, h('tr', {}, ...titulosNovos.map((t, i) => h('th', { class: i >= 2 && i < titulosNovos.length - 1 ? 'ctc-col--num' : null }, t)))),
+        h('tbody', {}, ...novos.map((n) => {
+          n.celValor = h('td', { class: 'ctc-col--num' }, '');
+          n.celCom = h('td', { class: 'ctc-col--num' }, '');
+          return h('tr', {},
+            h('td', {}, campoTexto(n.descricao, (t) => { n.descricao = t; }, 'Nome do produto')),
+            h('td', {}, campoTexto(n.unidade, (t) => { n.unidade = t; }, 'un, t...')),
+            h('td', {}, campoNum(n.quantidade, (t) => { n.quantidade = t; })),
+            h('td', {}, campoNum(n.unitSem, (t) => { n.unitSem = t; }, '0,00')),
+            modo === 'dois' ? h('td', {}, campoNum(n.unitCom, (t) => { n.unitCom = t; }, '0,00')) : modo === 'percentual' ? n.celCom : null,
+            n.celValor,
+            h('td', {}, botaoFD({ icone: 'lixeira', variante: 'ghost', tamanho: 'sm', titulo: 'Tirar este produto do aditivo', onClick: () => { novos.splice(novos.indexOf(n), 1); desenharNovos(); atualizarPrevia(); } })));
+        })))) : h('p', { class: 'ctc-text-sm ctc-text-muted' }, 'Nenhum produto novo neste aditivo.'),
+      h('div', { class: 'ctc-toolbar' }, botaoFD({
+        texto: 'Novo produto no aditivo', icone: 'mais', variante: 'outline', tamanho: 'sm',
+        onClick: () => { novos.push({ descricao: '', unidade: '', quantidade: '', unitSem: '', unitCom: '' }); desenharNovos(); atualizarPrevia(); },
+      })));
+  };
+
+  /* ---- previa e coleta ---- */
+  const coletar = () => {
+    const itens = [];
+    const erros = [];
+    acrescimos.forEach((texto, id) => {
+      if (String(texto).trim() === '') return;
+      const q = paraNumero(texto);
+      const pr = produtoPorId(id);
+      if (q == null || q < 0) { erros.push(`${pr?.descricao || 'Produto'}: quantidade do aditivo inválida.`); return; }
+      if (q > 0) itens.push({ tipo: 'acrescimo', pr, qtd: q, valor: q * unitComEfetivo(pr) });
+    });
+    novos.forEach((n, i) => {
+      const vazio = !n.descricao.trim() && !String(n.quantidade).trim() && !String(n.unitSem).trim() && !String(n.unitCom).trim();
+      if (vazio) return;
+      const q = paraNumero(n.quantidade);
+      const vals = valoresNovo(n);
+      const nome = n.descricao.trim() || `Produto novo ${i + 1}`;
+      if (!n.descricao.trim()) erros.push(`Produto novo ${i + 1}: informe o nome.`);
+      if (q == null || q <= 0) erros.push(`${nome}: informe a quantidade.`);
+      if (vals.falta) erros.push(`${nome}: ${vals.falta}.`);
+      if (vals.unitCom > vals.unitSem + 0.000001) erros.push(`${nome}: COM REIDI não pode ser maior que SEM REIDI.`);
+      itens.push({ tipo: 'novo', n, qtd: vn(q), vals, valor: vn(q) * vals.unitCom });
+    });
+    return { itens, erros };
+  };
+
+  function atualizarPrevia() {
+    const qtdDe = (id) => { const t = acrescimos.get(id); const q = paraNumero(t); return q != null && q > 0 ? q : 0; };
+    celulasExistentes.forEach(({ depois, valor, pr }, id) => {
+      const q = qtdDe(id);
+      depois.textContent = numExato(vn(pr.quantidade) + q);
+      valor.textContent = q ? formatarMoeda(q * unitComEfetivo(pr)) : '';
+    });
+    novos.forEach((n) => {
+      const vals = valoresNovo(n);
+      const q = paraNumero(n.quantidade);
+      if (n.celCom) n.celCom.textContent = paraNumero(n.unitSem) != null ? formatarMoeda(vals.unitCom) : '';
+      if (n.celValor) n.celValor.textContent = q != null && !vals.falta ? formatarMoeda(q * vals.unitCom) : '';
+    });
+    const { itens, erros } = coletar();
+    const total = itens.reduce((t, i) => t + i.valor, 0);
+    const nAcr = itens.filter((i) => i.tipo === 'acrescimo').length;
+    const nNovo = itens.filter((i) => i.tipo === 'novo').length;
+    previa.replaceChildren(criarAlerta({
+      tipo: erros.length ? 'warning' : itens.length ? 'success' : 'info',
+      titulo: `Valor do pedido: ${formatarMoeda(ped.valor)} → ${formatarMoeda(vn(ped.valor) + total)} (aditivo + ${formatarMoeda(total)})`,
+      mensagem: erros.length ? erros.join(' ')
+        : itens.length ? `${nAcr} produto(s) com acréscimo de quantidade e ${nNovo} produto(s) novo(s). O saldo do pedido sobe no mesmo valor.`
+          : 'Informe a quantidade a acrescentar nos produtos e/ou inclua produtos novos.',
+    }));
+  }
+
+  const salvar = async () => {
+    const cab = cabecalho.obterValores();
+    if (!String(cab.numero || '').trim() || !cab.data) { notificar({ tipo: 'warning', titulo: 'Dados do aditivo', mensagem: 'Informe o nº e a data do aditivo.' }); return; }
+    if (aditivosDoPedido(ped).some((a) => normalizarTexto(a.numero) === normalizarTexto(cab.numero))) {
+      notificar({ tipo: 'warning', titulo: 'Nº repetido', mensagem: `Já existe o aditivo ${cab.numero} neste pedido.` }); return;
+    }
+    const { itens, erros } = coletar();
+    if (erros.length) { notificar({ tipo: 'warning', titulo: 'Confira o aditivo', mensagem: erros.join(' ') }); return; }
+    if (!itens.length) { notificar({ tipo: 'warning', titulo: 'Aditivo vazio', mensagem: 'Informe ao menos um acréscimo de quantidade ou um produto novo.' }); return; }
+    const total = itens.reduce((t, i) => t + i.valor, 0);
+    const ok = await confirmar({
+      titulo: `Registrar o aditivo ${cab.numero}?`,
+      mensagem: `Pedido ${ped.numero}: valor ${formatarMoeda(ped.valor)} → ${formatarMoeda(vn(ped.valor) + total)} (+ ${formatarMoeda(total)}). As quantidades dos produtos mudam no pedido.`,
+      textoConfirmar: 'Registrar aditivo',
+    });
+    if (!ok) return;
+    const valorAntes = vn(ped.valor);
+    const adt = { id: novoIdFD('adp'), numero: String(cab.numero).trim(), data: cab.data, motivo: String(cab.motivo || '').trim(), criadoEm: new Date().toISOString(), valorAntes, valorDepois: valorAntes + total, itens: [] };
+    itens.forEach((i) => {
+      if (i.tipo === 'acrescimo') {
+        adt.itens.push({ produtoId: i.pr.id, descricao: i.pr.descricao, unidade: i.pr.unidade || '', qtdAnterior: vn(i.pr.quantidade), qtdAdicional: i.qtd, unitCom: unitComEfetivo(i.pr), novo: false });
+        i.pr.quantidade = vn(i.pr.quantidade) + i.qtd;
+      } else {
+        const id = novoIdFD('pro');
+        produtos.push({
+          id, pedidoId: ped.id, descricao: i.n.descricao.trim(), detalhe: '', descricaoNF: '', unidade: i.n.unidade.trim(), quantidade: i.qtd,
+          unitSem: i.vals.unitSem, unitCom: i.vals.unitCom, ajusteManual: i.vals.ajusteManual, aditivoId: adt.id,
+        });
+        adt.itens.push({ produtoId: id, descricao: i.n.descricao.trim(), unidade: i.n.unidade.trim(), qtdAnterior: 0, qtdAdicional: i.qtd, unitCom: i.vals.unitCom, novo: true });
+      }
+    });
+    ped.aditivos = [...aditivosDoPedido(ped), adt];
+    modal.fechar();
+    if (typeof mudarAbaPedidoAberto === 'function') mudarAbaPedidoAberto('aditivos');
+    registrarAlteracao();
+    toast.sucesso('Aditivo registrado', `${adt.numero}: + ${formatarMoeda(total)}`);
+  };
+
+  desenharNovos();
+  const modal = criarModal({
+    titulo: `Aditivo de pedido — ${ped.numero}`, tamanho: 'xl', destruirAoFechar: true,
+    conteudo: [
+      criarAlerta({
+        tipo: 'info', titulo: `REIDI do pedido: ${rotuloReidiPedido(ped)}`,
+        mensagem: 'Acrescente quantidade aos produtos já contratados e/ou inclua produtos novos. Ao registrar, as quantidades e o valor do pedido mudam, e o aditivo fica na aba Aditivos do pedido.',
+      }),
+      cabecalho.elemento,
+      h('h4', { class: 'ctc-text-strong' }, 'Acréscimo nos produtos do pedido'),
+      tabelaExistentes,
+      h('h4', { class: 'ctc-text-strong' }, 'Produtos novos'),
+      caixaNovos,
+      previa,
+    ],
+    acoes: [{ texto: 'Cancelar', variante: 'outline' }, { texto: 'Registrar aditivo', variante: 'primary', fechar: false, onClick: salvar }],
+  });
+  atualizarPrevia();
+  modal.abrir();
+}
+
+/** Exclui o aditivo e desfaz o efeito (bloqueia se alguma NF ja usa o que ele acrescentou). */
+async function excluirAditivoPedido(ped, adt) {
+  const problemas = [];
+  (adt.itens || []).forEach((i) => {
+    const pr = produtoPorId(i.produtoId);
+    if (!pr) return;
+    const a = analisarProduto(pr);
+    if (i.novo && a.qtdFaturada > 0.0001) problemas.push(`${pr.descricao}: já está em NF.`);
+    if (!i.novo && vn(pr.quantidade) - vn(i.qtdAdicional) < a.qtdFaturada - 0.0001) problemas.push(`${pr.descricao}: o faturado passaria da quantidade contratada.`);
+  });
+  if (problemas.length) { notificar({ tipo: 'warning', titulo: 'Exclusão bloqueada', mensagem: problemas.join(' ') }); return; }
+  const ok = await confirmar({
+    titulo: `Excluir o aditivo ${adt.numero}?`,
+    mensagem: `As quantidades acrescentadas saem dos produtos e os produtos novos do aditivo são excluídos (− ${formatarMoeda(valorAditivo(adt))} no pedido).`,
+    textoConfirmar: 'Excluir aditivo', perigo: true,
+  });
+  if (!ok) return;
+  (adt.itens || []).forEach((i) => {
+    const pr = produtoPorId(i.produtoId);
+    if (!pr) return;
+    if (i.novo) produtos.splice(produtos.indexOf(pr), 1);
+    else pr.quantidade = vn(pr.quantidade) - vn(i.qtdAdicional);
+  });
+  ped.aditivos = aditivosDoPedido(ped).filter((a) => a !== adt);
+  registrarAlteracao();
+  toast.aviso('Aditivo excluído', adt.numero);
+}
 
 /* =============================================================================
    07c. DISTRATO DE SALDO DO PEDIDO
@@ -10629,19 +10985,22 @@ function abrirDistrato(ped, existente = null) {
     valores: {
       numero: existente?.numero || proximoNumeroDistrato(), data: existente?.data || hojeIso(), motivo: motivoInicial,
       motivoOutro: existente?.motivoOutro || '', descricao: existente?.descricao || descricaoAutomaticaDistrato(ped, motivoInicial, ret),
+      grd: existente?.grd || '',
     },
     campos: [
       { nome: 'numero', rotulo: 'Nº do distrato', obrigatorio: true },
       { nome: 'data', rotulo: 'Data', tipo: 'data', obrigatorio: true },
       { nome: 'motivo', rotulo: 'Motivo', tipo: 'select', opcoes: MOTIVOS_DISTRATO, obrigatorio: true },
-      { nome: 'motivoOutro', rotulo: 'Motivo (outro)', larguraTotal: true, dica: 'Preencha quando o motivo for "Outro".' },
+      /* v1.94: nº da GRD do distrato (vai na coluna "GRD de distrato" dos relatorios; vazio = N/A) */
+      { nome: 'grd', rotulo: 'Nº GRD do distrato', dica: 'Ex.: GRD_WS-F3_0612. Pode preencher depois.' },
+      { nome: 'motivoOutro', rotulo: 'Motivo (outro)', dica: 'Preencha quando o motivo for "Outro".' },
       { nome: 'descricao', rotulo: 'Descrição da solicitação', tipo: 'textarea', larguraTotal: true, obrigatorio: true, dica: 'Vai no item 1 do anexo. Escreva livremente ou use os botões abaixo.' },
     ],
     onEnviar: async (v) => {
       if (distratos.some((x) => x.numero === v.numero && x.id !== existente?.id)) { toast.erro('Nº já usado', v.numero); return; }
       const motivo = v.motivo === 'Outro' ? (v.motivoOutro || 'Outro') : v.motivo;
       if (editando) {
-        Object.assign(existente, { numero: v.numero, data: v.data, motivo, motivoOutro: v.motivoOutro || '', descricao: v.descricao });
+        Object.assign(existente, { numero: v.numero, data: v.data, motivo, motivoOutro: v.motivoOutro || '', descricao: v.descricao, grd: String(v.grd || '').trim() });
         modal.fechar();
         registrarAlteracao();
         toast.sucesso('Distrato atualizado', v.numero);
@@ -10655,7 +11014,7 @@ function abrirDistrato(ped, existente = null) {
       if (!ok) return;
       const dist = {
         id: novoIdFD('dist'), pedidoId: ped.id, numero: v.numero, data: v.data, motivo, motivoOutro: v.motivoOutro || '',
-        descricao: v.descricao, status: 'Solicitado', registradoEm: new Date().toISOString(), ...retratoDistrato(ped),
+        descricao: v.descricao, grd: String(v.grd || '').trim(), status: 'Solicitado', registradoEm: new Date().toISOString(), ...retratoDistrato(ped),
       };
       distratos.push(dist);
       modal.fechar();
@@ -10734,8 +11093,8 @@ function secaoPedidosProdutos() {
   const rodape = h('tfoot', {});
   const codigos = codigosHierarquia();
   const vazio = () => h('td', {});
-  const num = (v, classe = '') => h('td', { class: `ctc-col--num ctc-num ${classe}`.trim() }, v == null ? '' : formatarMoeda(v));
-  const qtd = (v, classe = '') => h('td', { class: `ctc-col--num ctc-num ${classe}`.trim() }, v == null ? '' : formatarNumero(v));
+  const num = (v, classe = '') => h('td', { class: `ctc-col--num ctc-num ${classe}`.trim() }, v == null ? '' : moedaLimpa(v));
+  const qtd = (v, classe = '') => h('td', { class: `ctc-col--num ctc-num ${classe}`.trim() }, v == null ? '' : numeroLimpo(v));
   const plural = (q, s1, sN) => `${q} ${q === 1 ? s1 : sN}`;
   const barra = (perc) => h('td', {}, h('div', { class: 'ctc-stack' },
     criarProgresso({ percentual: perc, tamanho: 'sm', variante: perc > 100.005 ? 'danger' : perc >= 99.995 ? 'success' : null, rotulo: '% faturado' }),
@@ -10759,13 +11118,13 @@ function secaoPedidosProdutos() {
   const COL_FILTRO = {
     0: { texto: (x) => `Pedido ${x.ped.numero}`, valor: (x) => String(x.ped.numero) },
     1: { texto: (x) => formatarData(x.ped.dataEmissao), valor: (x) => String(x.ped.dataEmissao || '') },
-    3: { texto: (x) => (x.r.prods.length ? formatarNumero(x.totalQtd) : ''), valor: (x) => x.totalQtd, numerica: true },
-    4: { texto: (x) => (x.r.prods.length ? formatarNumero(x.totalAbatida) : ''), valor: (x) => x.totalAbatida, numerica: true },
-    5: { texto: (x) => (x.r.prods.length ? formatarNumero(x.totalQtd - x.totalAbatida) : ''), valor: (x) => x.totalQtd - x.totalAbatida, numerica: true },
+    3: { texto: (x) => (x.r.prods.length ? numeroLimpo(x.totalQtd) : ''), valor: (x) => x.totalQtd, numerica: true },
+    4: { texto: (x) => (x.r.prods.length ? numeroLimpo(x.totalAbatida) : ''), valor: (x) => x.totalAbatida, numerica: true },
+    5: { texto: (x) => (x.r.prods.length ? numeroLimpo(x.totalQtd - x.totalAbatida) : ''), valor: (x) => x.totalQtd - x.totalAbatida, numerica: true },
     8: { texto: (x) => (x.ped.modoReidi === 'sem' ? '—' : temPercPedido(x.ped) ? percExato(x.ped.percentualReidi) : x.ped.modoReidi === 'pedido' ? percExato(x.r.percReidi) : 'por produto'), valor: (x) => x.r.percReidi, numerica: true },
     9: { texto: (x) => formatarMoeda(vn(x.ped.valor)), valor: (x) => vn(x.ped.valor), numerica: true },
     10: { texto: (x) => formatarMoeda(x.r.faturado), valor: (x) => x.r.faturado, numerica: true },
-    11: { texto: (x) => formatarMoeda(x.r.saldo), valor: (x) => x.r.saldo, numerica: true },
+    11: { texto: (x) => moedaLimpa(x.r.saldo), valor: (x) => x.r.saldo, numerica: true },
     12: { texto: (x) => formatarPercentual(x.r.perc, { casas: 2 }), valor: (x) => x.r.perc, numerica: true },
     13: { texto: (x) => x.situacao, valor: (x) => x.situacao },
   };
@@ -10870,7 +11229,7 @@ function secaoPedidosProdutos() {
           h('td', { class: 'ctc-col--num ctc-num ctc-text-xs' }, ped.modoReidi === 'sem' ? '—' : temPercPedido(ped) ? percExato(ped.percentualReidi) : ped.modoReidi === 'pedido' ? percExato(r.percReidi) : 'por produto'),
           num(vn(ped.valor), fraco || 'ctc-text-strong'),
           num(r.faturado, fraco || 'ctc-text-strong'),
-          num(r.saldo, r.saldo < 0 ? 'ctc-text-danger ctc-text-strong' : fraco || 'ctc-text-strong'),
+          num(r.saldo, saldoNegativo(r.saldo) ? 'ctc-text-danger ctc-text-strong' : fraco || 'ctc-text-strong'),
           barra(r.perc),
           h('td', {}, criarBadge({ texto: distAtivo ? `${situacao} · ${distAtivo.numero}` : situacao, variante: { OK: 'success', 'Sem saldo': 'neutral', Distratado: 'info', 'Distrato solicitado': 'warning', Excedido: 'danger', 'Sem produtos': 'warning' }[situacao] })),
           h('td', {}, h('div', { class: 'ctc-btn-group' },
@@ -10903,7 +11262,7 @@ function secaoPedidosProdutos() {
             num(an.totalCom - valorFat),
             barra(percQtd),
             h('td', {}, nfs.length
-              ? h('div', { class: 'ctc-cluster' }, nfs.map((x) => criarBadge({ texto: `NF ${x.nf.numero} · ${formatarNumero(x.qtd)} ${pr.unidade || ''}`.trim(), variante: 'info' })))
+              ? h('div', { class: 'ctc-cluster' }, nfs.map((x) => criarBadge({ texto: `NF ${x.nf.numero} · ${numeroLimpo(x.qtd)} ${pr.unidade || ''}`.trim(), variante: 'info' })))
               : h('span', { class: 'ctc-text-xs ctc-text-subtle' }, q ? 'nenhuma NF ainda' : 'sem quantidade')),
             h('td', {}, icone({ icone: 'lixeira', titulo: `Excluir produto ${pr.descricao}`, onClick: () => excluirProduto(pr) }))));
         });
@@ -10918,7 +11277,7 @@ function secaoPedidosProdutos() {
           criarBadge({ texto: ter.uf || 'UF?', variante: 'neutral' }),
           ins ? criarBadge({ texto: ins.nome, variante: 'neutral' }) : null,
           h('span', { class: 'ctc-text-xs' },
-            `${plural(peds.length, 'pedido', 'pedidos')} · total ${formatarMoeda(valTer)} · faturado ${formatarMoeda(fatTer)} · saldo ${formatarMoeda(valTer - fatTer)}`),
+            `${plural(peds.length, 'pedido', 'pedidos')} · total ${formatarMoeda(valTer)} · faturado ${formatarMoeda(fatTer)} · saldo ${moedaLimpa(valTer - fatTer)}`),
           botaoFD({ texto: 'Pedido', icone: 'mais', variante: 'outline', tamanho: 'sm', apenasEdicao: true, titulo: `Novo pedido de ${ter.nome}`, onClick: () => abrirModalPedido(null, ter.id) })))));
       if (!peds.length) linhas.push(h('tr', {}, h('td', { colspan: n, class: 'ctc-text-xs ctc-text-subtle' }, '\u00a0\u00a0└ nenhum pedido lançado para este terceiro')));
       linhas.push(...bloco);
@@ -11581,7 +11940,7 @@ function dadosFicha(tipo, chave) {
       { rotulo: 'Previsto (vigente)', valor: formatarMoeda(r.vigente) },
       { rotulo: 'Comprometido', valor: formatarMoeda(r.comprometido), sub: formatarPercentual(r.vigente ? (r.comprometido / r.vigente) * 100 : 0, { casas: 2 }), progresso: r.vigente ? (r.comprometido / r.vigente) * 100 : 0 },
       { rotulo: 'Faturado (NFs)', valor: formatarMoeda(r.faturado), sub: formatarPercentual(r.vigente ? (r.faturado / r.vigente) * 100 : 0, { casas: 2 }), progresso: r.vigente ? (r.faturado / r.vigente) * 100 : 0 },
-      { rotulo: 'Saldo a faturar', valor: formatarMoeda(r.saldoFaturar) },
+      { rotulo: 'Saldo a faturar', valor: moedaLimpa(r.saldoFaturar) },
     ],
     tabelas: [
       {
@@ -11866,7 +12225,19 @@ function secaoNotasBoletos() {
       : [h('tr', {}, h('td', { colspan: colunas.length + 1, class: 'ctc-text-subtle' }, 'Nenhuma linha com estes filtros.'))]));
     rodape.replaceChildren(h('tr', {}, ...colunas.map((c, i) => {
       if (i === 0) return h('td', { class: 'ctc-col--sticky' }, `Total · ${plural(visiveis.length, cfg.unidade[0], cfg.unidade[1])}`);
-      if (c.total) return h('td', { class: 'ctc-col--num' }, c.tipo === 'moeda' ? formatarMoeda(visiveis.reduce((t, r) => t + vn(c.valor(r)), 0)) : numExato(visiveis.reduce((t, r) => t + vn(c.valor(r)), 0)));
+      if (c.total) {
+        /* v1.92: com o boleto repetido nos produtos, cada item e cada boleto somam uma vez so */
+        const vistas = new Set();
+        const soma = visiveis.reduce((t, r) => {
+          if (c.chaveTotal) {
+            const k = c.chaveTotal(r);
+            if (k == null || vistas.has(k)) return t;
+            vistas.add(k);
+          }
+          return t + vn(c.valor(r));
+        }, 0);
+        return h('td', { class: 'ctc-col--num' }, c.tipo === 'moeda' ? formatarMoeda(soma) : numExato(soma));
+      }
       if (c.totalPorNota) {
         const vistas = new Set();
         const soma = visiveis.reduce((t, r) => { if (vistas.has(r.nf.id)) return t; vistas.add(r.nf.id); return t + vn(c.valor(r)); }, 0);
@@ -11965,8 +12336,10 @@ const iconeFicha = (tipo, chave, titulo) => botaoFD({ icone: 'grafico', variante
 const comFicha = (texto, tipo, chave, titulo) => [chave ? iconeFicha(tipo, chave, titulo) : null, h('span', {}, texto || '—')];
 
 /**
- * Linhas da base "tudo" (mesma montagem da exportacao em Excel): por NF, linha j = produto j +
- * boleto j; os dados da NF se repetem em todas as linhas dela.
+ * Linhas da base "tudo" (v1.92): uma linha por produto da NF, e o boleto da NF se repete em
+ * TODOS os produtos dela. NF com 2+ boletos: cada produto aparece uma vez por boleto.
+ * Os totais nao duplicam: produtos somam uma vez por item (chaveItem) e boletos uma vez por
+ * boleto (bol.id). A exportacao completa (Importar / Exportar) continua no formato anterior.
  */
 function linhasBaseTudo() {
   const porNf = new Map();
@@ -11975,10 +12348,13 @@ function linhasBaseTudo() {
   ordenar([...porNf.values()], [{ campo: '0.nf.data', direcao: 'asc', tipo: 'data' }, { campo: '0.nf.numero', direcao: 'asc' }]).forEach((its) => {
     const { nf, ped, ter, ins, bols } = its[0];
     const reais = its.filter((l) => l.tipo !== 'vazia');
-    for (let j = 0; j < Math.max(1, reais.length, bols.length); j += 1) {
-      const it = reais[j] || null;
-      linhas.push({ nf, ped, ter, ins, it, bol: bols[j] || null, primeira: j === 0, nBols: bols.length, semProdutos: !reais.length });
-    }
+    const itensLinha = reais.length ? reais : [null];
+    const bolsLinha = bols.length ? bols : [null];
+    let primeira = true;
+    itensLinha.forEach((it, j) => bolsLinha.forEach((bol) => {
+      linhas.push({ nf, ped, ter, ins, it, bol, primeira, nBols: bols.length, semProdutos: !reais.length, chaveItem: it ? `${nf.id}|${j}` : null });
+      primeira = false;
+    }));
   });
   return linhas;
 }
@@ -11986,8 +12362,8 @@ function linhasBaseTudo() {
 const BASES_NOTAS = {
   tudo: () => ({
     unidade: ['linha', 'linhas'], ordem: { coluna: '', direcao: 'asc' },
-    explicacao: 'Base completa, nas mesmas colunas da exportação em Excel: cada produto e cada boleto da NF na sua própria linha (linha 1 = 1º produto e 1º boleto); os dados da NF se repetem em todas as linhas dela.',
-    rodape: 'Totais: produtos e boletos somam linha a linha; Valor NF, REIDI da NF e DIFAL somam uma vez por nota. "Saldo após NF" = contratado no pedido − tudo o que foi faturado do produto até aquela nota. Clique na linha para abrir a NF (ou o boleto, nas linhas só de boleto).',
+    explicacao: 'Base completa: cada produto da NF na sua própria linha, com os dados da NF e do boleto repetidos em todos os produtos dela (NF com mais de um boleto: o produto aparece uma vez por boleto).',
+    rodape: 'Totais: cada produto soma uma vez; cada boleto soma uma vez (mesmo repetido nos produtos); Valor NF, REIDI da NF e DIFAL somam uma vez por nota. "Saldo após NF" = contratado no pedido − tudo o que foi faturado do produto até aquela nota. Clique na linha para abrir a NF (ou o boleto, quando a NF não tem produtos).',
     linhas: linhasBaseTudo,
     insumoDe: (r) => r.ins?.nome, terceiroDe: (r) => r.ter?.nome,
     aoClicar: (r) => (r.bol && !r.it ? abrirModalBoleto(r.bol) : abrirModalNota(r.nf)),
@@ -11997,13 +12373,13 @@ const BASES_NOTAS = {
       { id: 'terceiro', titulo: 'Terceiro', valor: (r) => r.ter?.nome || '', render: (r) => comFicha(r.ter?.nome, 'terceiro', r.ter?.id, 'Ficha do terceiro') },
       { id: 'insumo', titulo: 'Insumo', valor: (r) => r.ins?.nome || '', render: (r) => comFicha(r.ins?.nome, 'insumo', r.ins?.id, 'Ficha do insumo') },
       { id: 'nf', titulo: 'Nº NF', valor: (r) => r.nf.numero, forte: true },
-      { id: 'produto', titulo: 'Produto', valor: (r) => (r.it ? r.it.produto : r.semProdutos && r.primeira ? 'NF sem produtos marcados' : ''),
-        render: (r) => (r.it ? comFicha(r.it.produto, 'produto', r.it.pr ? chaveNomeProduto(r.it) : null, 'Ficha do produto') : h('span', { class: 'ctc-text-xs ctc-text-subtle' }, r.semProdutos && r.primeira ? 'NF sem produtos marcados' : '(boleto adicional da NF)')) },
+      { id: 'produto', titulo: 'Produto', valor: (r) => (r.it ? r.it.produto : r.semProdutos ? 'NF sem produtos marcados' : ''),
+        render: (r) => (r.it ? comFicha(r.it.produto, 'produto', r.it.pr ? chaveNomeProduto(r.it) : null, 'Ficha do produto') : h('span', { class: 'ctc-text-xs ctc-text-subtle' }, r.semProdutos ? 'NF sem produtos marcados' : '')) },
       { id: 'un', titulo: 'Unidade', valor: (r) => r.it?.un || '', semFiltro: true },
       { id: 'qtd', titulo: 'Quantidade', tipo: 'numero', valor: (r) => (r.it ? r.it.qtd : null) },
       { id: 'unit', titulo: 'Valor unit.', tipo: 'moeda', valor: (r) => (r.it ? r.it.unit : null) },
-      { id: 'total', titulo: 'Valor total item', tipo: 'moeda', total: true, forte: true, valor: (r) => (r.it ? r.it.total : null) },
-      { id: 'reidiItem', titulo: 'REIDI do item', tipo: 'moeda', total: true, valor: (r) => (r.it ? r.it.reidi : null) },
+      { id: 'total', titulo: 'Valor total item', tipo: 'moeda', total: true, chaveTotal: (r) => r.chaveItem, forte: true, valor: (r) => (r.it ? r.it.total : null) },
+      { id: 'reidiItem', titulo: 'REIDI do item', tipo: 'moeda', total: true, chaveTotal: (r) => r.chaveItem, valor: (r) => (r.it ? r.it.reidi : null) },
       { id: 'saldo', titulo: 'Saldo após NF', tipo: 'numero', alertaNegativo: true, valor: (r) => (r.it ? r.it.saldo : null), texto: (r) => (r.it?.saldo == null ? '' : `${numExato(r.it.saldo)} ${r.it.un}`.trim()), tituloExport: 'Saldo do produto após NF' },
       { id: 'semped', titulo: 'Item sem pedido', opcoes: ['Sim', 'Não'], valor: (r) => (r.it ? (r.it.tipo === 'sem' ? 'Sim' : 'Não') : '') },
       { id: 'data', titulo: 'Data NF', tipo: 'data', valor: (r) => r.nf.data },
@@ -12019,13 +12395,13 @@ const BASES_NOTAS = {
       { id: 'eclic', titulo: 'Lançada no e-clic', opcoes: ['Sim', 'Não'], valor: (r) => (r.nf.eclic ? 'Sim' : 'Não'), render: (r) => seloEclic(r.nf) },
       { id: 'eclicdata', titulo: 'Data e-clic', tipo: 'data', valor: (r) => r.nf.eclicData || '' },
       { id: 'boleto', titulo: 'Boleto Nº', valor: (r) => r.bol?.numero || '' },
-      { id: 'valorbol', titulo: 'Boleto valor', tipo: 'moeda', total: true, valor: (r) => (r.bol && r.bol.valor != null ? vn(r.bol.valor) : null) },
+      { id: 'valorbol', titulo: 'Boleto valor', tipo: 'moeda', total: true, chaveTotal: (r) => r.bol?.id, valor: (r) => (r.bol && r.bol.valor != null ? vn(r.bol.valor) : null) },
       { id: 'venc', titulo: 'Boleto vencimento', tipo: 'data', valor: (r) => r.bol?.vencimento || '' },
       { id: 'pag', titulo: 'Boleto pagamento', tipo: 'data', valor: (r) => r.bol?.pagamento || '' },
       {
         id: 'status', titulo: 'Boleto status', opcoes: ['Pago', 'A vencer', 'Vence em até 2 dias', 'Vencido', 'Em contestação', 'Cancelado', 'Sem boleto'],
-        valor: (r) => (r.bol ? prazoBoleto(r.bol) : r.primeira && !r.nBols ? 'Sem boleto' : ''),
-        render: (r) => (r.bol ? criarBadge({ texto: prazoBoleto(r.bol), variante: VARIANTE_PRAZO[prazoBoleto(r.bol)] }) : r.primeira && !r.nBols ? criarBadge({ texto: 'Sem boleto', variante: 'warning' }) : ''),
+        valor: (r) => (r.bol ? prazoBoleto(r.bol) : 'Sem boleto'),
+        render: (r) => (r.bol ? criarBadge({ texto: prazoBoleto(r.bol), variante: VARIANTE_PRAZO[prazoBoleto(r.bol)] }) : criarBadge({ texto: 'Sem boleto', variante: 'warning' })),
       },
       { id: 'grdbol', titulo: 'Boleto GRD', valor: (r) => (r.bol ? textoGrds(r.bol.grds) : '') },
       { id: 'obs', titulo: 'Observações', valor: (r) => (r.primeira ? r.nf.observacoes || '' : '') },
@@ -15709,7 +16085,37 @@ function slideCapa(d) {
     );
     if (i < 2) el.push({ tipo: 'texto', x: x + 3.907, y: 3.525, w: 0.3, h: 0.4, texto: i === 0 ? '−' : '=', tamanho: 22, negrito: true, cor: COR_REL.navy, alinhar: 'center', vertical: 'middle' });
   });
-  el.push({ tipo: 'texto', x: 0.5, y: 4.8, w: 12.33, h: 0.3, texto: 'Previsto: soma dos valores previstos nas Atividades Contratuais. Consumido: soma de todas as notas fiscais lançadas. Saldo = Previsto − Consumido.', tamanho: 9, italico: true, cor: COR_REL.cinza, alinhar: 'center', vertical: 'middle' });
+  /* v1.95: abertura do consumido (e-clic), aberta direto abaixo do cartao CONSUMIDO */
+  {
+    const lanc = notas.filter((n) => n.eclic);
+    const nao = notas.filter((n) => !n.eclic);
+    const vL = somar(lanc, 'valor');
+    const vN = somar(nao, 'valor');
+    const tot = vL + vN;
+    const pL = tot > 0 ? (vL / tot) * 100 : 0;
+    const x = 0.5 + 4.2265;
+    const y = 4.72;
+    const w = 3.877;
+    const wi = w - 0.44;
+    const AMBAR_TXT = 'B7791F';
+    el.push(
+      { tipo: 'retangulo', x, y, w, h: 1.5, preenchimento: 'F8FAFC', borda: COR_REL.borda, espessura: 0.75 },
+      { tipo: 'texto', x: x + 0.22, y: y + 0.1, w: wi, h: 0.28, texto: 'ABERTURA DO CONSUMIDO (E-CLIC)', tamanho: 10, negrito: true, cor: COR_REL.cinza, vertical: 'middle' },
+      { tipo: 'retangulo', x: x + 0.22, y: y + 0.45, w: wi, h: 0.13, preenchimento: tot > 0 ? COR_REL.ambar : 'E9ECEF', borda: tot > 0 ? COR_REL.ambar : 'E9ECEF' },
+    );
+    if (pL > 0.05) el.push({ tipo: 'retangulo', x: x + 0.22, y: y + 0.45, w: Math.max(0.02, (wi * pL) / 100), h: 0.13, preenchimento: COR_REL.navy, borda: COR_REL.navy });
+    const linhaAbertura = (yy, corPonto, rotulo, n, perc, valor, corValor) => [
+      { tipo: 'texto', x: x + 0.22, y: yy, w: 2.0, h: 0.3, tamanho: 9, cor: COR_REL.textoSub, vertical: 'middle',
+        partes: [{ texto: '■ ', cor: corPonto }, { texto: `${rotulo} · ${n} NF · ${percRel(perc)}` }] },
+      { tipo: 'texto', x: x + 2.0, y: yy, w: wi - 1.78, h: 0.3, texto: moedaRel(valor), tamanho: 12, negrito: true, cor: corValor, alinhar: 'right', vertical: 'middle' },
+    ];
+    el.push(
+      ...linhaAbertura(y + 0.7, COR_REL.navy, 'Lançadas', lanc.length, pL, vL, COR_REL.navy),
+      { tipo: 'retangulo', x: x + 0.22, y: y + 1.05, w: wi, h: 0.01, preenchimento: COR_REL.borda, borda: COR_REL.borda },
+      ...linhaAbertura(y + 1.1, COR_REL.ambar, 'Não lançadas', nao.length, tot > 0 ? 100 - pL : 0, vN, AMBAR_TXT),
+    );
+  }
+  el.push({ tipo: 'texto', x: 0.5, y: 6.35, w: 12.33, h: 0.3, texto: 'Previsto: soma dos valores previstos nas Atividades Contratuais. Consumido: soma de todas as notas fiscais lançadas. Saldo = Previsto − Consumido.', tamanho: 9, italico: true, cor: COR_REL.cinza, alinhar: 'center', vertical: 'middle' });
   return { elementos: el };
 }
 
@@ -15722,8 +16128,10 @@ function slidesResumo(d, op) {
   const totalBol = somar(pedidosSel, 'boletos');
   const cab = [
     celCab('Terceiro', { alinhar: 'left' }), celCab('Nº Pedido de Compra'), celCab('Valor do Pedido (R$)', { alinhar: 'right' }),
-    celCab('Total NF (R$)', { alinhar: 'right' }), celCab('Saldo (R$)', { alinhar: 'right' }), celCab('Utilização'), celCab('Status'),
+    celCab('Total NF (R$)', { alinhar: 'right' }), celCab('Saldo (R$)', { alinhar: 'right' }), celCab('Utilização'), celCab('GRD de distrato'), celCab('Status'),
   ];
+  /* v1.94: GRD do distrato do pedido (solicitado ou aprovado); sem GRD = N/A */
+  const grdDistrato = (ped) => String(distratoAtivoDoPedido(ped.id)?.grd || '').trim() || 'N/A';
   const SUB = 'F3F6FA';
   const T = 'E8F4FC';
   /* cada terceiro vira um bloco de linhas (nome em celula unica + subtotal se tiver 2 ou mais pedidos) */
@@ -15734,6 +16142,7 @@ function slidesResumo(d, op) {
       { texto: moedaRel(p.valor), alinhar: 'right' }, { texto: moedaRel(p.consumido), alinhar: 'right' },
       { texto: moedaRel(p.saldo), alinhar: 'right', cor: Math.abs(p.saldo) < 0.005 ? COR_REL.cinza : COR_REL.verde },
       { texto: percRel(p.perc), alinhar: 'center' },
+      { texto: grdDistrato(p.ped), alinhar: 'center', tamanho: 8, cor: grdDistrato(p.ped) === 'N/A' ? COR_REL.cinza : COR_REL.texto },
       { texto: '●', tamanho: 14, cor: corSituacaoRel(p.perc), alinhar: 'center' },
     ]);
     if (comSubtotal) {
@@ -15743,6 +16152,7 @@ function slidesResumo(d, op) {
         { texto: moedaRel(g.consumido), negrito: true, alinhar: 'right', preenchimento: SUB, tamanho: 9 },
         { texto: moedaRel(g.saldo), negrito: true, alinhar: 'right', preenchimento: SUB, tamanho: 9 },
         { texto: percRel(g.perc), negrito: true, alinhar: 'center', preenchimento: SUB, tamanho: 9 },
+        { texto: '', preenchimento: SUB },
         { texto: '●', tamanho: 14, cor: corSituacaoRel(g.perc), alinhar: 'center', preenchimento: SUB },
       ]);
     }
@@ -15756,14 +16166,14 @@ function slidesResumo(d, op) {
       blocos.push(montarBloco(g, peds, g.peds.length > 1 && k + 10 >= g.peds.length));
     }
   });
-  if (!blocos.length) blocos.push([[{ texto: 'Nenhum pedido de compra para os terceiros escolhidos', colspan: 7, alinhar: 'center', cor: COR_REL.cinza }]]);
+  if (!blocos.length) blocos.push([[{ texto: 'Nenhum pedido de compra para os terceiros escolhidos', colspan: 8, alinhar: 'center', cor: COR_REL.cinza }]]);
   else if (op.linhaTotal) {
     const s2 = comprometido - totalNF;
     blocos.push([[
       { texto: 'TOTAL', negrito: true, alinhar: 'left', preenchimento: T }, { texto: '', preenchimento: T },
       { texto: moedaRel(comprometido), negrito: true, alinhar: 'right', preenchimento: T }, { texto: moedaRel(totalNF), negrito: true, alinhar: 'right', preenchimento: T },
       { texto: moedaRel(s2), negrito: true, alinhar: 'right', preenchimento: T },
-      { texto: percRel(comprometido > 0 ? (totalNF / comprometido) * 100 : 0), negrito: true, alinhar: 'center', preenchimento: T }, { texto: '', preenchimento: T },
+      { texto: percRel(comprometido > 0 ? (totalNF / comprometido) * 100 : 0), negrito: true, alinhar: 'center', preenchimento: T }, { texto: '', preenchimento: T }, { texto: '', preenchimento: T },
     ]]);
   }
   /* paginacao por bloco (um terceiro nao se divide entre slides): 7 linhas no 1o slide e 13 nos seguintes */
@@ -15798,7 +16208,7 @@ function slidesResumo(d, op) {
       yTab = 3.75;
     }
     el.push({
-      tipo: 'tabela', x: 0.46, y: yTab, w: 12.33, colunas: [3.6, 2.0, 1.7, 1.6, 1.6, 1.0, 0.83],
+      tipo: 'tabela', x: 0.46, y: yTab, w: 12.33, colunas: [3.0, 1.7, 1.6, 1.55, 1.5, 0.95, 1.35, 0.68],
       linhas: [cab, ...parte], alturas: [cab, ...parte].map(() => alturaLinha), tamanho: 10, cor: COR_REL.texto,
     });
     el.push(legendaStatusPedido());
@@ -15816,41 +16226,106 @@ async function slideGrafico(op = {}) {
   return { elementos: el };
 }
 
-function slideConsumoMes(d) {
-  const { mesIso, mesNome } = d.agora;
+/* ---- v1.95: Estimado x Consumido (mes atual) e Estimado (mes seguinte) ----
+   Estimado = projecao por insumo (grade "Projecao por BM": ins.projecao[mes]).
+   So entram insumos com estimado no mes (> 0). Relatorio de parte dos terceiros: so os
+   insumos desses terceiros. Consumido = NFs emitidas no mes (pedidos do relatorio). */
+
+const mesSeguinteIso = (iso) => {
+  const [a, m] = String(iso).split('-').map(Number);
+  return m === 12 ? `${a + 1}-01` : `${a}-${String(m + 1).padStart(2, '0')}`;
+};
+const nomeMesRel = (iso) => {
+  const [a, m] = String(iso).split('-').map(Number);
+  return `${MESES_NOME[m - 1]}/${a}`;
+};
+
+/** Insumos do relatorio com estimado no mes, com terceiro(s) e consumido do mes (NFs emitidas). */
+function linhasEstimadoMes(d, mesIso, { comConsumido = true } = {}) {
+  const todos = d.ters.length >= terceiros.length;
+  const idsInsRel = new Set(d.ters.map((t) => t.insumoId));
   const idsPed = new Set(d.peds.map((p) => p.ped.id));
-  const nfsMes = notas.filter((n) => idsPed.has(n.pedidoId) && n.data && formatarData(n.data, 'iso-mes') === mesIso);
-  const grupos = new Map();
+  const nfsMes = comConsumido ? notas.filter((n) => idsPed.has(n.pedidoId) && n.data && formatarData(n.data, 'iso-mes') === mesIso) : [];
+  const consumoPorIns = new Map();
   nfsMes.forEach((n) => {
-    const ped = pedidoPorId(n.pedidoId);
-    const ter = terceiroDoPedido(ped);
-    const ins = insumoDoPedido(ped);
-    const chave = `${ins?.id}|${ter?.id}`;
-    if (!grupos.has(chave)) grupos.set(chave, { insumo: ins?.nome || '—', terceiro: ter?.nome || '—', valor: 0 });
-    grupos.get(chave).valor += vn(n.valor);
+    const id = insumoDoPedido(pedidoPorId(n.pedidoId))?.id || null;
+    consumoPorIns.set(id, (consumoPorIns.get(id) || 0) + vn(n.valor));
   });
-  const lista = ordenar([...grupos.values()], [{ campo: 'insumo' }, { campo: 'terceiro' }]);
-  const linhaBorda = { borda: { baixo: [COR_REL.titulo, 1.5] } };
-  const cab = [
-    { texto: 'Insumo', tamanho: 14, negrito: true, cor: COR_REL.titulo, alinhar: 'left', ...linhaBorda, semBorda: true },
-    { texto: 'Terceiro', tamanho: 14, negrito: true, cor: COR_REL.titulo, alinhar: 'left', ...linhaBorda, semBorda: true },
-    { texto: mesCurtoRel(mesIso).toLowerCase(), tamanho: 14, negrito: true, cor: COR_REL.titulo, alinhar: 'right', ...linhaBorda, semBorda: true },
+  const linhas = insumos
+    .filter((ins) => todos || idsInsRel.has(ins.id))
+    .map((ins) => ({
+      ins,
+      insumo: ins.nome || '—',
+      terceiro: d.ters.filter((t) => t.insumoId === ins.id).map((t) => t.nome).join(', ') || '—',
+      estimado: vn((ins.projecao || {})[mesIso]),
+      consumido: consumoPorIns.get(ins.id) || 0,
+    }))
+    .filter((l) => l.estimado > 0.004);
+  const exibidos = new Set(linhas.map((l) => l.ins.id));
+  let foraValor = 0;
+  let foraNfs = 0;
+  nfsMes.forEach((n) => {
+    if (exibidos.has(insumoDoPedido(pedidoPorId(n.pedidoId))?.id)) return;
+    foraValor += vn(n.valor);
+    foraNfs += 1;
+  });
+  return { linhas: ordenar(linhas, [{ campo: 'insumo' }]), nfsMes, foraValor, foraNfs };
+}
+
+/** Tabela no estilo "Consumido do mes": paginada em ate 8 linhas por slide, total no ultimo. */
+function slidesTabelaMes(titulo, subtitulo, colunasCab, linhasDados, linhaTotal, larguras) {
+  const borda = { borda: { baixo: [COR_REL.titulo, 1.5] } };
+  const cab = colunasCab.map((c, i) => ({ texto: c, tamanho: 14, negrito: true, cor: COR_REL.titulo, alinhar: i >= 2 ? 'right' : 'left', ...borda, semBorda: true }));
+  const POR_SLIDE = 8;
+  const partes = [];
+  for (let i = 0; i < linhasDados.length; i += POR_SLIDE) partes.push(linhasDados.slice(i, i + POR_SLIDE));
+  partes[partes.length - 1].push(linhaTotal);
+  return partes.map((parte, i) => {
+    const el = slideBase(`${titulo}${i ? ' (continuação)' : ''}`, subtitulo);
+    const todas = [cab, ...parte];
+    el.push({ tipo: 'tabela', x: 0.46, y: 1.9, w: 12.33, colunas: larguras, linhas: todas, alturas: todas.map(() => 0.48), tamanho: 13, cor: '1F2A3C', margem: [4, 8, 4, 8] });
+    return { elementos: el };
+  });
+}
+
+function slidesEstimadoConsumido(d) {
+  const { mesIso, mesNome } = d.agora;
+  const { linhas, nfsMes, foraValor, foraNfs } = linhasEstimadoMes(d, mesIso);
+  if (!linhas.length) return [];   /* sem estimado no mes: o slide nao entra */
+  const celula = (texto, extra = {}) => ({ texto, cor: '1F2A3C', alinhar: 'left', semBorda: true, ...extra });
+  const dados = linhas.map((l) => [
+    celula(l.insumo, { negrito: true }), celula(l.terceiro, { tamanho: l.terceiro.length > 45 ? 10 : 13 }),
+    celula(moedaRel(l.estimado), { alinhar: 'right' }), celula(moedaRel(l.consumido), { alinhar: 'right' }),
+  ]);
+  const F = 'E8EDF6';
+  const total = [
+    celula('Total', { negrito: true, cor: COR_REL.titulo, preenchimento: F }), celula('', { preenchimento: F }),
+    celula(moedaRel(linhas.reduce((t, l) => t + l.estimado, 0)), { negrito: true, cor: COR_REL.titulo, alinhar: 'right', preenchimento: F }),
+    celula(moedaRel(linhas.reduce((t, l) => t + l.consumido, 0)), { negrito: true, cor: COR_REL.titulo, alinhar: 'right', preenchimento: F }),
   ];
-  const linhas = lista.map((g) => [
-    { texto: g.insumo, negrito: true, cor: '1F2A3C', alinhar: 'left', semBorda: true },
-    { texto: g.terceiro, cor: '1F2A3C', alinhar: 'left', semBorda: true },
-    { texto: moedaRel(g.valor), cor: '1F2A3C', alinhar: 'right', semBorda: true },
+  const nNfs = nfsMes.length - foraNfs;
+  const sub = `Consumido = notas fiscais emitidas em ${mesNome} (${nNfs} NF${nNfs === 1 ? '' : 's'}) · Estimado = projeção por insumo`
+    + (foraNfs ? ` · Fora da tabela (insumo sem estimado no mês): ${foraNfs} NF · ${moedaRel(foraValor)}` : '');
+  return slidesTabelaMes(`Estimado x Consumido (${mesNome})`, sub, ['Insumo', 'Terceiro', 'Estimado', 'Consumido'], dados, total, [3.9, 4.23, 2.1, 2.1]);
+}
+
+function slidesEstimadoProximoMes(d) {
+  const mesIso = mesSeguinteIso(d.agora.mesIso);
+  const mesNome = nomeMesRel(mesIso);
+  const { linhas } = linhasEstimadoMes(d, mesIso, { comConsumido: false });
+  if (!linhas.length) return [];
+  const celula = (texto, extra = {}) => ({ texto, cor: '1F2A3C', alinhar: 'left', semBorda: true, ...extra });
+  const dados = linhas.map((l) => [
+    celula(l.insumo, { negrito: true }), celula(l.terceiro, { tamanho: l.terceiro.length > 55 ? 10 : 13 }),
+    celula(moedaRel(l.estimado), { alinhar: 'right' }),
   ]);
-  if (!linhas.length) return null;   /* sem NF no mes: o slide nao entra */
-  linhas.push([
-    { texto: 'Total', negrito: true, cor: COR_REL.titulo, alinhar: 'left', preenchimento: 'E8EDF6', semBorda: true },
-    { texto: '', preenchimento: 'E8EDF6', semBorda: true },
-    { texto: moedaRel(lista.reduce((t, g) => t + g.valor, 0)), negrito: true, cor: COR_REL.titulo, alinhar: 'right', preenchimento: 'E8EDF6', semBorda: true },
-  ]);
-  const el = slideBase(`Consumido (${mesNome})`, `Notas fiscais emitidas em ${mesNome} — ${nfsMes.length} NF(s)`);
-  const todas = [cab, ...linhas].slice(0, 12);
-  el.push({ tipo: 'tabela', x: 0.46, y: 1.9, w: 12.33, colunas: [4.6, 5.03, 2.7], linhas: todas, alturas: todas.map(() => 0.5), tamanho: 13, cor: '1F2A3C', margem: [4, 8, 4, 8] });
-  return { elementos: el };
+  const F = 'E8EDF6';
+  const total = [
+    celula('Total', { negrito: true, cor: COR_REL.titulo, preenchimento: F }), celula('', { preenchimento: F }),
+    celula(moedaRel(linhas.reduce((t, l) => t + l.estimado, 0)), { negrito: true, cor: COR_REL.titulo, alinhar: 'right', preenchimento: F }),
+  ];
+  return slidesTabelaMes(`Estimado (${mesNome})`, `Estimado para o mês seguinte = projeção por insumo (Projeção por BM) de ${mesNome}`,
+    ['Insumo', 'Terceiro', 'Estimado'], dados, total, [4.3, 5.63, 2.4]);
 }
 
 /** Atividades Contratuais (contrato inteiro): previsto x comprometido x consumido, com total. */
@@ -15859,7 +16334,7 @@ function slidesAtividades(d, op) {
   if (!lista.length) return [];
   const cab = [
     celCab('Atividade', { alinhar: 'left' }), celCab('Previsto (R$)', { alinhar: 'right' }), celCab('Comprometido (R$)', { alinhar: 'right' }),
-    celCab('Consumido NFs (R$)', { alinhar: 'right' }), celCab('Saldo a contratar (R$)', { alinhar: 'right' }),
+    celCab('Consumido NFs (R$)', { alinhar: 'right' }), celCab('Saldo (R$)', { alinhar: 'right' }),
     celCab('Comprometido %'), celCab('Consumido %'), celCab('Status'),
   ];
   const linhas = lista.map(({ ins, r }) => {
@@ -15870,7 +16345,8 @@ function slidesAtividades(d, op) {
       { texto: moedaRel(r.vigente), alinhar: 'right' },
       { texto: moedaRel(r.comprometido), alinhar: 'right' },
       { texto: moedaRel(r.faturado), alinhar: 'right' },
-      { texto: moedaRel(r.saldoContratar), alinhar: 'right', cor: COR_REL.verde },
+      /* v1.95: Saldo = total do insumo (previsto) − consumido em NF */
+      { texto: moedaRel(r.vigente - r.faturado), alinhar: 'right', cor: r.vigente - r.faturado < -0.005 ? COR_REL.vermelho : COR_REL.verde },
       { texto: percRel(pComp), alinhar: 'center' },
       { texto: percRel(pCons), alinhar: 'center' },
       { texto: '●', tamanho: 14, cor: corSituacaoRel(pComp), alinhar: 'center' },
@@ -15885,7 +16361,7 @@ function slidesAtividades(d, op) {
     { texto: moedaRel(prev), negrito: true, alinhar: 'right', preenchimento: T },
     { texto: moedaRel(comp), negrito: true, alinhar: 'right', preenchimento: T },
     { texto: moedaRel(cons), negrito: true, alinhar: 'right', preenchimento: T },
-    { texto: moedaRel(prev - comp), negrito: true, alinhar: 'right', preenchimento: T },
+    { texto: moedaRel(prev - cons), negrito: true, alinhar: 'right', preenchimento: T },
     { texto: percRel(prev > 0 ? (comp / prev) * 100 : 0), negrito: true, alinhar: 'center', preenchimento: T },
     { texto: percRel(prev > 0 ? (cons / prev) * 100 : 0), negrito: true, alinhar: 'center', preenchimento: T },
     { texto: '', preenchimento: T },
@@ -15922,7 +16398,7 @@ function slidesPedido(p, d, op) {
       celCab('', { tamanho: 8, partes: [{ texto: 'Via Assinada', quebra: true }, { texto: 'lançado no e-clic', tamanho: 5, negrito: false }] }),
       celCab('Nº Doc.', { tamanho: 8 }), celCab('Emissão', { tamanho: 8 }), celCab('Vencimento', { tamanho: 8 }), celCab('Pagamento', { tamanho: 8 }), celCab('Status', { tamanho: 8 }), celCab('Nº GRD', { tamanho: 8 })],
   ];
-  /* blocos: cada NF (linhas da NF + boletos + descricao) fica inteira no mesmo slide */
+  /* blocos: cada NF (linhas da NF + boletos) fica inteira no mesmo slide (v1.94: sem a descricao) */
   const blocos = p.nfs.map((l) => {
     const nb = Math.max(1, l.bols.length);
     const celBoleto = (b) => {
@@ -15933,20 +16409,14 @@ function slidesPedido(p, d, op) {
         { texto: textoGrds(b.grds) || '—' }];
     };
     const primeira = [
-      { texto: p.ped.numero, rowspan: nb + 1 }, { texto: l.nf.numero, negrito: true, rowspan: nb + 1, tamanho: String(l.nf.numero).length > 9 ? 7.5 : 9 },
+      { texto: p.ped.numero, rowspan: nb }, { texto: l.nf.numero, negrito: true, rowspan: nb, tamanho: String(l.nf.numero).length > 9 ? 7.5 : 9 },
       { texto: dataRel(l.nf.data), rowspan: nb }, { texto: moedaRel(l.nf.valor), rowspan: nb }, { texto: dataRel(l.vencimento), rowspan: nb },
       { texto: l.grd, rowspan: nb },
       { texto: l.nf.eclic ? '● Sim' : '● Não', cor: l.nf.eclic ? COR_REL.verde : COR_REL.vermelho, negrito: true, rowspan: nb },
       ...celBoleto(l.bols[0]),
     ];
     const linhas = [primeira, ...l.bols.slice(1).map((b) => celBoleto(b))];
-    linhas.push([{
-      colspan: 11, alinhar: 'center', tamanho: 7, cor: '333333', partes: [
-        { texto: 'DESCRIÇÃO', tamanho: 6, negrito: true, cor: COR_REL.descricao, quebra: true },
-        ...l.descricao.map((t, i) => ({ texto: t, quebra: i < l.descricao.length - 1 })),
-      ],
-    }]);
-    const alturas = [...linhas.slice(0, -1).map(() => 0.3), 0.2 + 0.11 * l.descricao.length];
+    const alturas = linhas.map(() => 0.3);
     return { linhas, alturas };
   });
   let total = null;
@@ -16031,7 +16501,8 @@ async function montarSlidesTerceiros(ids, op) {
   if (op.atividades) slides.push(...slidesAtividades(d, op));
   slides.push(...slidesResumo(d, op));
   if (op.grafico) slides.push(await slideGrafico(op));
-  if (op.consumoMes) { const sm = slideConsumoMes(d); if (sm) slides.push(sm); }
+  /* v1.95: Estimado x Consumido (mes atual) + Estimado do mes seguinte, no lugar do "Consumido do mes" */
+  if (op.consumoMes) slides.push(...slidesEstimadoConsumido(d), ...slidesEstimadoProximoMes(d));
   if (op.relacaoNotas) d.peds.forEach((p) => slides.push(...slidesPedido(p, d, op)));
   return { slides, d };
 }
@@ -16305,7 +16776,7 @@ function abaGerarRelatorios() {
       caixaOpcao(opcoesRelTerceiro, 'relacaoNotas', 'Incluir relação de Notas Fiscais (um slide por pedido, com boletos)'),
       caixaOpcao(opcoesRelTerceiro, 'linhaTotal', 'Incluir linha de total'),
       caixaOpcao(opcoesRelTerceiro, 'grafico', 'Incluir gráfico de evolução mensal'),
-      caixaOpcao(opcoesRelTerceiro, 'consumoMes', 'Consumido do mês atual (insumo, terceiro e valor) — após a evolução mensal'),
+      caixaOpcao(opcoesRelTerceiro, 'consumoMes', 'Estimado x Consumido do mês atual e Estimado do mês seguinte (projeção por insumo; só insumos com estimado) — após a evolução mensal'),
       caixaOpcao(opcoesRelTerceiro, 'capa', 'Página inicial: Previsto do Contrato x Consumido (NFs) x Saldo — contrato inteiro'),
       h('div', { class: 'ctc-cluster' }, botaoPdf, botaoPpt),
       h('p', { class: 'ctc-text-xs ctc-text-muted' }, 'O PowerPoint usa um gerador carregado da internet na primeira vez. O PDF não precisa dele.')),
@@ -16597,7 +17068,7 @@ function abrirAjuda() {
 
 const MARCA = { logo: 'KZ', titulo: 'Faturamento Direto' };
 /** v1.90: versao deste arquivo (o aviso de nova versao compara com a publicada) */
-const VERSAO_FD = '1.91.0';
+const VERSAO_FD = '1.95.0';
 
 /* ---- Entrada somente por controlador ---- */
 
@@ -16802,7 +17273,7 @@ function abrirAplicativo({ perfil, usuario, base, nomeArquivo }) {
         }))) return;
         sair();
       },
-      rodape: 'Faturamento Direto v1.91 · KZ App Standard v1.7',
+      rodape: 'Faturamento Direto v1.95 · KZ App Standard v1.7',
     },
     paginas: {
       tendencia: { titulo: 'Tendência', caminho: ['Principal'], render: paginaTendencia },
@@ -17696,6 +18167,7 @@ Object.assign(TOURS_FD, {
     { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Notas fiscais', 'modal')], sel: BT('Notas fiscais', 'modal'), tit: 'Aba Notas fiscais', txt: 'As NFs lançadas neste pedido.' },
     { pagina: 'pedidos', janela: true, antes: [J_PED_DETALHE, AC.aba('Notas fiscais', 'modal')], sel: BT('Nova NF deste pedido', 'modal'), edicao: true, tit: 'Nova NF deste pedido', txt: 'Lança uma NF já ligada a este pedido.' },
     { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Alterar REIDI', 'modal'), edicao: true, tit: 'Alterar REIDI', txt: 'Troca o modo de REIDI do pedido (Sem, Por pedido ou Por produto) e escolhe qual valor fica fixo ao recalcular.' },
+    { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Aditivo de pedido', 'modal'), edicao: true, tit: 'Aditivo de pedido', txt: 'Acrescenta quantidade aos produtos do pedido e/ou inclui produtos novos. O valor do pedido muda e o aditivo fica na aba Aditivos.' },
     { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Distrato de saldo', 'modal'), edicao: true, tit: 'Distrato de saldo', txt: 'Registra a solicitação de distrato do saldo do pedido (gera PDF).' },
     { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Editar dados do pedido', 'modal'), edicao: true, tit: 'Editar dados do pedido', txt: 'Abre o cadastro (número, data, UFs, DIFAL, observações).' },
     { pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Excluir pedido', 'modal'), edicao: true, tit: 'Excluir pedido', txt: 'Remove o pedido (pede confirmação). Pedidos com NFs ficam bloqueados.' },
@@ -17817,6 +18289,7 @@ const AJUDA_FD = {
   lancar_nf_linha: { grupo: 'Pedidos e produtos', t: '📄 Lançar NF do pedido', p: 'lancar nf pedido documento icone', f: 'Abre uma NF nova já ligada ao pedido.', onde: 'Na linha do pedido (ícone de documento).', edicao: true, pagina: 'pedidos', sel: TITULO('Lançar NF do pedido'), tour: 'nf_nova' },
   excluir_pedido: { grupo: 'Pedidos e produtos', t: '🗑 Excluir pedido', p: 'excluir pedido lixeira apagar', f: 'Exclui o pedido (pede confirmação). Se houver NFs lançadas, a exclusão é bloqueada.', onde: 'Na linha do pedido (lixeira) e dentro do pedido.', edicao: true, pagina: 'pedidos', sel: TITULO('Excluir pedido') },
   alterar_reidi: { grupo: 'Pedidos e produtos', t: 'Alterar REIDI', p: 'alterar reidi modo pedido produto percentual', f: 'Troca o modo de REIDI do pedido (Sem REIDI, Por pedido com % único ou Por produto) e escolhe se ao recalcular fica fixo o valor SEM ou o COM REIDI.', onde: 'Dentro do pedido.', edicao: true, pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Alterar REIDI', 'modal') },
+  aditivo_pedido: { grupo: 'Pedidos e produtos', t: 'Aditivo de pedido', p: 'aditivo aditivar pedido acrescimo aumentar quantidade saldo produto novo', f: 'Aumenta o pedido: acrescenta quantidade aos produtos já contratados e/ou cria produtos novos. O valor e o saldo do pedido passam a contar o aditivo, que fica registrado (nº, data, motivo e itens) na aba <b>Aditivos</b> do pedido.', onde: 'Dentro do pedido.', edicao: true, pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Aditivo de pedido', 'modal') },
   distrato: { grupo: 'Pedidos e produtos', t: 'Distrato de saldo', p: 'distrato saldo pedido cancelar encerrar', f: 'Registra a solicitação de distrato do saldo do pedido (status SOLICITADO) e gera o PDF. O saldo só sai do pedido e volta para o insumo quando o distrato é <b>APROVADO</b>.', onde: 'Dentro do pedido.', edicao: true, pagina: 'pedidos', janela: true, antes: J_PED_DETALHE, sel: BT('Distrato de saldo', 'modal'),
     telas: [{ h: 'Como registrar', passos: ['Abra o pedido e clique em <b>Distrato de saldo</b>.', 'Informe nº do distrato, data e motivo.', 'Escreva a descrição ou use <b>Gerar descrição automática</b> / <b>Melhorar meu texto</b>.', 'Salve e gere o <b>PDF do distrato</b>.', 'Depois, na faixa do distrato no pedido: <b>Aprovar</b>, <b>Reprovar</b>, <b>Voltar para solicitado</b> ou <b>Excluir solicitação</b>.'], aviso: 'Enquanto estiver SOLICITADO o saldo continua no pedido.' }] },
   /* Base de faturamento */
